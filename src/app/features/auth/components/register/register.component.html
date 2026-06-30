@@ -1,0 +1,138 @@
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <div class="card register-card">
+        <div class="card-header bg-success text-white">
+          <h4 class="mb-0">Register</h4>
+        </div>
+        <div class="card-body">
+          <!-- Error Alert -->
+          <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show" role="alert">
+            {{ errorMessage }}
+            <button type="button" class="btn-close" (click)="errorMessage = ''" aria-label="Close"></button>
+          </div>
+
+          <!-- Register Form -->
+          <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+            <!-- First Name Field -->
+            <div class="mb-3">
+              <label for="firstName" class="form-label">First Name</label>
+              <input
+                type="text"
+                class="form-control"
+                id="firstName"
+                formControlName="firstName"
+                [class.is-invalid]="firstName?.invalid && firstName?.touched"
+                placeholder="Enter your first name"
+              />
+              <div class="invalid-feedback" *ngIf="firstName?.invalid && firstName?.touched">
+                <div *ngIf="firstName?.errors?.['required']">First name is required</div>
+                <div *ngIf="firstName?.errors?.['minlength']">
+                  First name must be at least 2 characters
+                </div>
+              </div>
+            </div>
+
+            <!-- Last Name Field -->
+            <div class="mb-3">
+              <label for="lastName" class="form-label">Last Name</label>
+              <input
+                type="text"
+                class="form-control"
+                id="lastName"
+                formControlName="lastName"
+                [class.is-invalid]="lastName?.invalid && lastName?.touched"
+                placeholder="Enter your last name"
+              />
+              <div class="invalid-feedback" *ngIf="lastName?.invalid && lastName?.touched">
+                <div *ngIf="lastName?.errors?.['required']">Last name is required</div>
+                <div *ngIf="lastName?.errors?.['minlength']">
+                  Last name must be at least 2 characters
+                </div>
+              </div>
+            </div>
+
+            <!-- Email Field -->
+            <div class="mb-3">
+              <label for="email" class="form-label">Email Address</label>
+              <input
+                type="email"
+                class="form-control"
+                id="email"
+                formControlName="email"
+                [class.is-invalid]="email?.invalid && email?.touched"
+                placeholder="Enter your email"
+              />
+              <div class="invalid-feedback" *ngIf="email?.invalid && email?.touched">
+                <div *ngIf="email?.errors?.['required']">Email is required</div>
+                <div *ngIf="email?.errors?.['email']">Please enter a valid email address</div>
+              </div>
+            </div>
+
+            <!-- Password Field -->
+            <div class="mb-3">
+              <label for="password" class="form-label">Password</label>
+              <input
+                type="password"
+                class="form-control"
+                id="password"
+                formControlName="password"
+                [class.is-invalid]="password?.invalid && password?.touched"
+                placeholder="Enter your password"
+              />
+              <div class="invalid-feedback" *ngIf="password?.invalid && password?.touched">
+                <div *ngIf="password?.errors?.['required']">Password is required</div>
+                <div *ngIf="password?.errors?.['minlength']">
+                  Password must be at least 6 characters
+                </div>
+              </div>
+            </div>
+
+            <!-- Confirm Password Field -->
+            <div class="mb-3">
+              <label for="confirmPassword" class="form-label">Confirm Password</label>
+              <input
+                type="password"
+                class="form-control"
+                id="confirmPassword"
+                formControlName="confirmPassword"
+                [class.is-invalid]="confirmPassword?.invalid && confirmPassword?.touched"
+                placeholder="Confirm your password"
+              />
+              <div class="invalid-feedback" *ngIf="confirmPassword?.invalid && confirmPassword?.touched">
+                <div *ngIf="confirmPassword?.errors?.['required']">Please confirm your password</div>
+              </div>
+            </div>
+
+            <!-- Password Mismatch Error -->
+            <div *ngIf="passwordMismatch" class="alert alert-warning alert-dismissible fade show" role="alert">
+              Passwords do not match
+              <button type="button" class="btn-close" (click)="errorMessage = ''" aria-label="Close"></button>
+            </div>
+
+            <!-- Submit Button -->
+            <button
+              type="submit"
+              class="btn btn-success w-100"
+              [disabled]="registerForm.invalid || isLoading"
+            >
+              <span *ngIf="!isLoading">Register</span>
+              <span *ngIf="isLoading">
+                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                Creating account...
+              </span>
+            </button>
+          </form>
+
+          <!-- Login Link -->
+          <div class="text-center mt-3">
+            <p>
+              Already have an account?
+              <a routerLink="/login" class="text-primary">Login here</a>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
