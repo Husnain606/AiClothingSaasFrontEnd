@@ -112,6 +112,6 @@ export class RegisterComponent implements OnInit, OnDestroy {
   }
 
   get passwordMismatch(): boolean {
-    return this.registerForm.hasError('passwordMismatch') && this.confirmPassword?.touched || false;
+    return (this.registerForm.hasError('passwordMismatch') && this.confirmPassword?.touched) || false;
   }
 }
