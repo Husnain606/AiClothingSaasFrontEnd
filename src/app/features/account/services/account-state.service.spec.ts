@@ -230,14 +230,16 @@ describe('AccountStateService', () => {
       return new Promise<void>((resolve) => {
         let emissions = 0;
 
-        service.wishlist$.subscribe((items) => {
+        const subscription = service.wishlist$.subscribe((items) => {
           emissions++;
           if (emissions === 1) {
             // First emission: initial set
             expect(items.length).toBe(2);
-          } else if (emissions === 2 && items.length === 1) {
+          } else if (emissions === 2) {
             // Second emission: after removal
+            expect(items.length).toBe(1);
             expect(items[0].id).toBe('WISH-001');
+            subscription.unsubscribe();
             resolve();
           }
         });
