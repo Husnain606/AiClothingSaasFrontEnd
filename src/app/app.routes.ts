@@ -6,6 +6,7 @@ import { CatalogComponent } from './features/catalog/components/catalog/catalog.
 import { ProductDetailComponent } from './features/catalog/components/product-detail/product-detail.component';
 import { CartComponent } from './features/cart/components/cart/cart.component';
 import { cartNotEmptyGuard } from './features/cart/guards/cart-not-empty.guard';
+import { AccountComponent } from './features/account/components/account/account.component';
 
 export const routes: Routes = [
   {
@@ -24,6 +25,11 @@ export const routes: Routes = [
   {
     path: 'products/:id',
     component: ProductDetailComponent,
+    canActivate: [authGuard],
+  },
+  {
+    path: 'account',
+    component: AccountComponent,
     canActivate: [authGuard],
   },
   {

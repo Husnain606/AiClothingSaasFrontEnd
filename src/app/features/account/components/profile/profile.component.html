@@ -1,0 +1,221 @@
+<div class="card">
+  <div class="card-body">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h5 class="card-title mb-0">Profile Information</h5>
+      <button
+        class="btn btn-sm btn-outline-primary"
+        (click)="onEdit()"
+        *ngIf="!isEditing"
+        type="button"
+      >
+        <i class="bi bi-pencil"></i> Edit
+      </button>
+    </div>
+
+    <!-- Success Alert -->
+    <div *ngIf="showSuccessAlert" class="alert alert-success alert-dismissible fade show" role="alert">
+      <i class="bi bi-check-circle"></i> Profile updated successfully!
+    </div>
+
+    <!-- Error Alert -->
+    <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show" role="alert">
+      <i class="bi bi-exclamation-circle"></i> {{ errorMessage }}
+      <button type="button" class="btn-close" (click)="errorMessage = ''"></button>
+    </div>
+
+    <!-- Edit Form -->
+    <form [formGroup]="form" (ngSubmit)="onSave()" *ngIf="isEditing">
+      <!-- First Name and Last Name -->
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <label class="form-label">First Name</label>
+          <input
+            type="text"
+            class="form-control"
+            formControlName="firstName"
+            [ngClass]="{ 'is-invalid': getFieldError('firstName') }"
+          />
+          <div class="invalid-feedback" *ngIf="getFieldError('firstName')">
+            {{ getFieldError('firstName') }}
+          </div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Last Name</label>
+          <input
+            type="text"
+            class="form-control"
+            formControlName="lastName"
+            [ngClass]="{ 'is-invalid': getFieldError('lastName') }"
+          />
+          <div class="invalid-feedback" *ngIf="getFieldError('lastName')">
+            {{ getFieldError('lastName') }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Email and Phone -->
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <label class="form-label">Email</label>
+          <input type="email" class="form-control" formControlName="email" [attr.disabled]="true" />
+          <small class="text-muted">Email cannot be changed</small>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Phone</label>
+          <input
+            type="tel"
+            class="form-control"
+            formControlName="phone"
+            placeholder="1234567890"
+            [ngClass]="{ 'is-invalid': getFieldError('phone') }"
+          />
+          <div class="invalid-feedback" *ngIf="getFieldError('phone')">
+            {{ getFieldError('phone') }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Address -->
+      <div formGroupName="address">
+        <div class="mb-3">
+          <label class="form-label">Street Address</label>
+          <input
+            type="text"
+            class="form-control"
+            formControlName="street"
+            [ngClass]="{ 'is-invalid': form.get('address.street')?.touched && form.get('address.street')?.errors }"
+          />
+          <div class="invalid-feedback" *ngIf="form.get('address.street')?.touched && form.get('address.street')?.errors">
+            Street address is required
+          </div>
+        </div>
+
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <label class="form-label">City</label>
+            <input
+              type="text"
+              class="form-control"
+              formControlName="city"
+              [ngClass]="{ 'is-invalid': form.get('address.city')?.touched && form.get('address.city')?.errors }"
+            />
+            <div class="invalid-feedback" *ngIf="form.get('address.city')?.touched && form.get('address.city')?.errors">
+              City is required
+            </div>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">State</label>
+            <input
+              type="text"
+              class="form-control"
+              formControlName="state"
+              placeholder="NY"
+              [ngClass]="{ 'is-invalid': form.get('address.state')?.touched && form.get('address.state')?.errors }"
+            />
+            <div class="invalid-feedback" *ngIf="form.get('address.state')?.touched && form.get('address.state')?.errors">
+              State is required
+            </div>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">ZIP Code</label>
+            <input
+              type="text"
+              class="form-control"
+              formControlName="zipCode"
+              placeholder="10001"
+              [ngClass]="{ 'is-invalid': form.get('address.zipCode')?.touched && form.get('address.zipCode')?.errors }"
+            />
+            <div class="invalid-feedback" *ngIf="form.get('address.zipCode')?.touched && form.get('address.zipCode')?.errors">
+              ZIP code must be 5 digits
+            </div>
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label">Country</label>
+          <select class="form-select" formControlName="country">
+            <option value="US">United States</option>
+            <option value="CA">Canada</option>
+            <option value="MX">Mexico</option>
+            <option value="UK">United Kingdom</option>
+            <option value="AU">Australia</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="d-flex gap-2">
+        <button
+          type="submit"
+          class="btn btn-primary"
+          [disabled]="form.invalid || isSubmitting"
+        >
+          <span *ngIf="!isSubmitting">
+            <i class="bi bi-check"></i> Save Changes
+          </span>
+          <span *ngIf="isSubmitting">
+            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+            Saving...
+          </span>
+        </button>
+        <button type="button" class="btn btn-outline-secondary" (click)="onCancel()">
+          <i class="bi bi-x"></i> Cancel
+        </button>
+      </div>
+    </form>
+
+    <!-- View Mode -->
+    <div *ngIf="!isEditing && profile">
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <p class="text-muted mb-1">
+            <i class="bi bi-person"></i> First Name
+          </p>
+          <p class="fs-5">{{ profile.firstName }}</p>
+        </div>
+        <div class="col-md-6">
+          <p class="text-muted mb-1">
+            <i class="bi bi-person"></i> Last Name
+          </p>
+          <p class="fs-5">{{ profile.lastName }}</p>
+        </div>
+      </div>
+
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <p class="text-muted mb-1">
+            <i class="bi bi-envelope"></i> Email
+          </p>
+          <p class="fs-5">{{ profile.email }}</p>
+        </div>
+        <div class="col-md-6">
+          <p class="text-muted mb-1">
+            <i class="bi bi-telephone"></i> Phone
+          </p>
+          <p class="fs-5">{{ profile.phone }}</p>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <p class="text-muted mb-1">
+          <i class="bi bi-geo-alt"></i> Address
+        </p>
+        <p class="fs-5">
+          {{ profile.address.street }}<br />
+          {{ profile.address.city }}, {{ profile.address.state }} {{ profile.address.zipCode }}<br />
+          {{ profile.address.country }}
+        </p>
+      </div>
+
+      <div class="row text-muted small">
+        <div class="col-md-6">
+          <p>Created: {{ profile.createdDate | date: 'medium' }}</p>
+        </div>
+        <div class="col-md-6">
+          <p>Last Updated: {{ profile.lastModifiedDate | date: 'medium' }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,75 @@
+<div class="container mt-4">
+  <h1 class="mb-4">My Account</h1>
+
+  <!-- Error Alert -->
+  <div *ngIf="hasError" class="alert alert-danger alert-dismissible fade show" role="alert">
+    {{ errorMessage }}
+    <button type="button" class="btn-close" (click)="hasError = false"></button>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="text-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="mt-3">Loading your account information...</p>
+  </div>
+
+  <!-- Tabs Navigation -->
+  <ul class="nav nav-tabs mb-4" role="tablist" *ngIf="!isLoading">
+    <li class="nav-item" role="presentation">
+      <button
+        class="nav-link"
+        [ngClass]="{ active: currentTab === 'profile' }"
+        (click)="onTabChange('profile')"
+        type="button"
+        role="tab"
+        [attr.aria-selected]="currentTab === 'profile'"
+      >
+        <i class="bi bi-person"></i> Profile
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button
+        class="nav-link"
+        [ngClass]="{ active: currentTab === 'orders' }"
+        (click)="onTabChange('orders')"
+        type="button"
+        role="tab"
+        [attr.aria-selected]="currentTab === 'orders'"
+      >
+        <i class="bi bi-box"></i> Order History
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button
+        class="nav-link"
+        [ngClass]="{ active: currentTab === 'wishlist' }"
+        (click)="onTabChange('wishlist')"
+        type="button"
+        role="tab"
+        [attr.aria-selected]="currentTab === 'wishlist'"
+      >
+        <i class="bi bi-heart"></i> Wishlist
+      </button>
+    </li>
+  </ul>
+
+  <!-- Tab Content -->
+  <div class="tab-content" *ngIf="!isLoading">
+    <!-- Profile Tab -->
+    <div *ngIf="currentTab === 'profile'" class="tab-pane active" role="tabpanel">
+      <app-profile [profile]="profile$ | async"></app-profile>
+    </div>
+
+    <!-- Order History Tab -->
+    <div *ngIf="currentTab === 'orders'" class="tab-pane active" role="tabpanel">
+      <app-order-history></app-order-history>
+    </div>
+
+    <!-- Wishlist Tab -->
+    <div *ngIf="currentTab === 'wishlist'" class="tab-pane active" role="tabpanel">
+      <app-wishlist></app-wishlist>
+    </div>
+  </div>
+</div>

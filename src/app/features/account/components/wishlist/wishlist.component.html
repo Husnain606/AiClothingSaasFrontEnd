@@ -1,0 +1,106 @@
+<div class="container-fluid">
+  <!-- Error Alert -->
+  <div *ngIf="hasError" class="alert alert-danger alert-dismissible fade show" role="alert">
+    {{ errorMessage }}
+    <button type="button" class="btn-close" (click)="hasError = false"></button>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="text-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="mt-3">Loading your wishlist...</p>
+  </div>
+
+  <!-- Wishlist Content -->
+  <div *ngIf="!isLoading">
+    <h5 class="mb-4">My Wishlist</h5>
+
+    <div *ngIf="(wishlistItems$ | async)?.length; else emptyWishlist" class="row">
+      <div *ngFor="let item of wishlistItems$ | async" class="col-lg-4 col-md-6 col-sm-6 col-12 mb-4">
+        <div class="card wishlist-card h-100">
+          <!-- Product Image -->
+          <div class="wishlist-image-wrapper">
+            <img
+              [src]="item.imageUrl"
+              class="card-img-top"
+              [alt]="item.productName"
+              onerror="this.src='https://via.placeholder.com/300x300?text=No+Image'"
+            />
+            <div class="overlay">
+              <button
+                class="btn btn-sm btn-danger"
+                (click)="onRemove(item)"
+                [disabled]="removing[item.id]"
+                type="button"
+                title="Remove from wishlist"
+              >
+                <i class="bi bi-heart-fill"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Product Info -->
+          <div class="card-body d-flex flex-column">
+            <h6 class="card-title">{{ item.productName }}</h6>
+            <p class="card-text text-muted flex-grow-1">
+              <span class="price">${{ item.price | number: '1.2-2' }}</span>
+            </p>
+
+            <!-- Stock Status -->
+            <div class="mb-3">
+              <span *ngIf="item.inStock" class="badge bg-success">In Stock</span>
+              <span *ngIf="!item.inStock" class="badge bg-danger">Out of Stock</span>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="d-grid gap-2">
+              <button
+                class="btn btn-primary btn-sm"
+                (click)="onAddToCart(item)"
+                [disabled]="!item.inStock || addingToCart[item.id]"
+                type="button"
+              >
+                <span *ngIf="!addingToCart[item.id]">
+                  <i class="bi bi-cart-plus"></i> Add to Cart
+                </span>
+                <span *ngIf="addingToCart[item.id]">
+                  <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                  Adding...
+                </span>
+              </button>
+
+              <button
+                class="btn btn-outline-danger btn-sm"
+                (click)="onRemove(item)"
+                [disabled]="removing[item.id]"
+                type="button"
+              >
+                <span *ngIf="!removing[item.id]">
+                  <i class="bi bi-trash"></i> Remove
+                </span>
+                <span *ngIf="removing[item.id]">
+                  <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                  Removing...
+                </span>
+              </button>
+            </div>
+
+            <!-- Added Date -->
+            <small class="text-muted d-block mt-3">
+              <i class="bi bi-calendar"></i> Added {{ item.addedDate | date: 'short' }}
+            </small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty Wishlist -->
+    <ng-template #emptyWishlist>
+      <div class="alert alert-info" role="alert">
+        <i class="bi bi-heart"></i> Your wishlist is empty. <a href="/products">Continue shopping</a> to add items.
+      </div>
+    </ng-template>
+  </div>
+</div>
