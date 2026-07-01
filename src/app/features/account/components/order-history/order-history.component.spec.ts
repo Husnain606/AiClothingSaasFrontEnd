@@ -1,4 +1,5 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+import { fakeAsync, tick } from '@angular/core/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { OrderHistoryComponent } from './order-history.component';
 import { AccountService } from '../../services/account.service';
@@ -98,6 +99,10 @@ describe('OrderHistoryComponent', () => {
     component = fixture.componentInstance;
   });
 
+  afterEach(() => {
+    fixture.destroy();
+  });
+
   describe('Component Initialization', () => {
     it('should create', () => {
       expect(component).toBeTruthy();
@@ -133,22 +138,20 @@ describe('OrderHistoryComponent', () => {
       expect(mockAccountService.getOrders).toHaveBeenCalled();
     });
 
-    it('should set loading to false after loading orders', () => { return new Promise<void>((resolve) => {
+    it('should set loading to false after loading orders', fakeAsync(() => {
       component.ngOnInit();
-      fixture.detectChanges();
+      tick();
 
-      setTimeout(() => {
-        expect(component.isLoading).toBe(false);
-        resolve();
-      }, 100);
-    }); });
+      expect(component.isLoading).toBe(false);
+    }));
   });
 
   describe('Load Orders', () => {
-    it('should set loading state to true when loading', () => {
+    it('should set loading state to true when loading', fakeAsync(() => {
       component['loadOrders']();
       expect(component.isLoading).toBe(true);
-    });
+      tick();
+    }));
 
     it('should clear error state when loading', () => {
       component.hasError = true;
@@ -178,21 +181,18 @@ describe('OrderHistoryComponent', () => {
       }, 100);
     }); });
 
-    it('should handle orders load error', () => { return new Promise<void>((resolve) => {
+    it('should handle orders load error', fakeAsync(() => {
       mockAccountService.getOrders = vi
         .fn()
         .mockReturnValue(throwError(() => new Error('Network error')));
 
       component['loadOrders']();
-      fixture.detectChanges();
+      tick();
 
-      setTimeout(() => {
-        expect(component.hasError).toBe(true);
-        expect(component.errorMessage).toContain('Failed to load orders');
-        expect(component.isLoading).toBe(false);
-        resolve();
-      }, 100);
-    }); });
+      expect(component.hasError).toBe(true);
+      expect(component.errorMessage).toContain('Failed to load orders');
+      expect(component.isLoading).toBe(false);
+    }));
 
     it('should set orders$ observable from state service', () => {
       component['loadOrders']();
@@ -227,82 +227,65 @@ describe('OrderHistoryComponent', () => {
   });
 
   describe('Reorder Functionality', () => {
-    it('should set reordering flag to true', () => {
+    it('should set reordering flag to true', fakeAsync(() => {
       component.isReordering = false;
       component.onReorder(mockOrders[0]);
 
       expect(component.isReordering).toBe(true);
-    });
+      tick();
+    }));
 
-    it('should add all order items to cart', () => { return new Promise<void>((resolve) => {
+    it('should add all order items to cart', fakeAsync(() => {
       component.onReorder(mockOrders[0]);
-      fixture.detectChanges();
+      tick();
 
-      setTimeout(() => {
-        expect(mockCartService.addItem).toHaveBeenCalled();
-        resolve();
-      }, 100);
-    }); });
+      expect(mockCartService.addItem).toHaveBeenCalled();
+    }));
 
-    it('should navigate to cart after reorder', () => { return new Promise<void>((resolve) => {
+    it('should navigate to cart after reorder', fakeAsync(() => {
       component.onReorder(mockOrders[0]);
-      fixture.detectChanges();
+      tick();
 
-      setTimeout(() => {
-        expect(mockRouter.navigate).toHaveBeenCalledWith(['/cart']);
-        resolve();
-      }, 100);
-    }); });
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/cart']);
+    }));
 
-    it('should set reordering flag to false after completion', () => { return new Promise<void>((resolve) => {
+    it('should set reordering flag to false after completion', fakeAsync(() => {
       component.onReorder(mockOrders[0]);
-      fixture.detectChanges();
+      tick();
 
-      setTimeout(() => {
-        expect(component.isReordering).toBe(false);
-        resolve();
-      }, 100);
-    }); });
+      expect(component.isReordering).toBe(false);
+    }));
 
-    it('should handle error during reorder', () => { return new Promise<void>((resolve) => {
+    it('should handle error during reorder', fakeAsync(() => {
       mockCartService.addItem = vi.fn().mockReturnValue(throwError(() => new Error('Cart error')));
 
       component.onReorder(mockOrders[0]);
-      fixture.detectChanges();
+      tick();
 
-      setTimeout(() => {
-        expect(component.isReordering).toBe(false);
-        resolve();
-      }, 100);
-    }); });
+      expect(component.isReordering).toBe(false);
+    }));
 
-    it('should add item with correct quantity from order', () => { return new Promise<void>((resolve) => {
+    it('should add item with correct quantity from order', fakeAsync(() => {
       const order = mockOrders[0];
       component.onReorder(order);
-      fixture.detectChanges();
+      tick();
 
-      setTimeout(() => {
-        expect(mockCartService.addItem).toHaveBeenCalled();
-        const callArgs = (mockCartService.addItem as any).mock.calls[0];
-        expect(callArgs[1]).toBe(2); // quantity
-        resolve();
-      }, 100);
-    }); });
+      expect(mockCartService.addItem).toHaveBeenCalled();
+      const callArgs = (mockCartService.addItem as any).mock.calls[0];
+      expect(callArgs[1]).toBe(2); // quantity
+    }));
 
-    it('should add item with variant from order', () => { return new Promise<void>((resolve) => {
+    it('should add item with variant from order', fakeAsync(() => {
       const order = mockOrders[0];
       component.onReorder(order);
-      fixture.detectChanges();
+      tick();
 
-      setTimeout(() => {
-        expect(mockCartService.addItem).toHaveBeenCalled();
-        const callArgs = (mockCartService.addItem as any).mock.calls[0];
-        expect(callArgs[2]).toEqual({ size: 'M', color: 'Blue' }); // variant
-        resolve();
-      }, 100);
-    }); });
+      expect(mockCartService.addItem).toHaveBeenCalled();
+      const callArgs = (mockCartService.addItem as any).mock.calls[0];
+      expect(callArgs[2]).toEqual({ size: 'M', color: 'Blue' }); // variant
+    }));
 
-    it('should handle multiple items in order', () => { return new Promise<void>((resolve) => {
+    it('should handle multiple items in order', fakeAsync(() => {
       const multiItemOrder: Order = {
         ...mockOrders[0],
         items: [
@@ -313,14 +296,11 @@ describe('OrderHistoryComponent', () => {
       };
 
       component.onReorder(multiItemOrder);
-      fixture.detectChanges();
+      tick();
 
-      setTimeout(() => {
-        expect(mockCartService.addItem).toHaveBeenCalledTimes(3);
-        expect(mockRouter.navigate).toHaveBeenCalledWith(['/cart']);
-        resolve();
-      }, 100);
-    }); });
+      expect(mockCartService.addItem).toHaveBeenCalledTimes(3);
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/cart']);
+    }));
   });
 
   describe('Status Badge Styling', () => {
@@ -361,15 +341,19 @@ describe('OrderHistoryComponent', () => {
       expect(component.orders$).toBeDefined();
     });
 
-    it('should emit orders through orders$ observable', () => { return new Promise<void>((resolve) => {
+    it('should emit orders through orders$ observable', fakeAsync(() => {
       component['loadOrders']();
+      tick();
 
+      let emitted = false;
       component.orders$.subscribe((orders) => {
-        expect(orders.length).toBe(2);
-        expect(orders[0].orderId).toBe('ORD-001');
-        resolve();
+        if (!emitted) {
+          expect(orders.length).toBe(2);
+          expect(orders[0].orderId).toBe('ORD-001');
+          emitted = true;
+        }
       });
-    }); });
+    }));
   });
 
   describe('Error Handling', () => {

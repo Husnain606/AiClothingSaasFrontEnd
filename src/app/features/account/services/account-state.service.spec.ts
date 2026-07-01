@@ -232,7 +232,11 @@ describe('AccountStateService', () => {
 
         service.wishlist$.subscribe((items) => {
           emissions++;
-          if (emissions === 2 && items.length === 1) {
+          if (emissions === 1) {
+            // First emission: initial set
+            expect(items.length).toBe(2);
+          } else if (emissions === 2 && items.length === 1) {
+            // Second emission: after removal
             expect(items[0].id).toBe('WISH-001');
             resolve();
           }
@@ -332,63 +336,70 @@ describe('AccountStateService', () => {
 
   describe('Observable Replay', () => {
     it('should use shareReplay for profile', () => {
-      return new Promise<void>((resolve) => {
-        service.setProfile(mockProfile);
+      service.setProfile(mockProfile);
 
-        let count = 0;
+      let emissionCount = 0;
+      let sub1Emitted = false;
+      let sub2Emitted = false;
 
-        service.profile$.subscribe(() => {
-          count++;
-          if (count === 2) {
-            expect(count).toBe(2);
-            resolve();
-          }
-        });
-
-        service.profile$.subscribe(() => {
-          count++;
-        });
+      const subscription1 = service.profile$.subscribe((profile) => {
+        if (profile !== null) {
+          sub1Emitted = true;
+          emissionCount++;
+        }
       });
+
+      const subscription2 = service.profile$.subscribe((profile) => {
+        if (profile !== null) {
+          sub2Emitted = true;
+          emissionCount++;
+        }
+      });
+
+      expect(emissionCount).toBe(2);
+      expect(sub1Emitted).toBe(true);
+      expect(sub2Emitted).toBe(true);
+
+      subscription1.unsubscribe();
+      subscription2.unsubscribe();
     });
 
     it('should use shareReplay for wishlist', () => {
-      return new Promise<void>((resolve) => {
-        service.setWishlist(mockWishlistItems);
+      service.setWishlist(mockWishlistItems);
 
-        let count = 0;
+      let emissionCount = 0;
 
-        service.wishlist$.subscribe(() => {
-          count++;
-          if (count === 2) {
-            expect(count).toBe(2);
-            resolve();
-          }
-        });
-
-        service.wishlist$.subscribe(() => {
-          count++;
-        });
+      const subscription1 = service.wishlist$.subscribe(() => {
+        emissionCount++;
       });
+
+      const subscription2 = service.wishlist$.subscribe(() => {
+        emissionCount++;
+      });
+
+      expect(emissionCount).toBe(2);
+
+      subscription1.unsubscribe();
+      subscription2.unsubscribe();
     });
 
     it('should use shareReplay for orders', () => {
-      return new Promise<void>((resolve) => {
-        service.setOrders(mockOrders);
+      service.setOrders(mockOrders);
 
-        let count = 0;
+      let emissionCount = 0;
 
-        service.orders$.subscribe(() => {
-          count++;
-          if (count === 2) {
-            expect(count).toBe(2);
-            resolve();
-          }
-        });
-
-        service.orders$.subscribe(() => {
-          count++;
-        });
+      const subscription1 = service.orders$.subscribe(() => {
+        emissionCount++;
       });
+
+      const subscription2 = service.orders$.subscribe(() => {
+        emissionCount++;
+      });
+
+      expect(emissionCount).toBe(2);
+
+      subscription1.unsubscribe();
+      subscription2.unsubscribe();
     });
   });
 });

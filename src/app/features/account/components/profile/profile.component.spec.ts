@@ -1,4 +1,5 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+import { fakeAsync, tick } from '@angular/core/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { ProfileComponent } from './profile.component';
@@ -51,6 +52,10 @@ describe('ProfileComponent', () => {
     component = fixture.componentInstance;
     component.profile = mockProfile;
     fixture.detectChanges();
+  });
+
+  afterEach(() => {
+    fixture.destroy();
   });
 
   describe('Component Initialization', () => {
@@ -258,134 +263,104 @@ describe('ProfileComponent', () => {
       expect(mockAccountService.updateProfile).not.toHaveBeenCalled();
     });
 
-    it('should call updateProfile on valid form submit', () => { return new Promise<void>((resolve) => {
+    it('should call updateProfile on valid form submit', fakeAsync(() => {
       component.form.get('firstName')?.setValue('Jane');
 
       component.onSave();
-      fixture.detectChanges();
+      tick();
 
-      setTimeout(() => {
-        expect(mockAccountService.updateProfile).toHaveBeenCalled();
-        resolve();
-      }, 100);
-    }); });
+      expect(mockAccountService.updateProfile).toHaveBeenCalled();
+    }));
 
-    it('should set submitting to true during submission', () => {
+    it('should set submitting to true during submission', fakeAsync(() => {
       component.isSubmitting = false;
       component.onSave();
 
       expect(component.isSubmitting).toBe(true);
-    });
+      tick();
+    }));
 
-    it('should set submitting to false after submission', () => { return new Promise<void>((resolve) => {
+    it('should set submitting to false after submission', fakeAsync(() => {
       component.onSave();
-      fixture.detectChanges();
+      tick();
 
-      setTimeout(() => {
-        expect(component.isSubmitting).toBe(false);
-        resolve();
-      }, 100);
-    }); });
+      expect(component.isSubmitting).toBe(false);
+    }));
 
-    it('should update state service with new profile', () => { return new Promise<void>((resolve) => {
+    it('should update state service with new profile', fakeAsync(() => {
       component.onSave();
-      fixture.detectChanges();
+      tick();
 
-      setTimeout(() => {
-        expect(mockStateService.setProfile).toHaveBeenCalledWith(mockProfile);
-        resolve();
-      }, 100);
-    }); });
+      expect(mockStateService.setProfile).toHaveBeenCalledWith(mockProfile);
+    }));
 
-    it('should disable edit mode after successful save', () => { return new Promise<void>((resolve) => {
+    it('should disable edit mode after successful save', fakeAsync(() => {
       component.isEditing = true;
       component.onSave();
-      fixture.detectChanges();
+      tick();
 
-      setTimeout(() => {
-        expect(component.isEditing).toBe(false);
-        resolve();
-      }, 100);
-    }); });
+      expect(component.isEditing).toBe(false);
+    }));
 
-    it('should show success alert after save', () => { return new Promise<void>((resolve) => {
+    it('should show success alert after save', fakeAsync(() => {
       component.showSuccessAlert = false;
       component.onSave();
-      fixture.detectChanges();
+      tick();
 
-      setTimeout(() => {
-        expect(component.showSuccessAlert).toBe(true);
-        resolve();
-      }, 100);
-    }); });
+      expect(component.showSuccessAlert).toBe(true);
+    }));
 
-    it('should hide success alert after 3 seconds', () => { return new Promise<void>((resolve) => {
+    it('should hide success alert after 3 seconds', fakeAsync(() => {
       component.showSuccessAlert = false;
       component.onSave();
-      fixture.detectChanges();
+      tick();
 
-      setTimeout(() => {
-        expect(component.showSuccessAlert).toBe(true);
-        setTimeout(() => {
-          expect(component.showSuccessAlert).toBe(false);
-          resolve();
-        }, 3100);
-      }, 100);
-    }); });
+      expect(component.showSuccessAlert).toBe(true);
+      tick(3000);
+      expect(component.showSuccessAlert).toBe(false);
+    }));
 
-    it('should send form data in update request', () => { return new Promise<void>((resolve) => {
+    it('should send form data in update request', fakeAsync(() => {
       component.form.get('firstName')?.setValue('Jane');
       component.form.get('phone')?.setValue('9876543210');
 
       component.onSave();
-      fixture.detectChanges();
+      tick();
 
-      setTimeout(() => {
-        expect(mockAccountService.updateProfile).toHaveBeenCalled();
-        resolve();
-      }, 100);
-    }); });
+      expect(mockAccountService.updateProfile).toHaveBeenCalled();
+    }));
 
-    it('should repopulate form with server response after save', () => { return new Promise<void>((resolve) => {
+    it('should repopulate form with server response after save', fakeAsync(() => {
       component.onSave();
-      fixture.detectChanges();
+      tick();
 
-      setTimeout(() => {
-        expect(component.form.get('firstName')?.value).toBe('John');
-        resolve();
-      }, 100);
-    }); });
+      expect(component.form.get('firstName')?.value).toBe('John');
+    }));
   });
 
   describe('Error Handling', () => {
-    it('should handle profile update error', () => { return new Promise<void>((resolve) => {
+    it('should handle profile update error', fakeAsync(() => {
       mockAccountService.updateProfile = vi
         .fn()
         .mockReturnValue(throwError(() => ({ error: { message: 'Update failed' } })));
 
       component.onSave();
-      fixture.detectChanges();
+      tick();
 
-      setTimeout(() => {
-        expect(component.errorMessage).toBe('Update failed');
-        expect(component.isSubmitting).toBe(false);
-        resolve();
-      }, 100);
-    }); });
+      expect(component.errorMessage).toBe('Update failed');
+      expect(component.isSubmitting).toBe(false);
+    }));
 
-    it('should set default error message if no message provided', () => { return new Promise<void>((resolve) => {
+    it('should set default error message if no message provided', fakeAsync(() => {
       mockAccountService.updateProfile = vi
         .fn()
         .mockReturnValue(throwError(() => ({ error: {} })));
 
       component.onSave();
-      fixture.detectChanges();
+      tick();
 
-      setTimeout(() => {
-        expect(component.errorMessage).toContain('Failed to update profile');
-        resolve();
-      }, 100);
-    }); });
+      expect(component.errorMessage).toContain('Failed to update profile');
+    }));
 
     it('should clear error message before saving', () => {
       component.errorMessage = 'Previous error';
@@ -395,19 +370,16 @@ describe('ProfileComponent', () => {
       expect(component.errorMessage).toBe('');
     });
 
-    it('should set submitting to false on error', () => { return new Promise<void>((resolve) => {
+    it('should set submitting to false on error', fakeAsync(() => {
       mockAccountService.updateProfile = vi
         .fn()
         .mockReturnValue(throwError(() => new Error('API error')));
 
       component.onSave();
-      fixture.detectChanges();
+      tick();
 
-      setTimeout(() => {
-        expect(component.isSubmitting).toBe(false);
-        resolve();
-      }, 100);
-    }); });
+      expect(component.isSubmitting).toBe(false);
+    }));
   });
 
   describe('Field Error Messages', () => {

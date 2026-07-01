@@ -1,4 +1,5 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+import { fakeAsync, tick } from '@angular/core/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { AccountComponent } from './account.component';
 import { AccountService } from '../../services/account.service';
@@ -51,6 +52,10 @@ describe('AccountComponent', () => {
     component = fixture.componentInstance;
   });
 
+  afterEach(() => {
+    fixture.destroy();
+  });
+
   describe('Component Initialization', () => {
     it('should create', () => {
       expect(component).toBeTruthy();
@@ -89,32 +94,27 @@ describe('AccountComponent', () => {
       expect(mockAccountService.getProfile).toHaveBeenCalled();
     });
 
-    it('should set profile in state service on successful load', () => { return new Promise<void>((resolve) => {
+    it('should set profile in state service on successful load', fakeAsync(() => {
       component.ngOnInit();
-      fixture.detectChanges();
+      tick();
 
-      setTimeout(() => {
-        expect(mockStateService.setProfile).toHaveBeenCalledWith(mockProfile);
-        resolve();
-      }, 100);
-    }); });
+      expect(mockStateService.setProfile).toHaveBeenCalledWith(mockProfile);
+    }));
 
-    it('should set loading to false on successful profile load', () => { return new Promise<void>((resolve) => {
+    it('should set loading to false on successful profile load', fakeAsync(() => {
       component.ngOnInit();
-      fixture.detectChanges();
+      tick();
 
-      setTimeout(() => {
-        expect(component.isLoading).toBe(false);
-        resolve();
-      }, 100);
-    }); });
+      expect(component.isLoading).toBe(false);
+    }));
   });
 
   describe('Profile Loading', () => {
-    it('should set loading state to true when loading profile', () => {
+    it('should set loading state to true when loading profile', fakeAsync(() => {
       component['loadProfile']();
       expect(component.isLoading).toBe(true);
-    });
+      tick();
+    }));
 
     it('should clear error state when loading profile', () => {
       component.hasError = true;
@@ -124,23 +124,20 @@ describe('AccountComponent', () => {
       expect(component.hasError).toBe(false);
     });
 
-    it('should handle profile load error', () => { return new Promise<void>((resolve) => {
+    it('should handle profile load error', fakeAsync(() => {
       mockAccountService.getProfile = vi
         .fn()
         .mockReturnValue(throwError(() => new Error('Network error')));
 
       component['loadProfile']();
-      fixture.detectChanges();
+      tick();
 
-      setTimeout(() => {
-        expect(component.hasError).toBe(true);
-        expect(component.errorMessage).toBe('Failed to load profile. Please try again later.');
-        expect(component.isLoading).toBe(false);
-        resolve();
-      }, 100);
-    }); });
+      expect(component.hasError).toBe(true);
+      expect(component.errorMessage).toBe('Failed to load profile. Please try again later.');
+      expect(component.isLoading).toBe(false);
+    }));
 
-    it('should set error message on 401 unauthorized error', () => { return new Promise<void>((resolve) => {
+    it('should set error message on 401 unauthorized error', fakeAsync(() => {
       mockAccountService.getProfile = vi.fn().mockReturnValue(
         throwError(() => ({
           status: 401,
@@ -149,27 +146,21 @@ describe('AccountComponent', () => {
       );
 
       component['loadProfile']();
-      fixture.detectChanges();
+      tick();
 
-      setTimeout(() => {
-        expect(component.hasError).toBe(true);
-        resolve();
-      }, 100);
-    }); });
+      expect(component.hasError).toBe(true);
+    }));
 
-    it('should set loading to false on error', () => { return new Promise<void>((resolve) => {
+    it('should set loading to false on error', fakeAsync(() => {
       mockAccountService.getProfile = vi
         .fn()
         .mockReturnValue(throwError(() => new Error('Network error')));
 
       component['loadProfile']();
-      fixture.detectChanges();
+      tick();
 
-      setTimeout(() => {
-        expect(component.isLoading).toBe(false);
-        resolve();
-      }, 100);
-    }); });
+      expect(component.isLoading).toBe(false);
+    }));
   });
 
   describe('Tab Navigation', () => {
@@ -228,22 +219,25 @@ describe('AccountComponent', () => {
       expect(component.profile$).toBeDefined();
     });
 
-    it('should emit profile values through profile$ observable', () => { return new Promise<void>((resolve) => {
+    it('should emit profile values through profile$ observable', fakeAsync(() => {
       component.ngOnInit();
+      tick();
 
+      let emitted = false;
       component.profile$.subscribe((profile) => {
-        if (profile !== null) {
+        if (profile !== null && !emitted) {
           expect(profile.userId).toBe('123');
-          resolve();
+          emitted = true;
         }
       });
-    }); });
+    }));
 
-    it('should use takeUntil to unsubscribe on destroy', () => {
+    it('should use takeUntil to unsubscribe on destroy', fakeAsync(() => {
       component.ngOnInit();
+      tick();
       component.ngOnDestroy();
       expect(component['destroy$'].closed).toBe(true);
-    });
+    }));
   });
 
   describe('Error Handling', () => {
@@ -260,19 +254,16 @@ describe('AccountComponent', () => {
       consoleSpy.mockRestore();
     });
 
-    it('should display user-friendly error message on failure', () => { return new Promise<void>((resolve) => {
+    it('should display user-friendly error message on failure', fakeAsync(() => {
       mockAccountService.getProfile = vi
         .fn()
         .mockReturnValue(throwError(() => new Error('API error')));
 
       component['loadProfile']();
-      fixture.detectChanges();
+      tick();
 
-      setTimeout(() => {
-        expect(component.errorMessage).toContain('Failed to load profile');
-        resolve();
-      }, 100);
-    }); });
+      expect(component.errorMessage).toContain('Failed to load profile');
+    }));
   });
 
   describe('State Management', () => {
@@ -285,14 +276,12 @@ describe('AccountComponent', () => {
       expect(component.currentTab).toBe(selectedTab);
     });
 
-    it('should reset loading state properly', () => { return new Promise<void>((resolve) => {
+    it('should reset loading state properly', fakeAsync(() => {
       component['loadProfile']();
       expect(component.isLoading).toBe(true);
 
-      setTimeout(() => {
-        expect(component.isLoading).toBe(false);
-        resolve();
-      }, 100);
-    }); });
+      tick();
+      expect(component.isLoading).toBe(false);
+    }));
   });
 });

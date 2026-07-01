@@ -1,4 +1,5 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+import { fakeAsync, tick } from '@angular/core/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { WishlistComponent } from './wishlist.component';
 import { AccountService } from '../../services/account.service';
@@ -71,6 +72,10 @@ describe('WishlistComponent', () => {
     component = fixture.componentInstance;
   });
 
+  afterEach(() => {
+    fixture.destroy();
+  });
+
   describe('Component Initialization', () => {
     it('should create', () => {
       expect(component).toBeTruthy();
@@ -98,31 +103,28 @@ describe('WishlistComponent', () => {
       expect(mockAccountService.getWishlist).toHaveBeenCalled();
     });
 
-    it('should set loading to false after loading', () => { return new Promise<void>((resolve) => {
+    it('should set loading to false after loading', fakeAsync(() => {
       component.ngOnInit();
-      fixture.detectChanges();
-      setTimeout(() => {
-        expect(component.isLoading).toBe(false);
-        resolve();
-      }, 100);
-    }); });
+      tick();
+
+      expect(component.isLoading).toBe(false);
+    }));
   });
 
   describe('Load Wishlist', () => {
-    it('should set loading state to true', () => {
+    it('should set loading state to true', fakeAsync(() => {
       component['loadWishlist']();
       expect(component.isLoading).toBe(true);
-    });
+      tick();
+    }));
 
-    it('should handle wishlist load error', () => { return new Promise<void>((resolve) => {
+    it('should handle wishlist load error', fakeAsync(() => {
       mockAccountService.getWishlist = vi.fn().mockReturnValue(throwError(() => new Error('Error')));
       component['loadWishlist']();
-      fixture.detectChanges();
-      setTimeout(() => {
-        expect(component.hasError).toBe(true);
-        resolve();
-      }, 100);
-    }); });
+      tick();
+
+      expect(component.hasError).toBe(true);
+    }));
 
     it('should set wishlist$ observable', () => {
       component['loadWishlist']();
@@ -131,21 +133,20 @@ describe('WishlistComponent', () => {
   });
 
   describe('Add to Cart', () => {
-    it('should set addingToCart flag', () => {
+    it('should set addingToCart flag', fakeAsync(() => {
       const item = mockWishlistItems[0];
       component.onAddToCart(item);
       expect(component.addingToCart[item.id]).toBe(true);
-    });
+      tick();
+    }));
 
-    it('should navigate to cart', () => { return new Promise<void>((resolve) => {
+    it('should navigate to cart', fakeAsync(() => {
       const item = mockWishlistItems[0];
       component.onAddToCart(item);
-      fixture.detectChanges();
-      setTimeout(() => {
-        expect(mockRouter.navigate).toHaveBeenCalledWith(['/cart']);
-        resolve();
-      }, 100);
-    }); });
+      tick();
+
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/cart']);
+    }));
   });
 
   describe('Remove from Wishlist', () => {
