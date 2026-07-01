@@ -1,4 +1,63 @@
-<div class="container mt-5">
-  <h1>Checkout</h1>
-  <p class="text-muted">Checkout module - Coming in Task 5</p>
+<div class="container mt-4 mb-4">
+  <h1 class="mb-4">Checkout</h1>
+
+  <!-- Progress Bar -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="progress-steps d-flex justify-content-between">
+        <div [ngClass]="{'active': currentStep === 'shipping' || currentStep === 'payment' || currentStep === 'review' || currentStep === 'confirmation'}" class="step">
+          <div class="step-number">1</div>
+          <div class="step-label">Shipping</div>
+        </div>
+        <div [ngClass]="{'active': currentStep === 'payment' || currentStep === 'review' || currentStep === 'confirmation'}" class="step">
+          <div class="step-number">2</div>
+          <div class="step-label">Payment</div>
+        </div>
+        <div [ngClass]="{'active': currentStep === 'review' || currentStep === 'confirmation'}" class="step">
+          <div class="step-number">3</div>
+          <div class="step-label">Review</div>
+        </div>
+        <div [ngClass]="{'active': currentStep === 'confirmation'}" class="step">
+          <div class="step-number">4</div>
+          <div class="step-label">Confirmation</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Shipping Form -->
+  <div *ngIf="currentStep === 'shipping'" class="row">
+    <div class="col-lg-8 offset-lg-2">
+      <app-shipping-form (submitted)="onShippingSubmit($event)"></app-shipping-form>
+    </div>
+  </div>
+
+  <!-- Payment Form -->
+  <div *ngIf="currentStep === 'payment'" class="row">
+    <div class="col-lg-8 offset-lg-2">
+      <app-payment-form (submitted)="onPaymentSubmit($event)"></app-payment-form>
+    </div>
+  </div>
+
+  <!-- Review -->
+  <div *ngIf="currentStep === 'review'" class="row">
+    <div class="col-lg-8 offset-lg-2">
+      <app-checkout-review
+        [cart]="(cart$ | async)!"
+        [checkoutForm]="(checkoutForm$ | async)!"
+        [isSubmitting]="isSubmitting"
+        (confirmed)="onReviewConfirm()">
+      </app-checkout-review>
+    </div>
+  </div>
+
+  <!-- Confirmation -->
+  <div *ngIf="currentStep === 'confirmation' && orderConfirmation" class="row">
+    <div class="col-lg-8 offset-lg-2">
+      <app-order-confirmation
+        [order]="orderConfirmation"
+        (continueShopping)="onContinueShopping()">
+      </app-order-confirmation>
+    </div>
+  </div>
 </div>

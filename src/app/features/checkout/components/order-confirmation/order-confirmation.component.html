@@ -1,0 +1,96 @@
+<div class="card border-success">
+  <div class="card-body">
+    <!-- Success Header -->
+    <div class="text-center mb-4">
+      <div class="success-icon mb-3">
+        <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="32" cy="32" r="30" stroke="#28a745" stroke-width="2"/>
+          <path d="M20 32L28 40L44 24" stroke="#28a745" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        </svg>
+      </div>
+      <h4 class="text-success mb-2">Order Confirmed!</h4>
+      <p class="text-muted">Thank you for your purchase</p>
+    </div>
+
+    <!-- Order Number -->
+    <div class="order-number-box mb-4">
+      <p class="text-muted mb-1">Order Number</p>
+      <p class="order-number">{{ order.orderId }}</p>
+    </div>
+
+    <!-- Email Confirmation -->
+    <div class="alert alert-info mb-4">
+      <strong>Confirmation sent!</strong> We've sent an order confirmation to <strong>{{ order.shippingAddress.email }}</strong>
+    </div>
+
+    <!-- Order Summary -->
+    <div class="mb-4">
+      <h6 class="mb-3">Order Details</h6>
+      <div class="row">
+        <div class="col-md-6">
+          <p class="text-muted mb-1">Order Date</p>
+          <p class="mb-3">{{ order.orderDate | date:'medium' }}</p>
+
+          <p class="text-muted mb-1">Status</p>
+          <p class="mb-0">
+            <span class="badge" [ngClass]="order.status === 'confirmed' ? 'bg-success' : 'bg-info'">
+              {{ order.status | titlecase }}
+            </span>
+          </p>
+        </div>
+
+        <div class="col-md-6">
+          <p class="text-muted mb-1">Total Amount</p>
+          <p class="total-amount">${{ order.total | number:'1.2-2' }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Items -->
+    <div class="mb-4">
+      <h6 class="mb-3">Items Ordered</h6>
+      <ul class="list-unstyled">
+        <li *ngFor="let item of order.items" class="item-row mb-2">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <strong>{{ item.productName }}</strong>
+              <div *ngIf="item.variant?.size || item.variant?.color" class="small text-muted">
+                <span *ngIf="item.variant?.size">Size: {{ item.variant?.size }}</span>
+                <span *ngIf="item.variant?.color"> | Color: {{ item.variant?.color }}</span>
+              </div>
+            </div>
+            <div class="text-end">
+              <p class="mb-0">Qty: {{ item.quantity }}</p>
+              <p class="text-muted mb-0">${{ (item.price * item.quantity) | number:'1.2-2' }}</p>
+            </div>
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Shipping Address -->
+    <div class="mb-4">
+      <h6 class="mb-3">Shipping Address</h6>
+      <div class="address-summary">
+        <p class="mb-1"><strong>{{ order.shippingAddress.firstName }} {{ order.shippingAddress.lastName }}</strong></p>
+        <p class="mb-1">{{ order.shippingAddress.street }}</p>
+        <p class="mb-1">{{ order.shippingAddress.city }}, {{ order.shippingAddress.state }} {{ order.shippingAddress.zipCode }}</p>
+        <p>{{ order.shippingAddress.country }}</p>
+      </div>
+    </div>
+
+    <!-- Next Steps -->
+    <div class="mb-4">
+      <h6 class="mb-3">What's Next?</h6>
+      <ul class="next-steps">
+        <li>Order confirmation and tracking info sent to your email</li>
+        <li>Your order is being processed</li>
+        <li>We'll notify you when your items ship</li>
+      </ul>
+    </div>
+
+    <button class="btn btn-primary btn-lg w-100" (click)="onContinue()">
+      Continue Shopping
+    </button>
+  </div>
+</div>

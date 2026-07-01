@@ -1,0 +1,69 @@
+<div class="card">
+  <div class="card-body">
+    <h5 class="card-title mb-4">Review Your Order</h5>
+
+    <!-- Cart Items -->
+    <div class="mb-4">
+      <h6 class="mb-3">Order Items</h6>
+      <div class="table-responsive">
+        <table class="table table-sm">
+          <tbody>
+            <tr *ngFor="let item of cart.items">
+              <td>
+                <strong>{{ item.productName }}</strong>
+                <div *ngIf="item.selectedVariant.size || item.selectedVariant.color" class="small text-muted">
+                  <span *ngIf="item.selectedVariant.size">Size: {{ item.selectedVariant.size }}</span>
+                  <span *ngIf="item.selectedVariant.color"> | Color: {{ item.selectedVariant.color }}</span>
+                </div>
+              </td>
+              <td class="text-end">{{ item.quantity }}×</td>
+              <td class="text-end" style="width: 100px">${{ (item.price * item.quantity) | number:'1.2-2' }}</td>
+            </tr>
+            <tr class="table-active fw-bold">
+              <td colspan="2">Subtotal</td>
+              <td class="text-end">${{ cart.subtotal | number:'1.2-2' }}</td>
+            </tr>
+            <tr>
+              <td colspan="2">Tax (10%)</td>
+              <td class="text-end">${{ cart.tax | number:'1.2-2' }}</td>
+            </tr>
+            <tr class="table-active fw-bold" style="font-size: 1.1rem">
+              <td colspan="2">Total</td>
+              <td class="text-end text-success">${{ cart.total | number:'1.2-2' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Shipping Address -->
+    <div class="mb-4">
+      <h6 class="mb-3">Shipping To</h6>
+      <div class="address-box">
+        <p class="mb-1">
+          <strong>{{ checkoutForm.shippingAddress.firstName }} {{ checkoutForm.shippingAddress.lastName }}</strong>
+        </p>
+        <p class="mb-1">{{ checkoutForm.shippingAddress.street }}</p>
+        <p class="mb-1">{{ checkoutForm.shippingAddress.city }}, {{ checkoutForm.shippingAddress.state }} {{ checkoutForm.shippingAddress.zipCode }}</p>
+        <p class="mb-1">{{ checkoutForm.shippingAddress.country }}</p>
+        <p class="text-muted mb-0">{{ checkoutForm.shippingAddress.email }}</p>
+      </div>
+    </div>
+
+    <!-- Payment Info -->
+    <div class="mb-4">
+      <h6 class="mb-3">Payment Method</h6>
+      <div class="payment-box">
+        <p class="mb-1"><strong>{{ checkoutForm.paymentInfo.cardholderName }}</strong></p>
+        <p class="mb-0">Card ending in <code>{{ checkoutForm.paymentInfo.cardNumber.slice(-4) }}</code></p>
+      </div>
+    </div>
+
+    <button
+      class="btn btn-success btn-lg w-100"
+      (click)="onConfirm()"
+      [disabled]="isSubmitting">
+      {{ isSubmitting ? 'Processing Order...' : 'Place Order' }}
+    </button>
+  </div>
+</div>

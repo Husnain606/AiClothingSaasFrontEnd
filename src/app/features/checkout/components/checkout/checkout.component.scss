@@ -1,1 +1,57 @@
-/* Checkout component styles - Task 5 */
+.progress-steps {
+  gap: 20px;
+
+  .step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    opacity: 0.5;
+    transition: opacity 0.3s ease;
+
+    &.active {
+      opacity: 1;
+    }
+
+    .step-number {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-color: #e9ecef;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      margin-bottom: 8px;
+      transition: background-color 0.3s ease;
+    }
+
+    &.active .step-number {
+      background-color: #007bff;
+      color: white;
+    }
+
+    .step-label {
+      font-size: 12px;
+      text-align: center;
+      white-space: nowrap;
+    }
+  }
+}
+
+@media (max-width: 576px) {
+  .progress-steps {
+    gap: 10px;
+
+    .step {
+      .step-number {
+        width: 32px;
+        height: 32px;
+        font-size: 14px;
+      }
+
+      .step-label {
+        font-size: 10px;
+      }
+    }
+  }
+}

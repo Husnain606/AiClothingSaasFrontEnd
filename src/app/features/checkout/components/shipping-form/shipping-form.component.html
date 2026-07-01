@@ -1,0 +1,147 @@
+<div class="card">
+  <div class="card-body">
+    <h5 class="card-title mb-4">Shipping Address</h5>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label for="firstName" class="form-label">First Name <span class="text-danger">*</span></label>
+          <input
+            type="text"
+            id="firstName"
+            class="form-control"
+            formControlName="firstName"
+            [class.is-invalid]="form.get('firstName')?.invalid && form.get('firstName')?.touched"
+            placeholder="John">
+          <div class="invalid-feedback d-block" *ngIf="form.get('firstName')?.invalid && form.get('firstName')?.touched">
+            {{ getErrorMessage('firstName') }}
+          </div>
+        </div>
+
+        <div class="col-md-6 mb-3">
+          <label for="lastName" class="form-label">Last Name <span class="text-danger">*</span></label>
+          <input
+            type="text"
+            id="lastName"
+            class="form-control"
+            formControlName="lastName"
+            [class.is-invalid]="form.get('lastName')?.invalid && form.get('lastName')?.touched"
+            placeholder="Doe">
+          <div class="invalid-feedback d-block" *ngIf="form.get('lastName')?.invalid && form.get('lastName')?.touched">
+            {{ getErrorMessage('lastName') }}
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label for="email" class="form-label">Email Address <span class="text-danger">*</span></label>
+          <input
+            type="email"
+            id="email"
+            class="form-control"
+            formControlName="email"
+            [class.is-invalid]="form.get('email')?.invalid && form.get('email')?.touched"
+            placeholder="john@example.com">
+          <div class="invalid-feedback d-block" *ngIf="form.get('email')?.invalid && form.get('email')?.touched">
+            {{ getErrorMessage('email') }}
+          </div>
+        </div>
+
+        <div class="col-md-6 mb-3">
+          <label for="phone" class="form-label">Phone <span class="text-danger">*</span></label>
+          <input
+            type="tel"
+            id="phone"
+            class="form-control"
+            formControlName="phone"
+            [class.is-invalid]="form.get('phone')?.invalid && form.get('phone')?.touched"
+            placeholder="+1-555-0123">
+          <div class="invalid-feedback d-block" *ngIf="form.get('phone')?.invalid && form.get('phone')?.touched">
+            {{ getErrorMessage('phone') }}
+          </div>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label for="street" class="form-label">Street Address <span class="text-danger">*</span></label>
+        <input
+          type="text"
+          id="street"
+          class="form-control"
+          formControlName="street"
+          [class.is-invalid]="form.get('street')?.invalid && form.get('street')?.touched"
+          placeholder="123 Main Street">
+        <div class="invalid-feedback d-block" *ngIf="form.get('street')?.invalid && form.get('street')?.touched">
+          {{ getErrorMessage('street') }}
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label for="city" class="form-label">City <span class="text-danger">*</span></label>
+          <input
+            type="text"
+            id="city"
+            class="form-control"
+            formControlName="city"
+            [class.is-invalid]="form.get('city')?.invalid && form.get('city')?.touched"
+            placeholder="New York">
+          <div class="invalid-feedback d-block" *ngIf="form.get('city')?.invalid && form.get('city')?.touched">
+            {{ getErrorMessage('city') }}
+          </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+          <label for="state" class="form-label">State <span class="text-danger">*</span></label>
+          <input
+            type="text"
+            id="state"
+            class="form-control"
+            formControlName="state"
+            [class.is-invalid]="form.get('state')?.invalid && form.get('state')?.touched"
+            placeholder="NY">
+          <div class="invalid-feedback d-block" *ngIf="form.get('state')?.invalid && form.get('state')?.touched">
+            {{ getErrorMessage('state') }}
+          </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+          <label for="zipCode" class="form-label">ZIP Code <span class="text-danger">*</span></label>
+          <input
+            type="text"
+            id="zipCode"
+            class="form-control"
+            formControlName="zipCode"
+            [class.is-invalid]="form.get('zipCode')?.invalid && form.get('zipCode')?.touched"
+            placeholder="10001">
+          <div class="invalid-feedback d-block" *ngIf="form.get('zipCode')?.invalid && form.get('zipCode')?.touched">
+            {{ getErrorMessage('zipCode') }}
+          </div>
+        </div>
+      </div>
+
+      <div class="mb-4">
+        <label for="country" class="form-label">Country <span class="text-danger">*</span></label>
+        <select
+          id="country"
+          class="form-select"
+          formControlName="country"
+          [class.is-invalid]="form.get('country')?.invalid && form.get('country')?.touched">
+          <option value="US">United States</option>
+          <option value="CA">Canada</option>
+          <option value="MX">Mexico</option>
+          <option value="GB">United Kingdom</option>
+          <option value="AU">Australia</option>
+        </select>
+        <div class="invalid-feedback d-block" *ngIf="form.get('country')?.invalid && form.get('country')?.touched">
+          {{ getErrorMessage('country') }}
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-lg w-100" [disabled]="form.invalid">
+        Continue to Payment
+      </button>
+    </form>
+  </div>
+</div>
