@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { ProductSearchComponent } from './product-search.component';
 import { ProductService } from '../../services/product.service';
@@ -8,7 +9,7 @@ import { Product } from '../../models/product.model';
 describe('ProductSearchComponent', () => {
   let component: ProductSearchComponent;
   let fixture: ComponentFixture<ProductSearchComponent>;
-  let productService: jasmine.SpyObj<ProductService>;
+  let productService: Partial<ProductService>;
 
   const mockProducts: Product[] = [
     {
@@ -30,16 +31,18 @@ describe('ProductSearchComponent', () => {
   ];
 
   beforeEach(async () => {
-    const productServiceSpy = jasmine.createSpyObj('ProductService', ['searchProducts']);
+    const productServiceMock = {
+      searchProducts: vi.fn(),
+    } as unknown as Partial<ProductService>;
 
     await TestBed.configureTestingModule({
       imports: [ProductSearchComponent, ReactiveFormsModule],
-      providers: [{ provide: ProductService, useValue: productServiceSpy }],
+      providers: [{ provide: ProductService, useValue: productServiceMock }],
     }).compileComponents();
 
     fixture = TestBed.createComponent(ProductSearchComponent);
     component = fixture.componentInstance;
-    productService = TestBed.inject(ProductService) as jasmine.SpyObj<ProductService>;
+    productService = TestBed.inject(ProductService) as unknown as Partial<ProductService>;
     fixture.detectChanges();
   });
 
@@ -48,7 +51,7 @@ describe('ProductSearchComponent', () => {
   });
 
   it('should setup search with debounce', fakeAsync(() => {
-    productService.searchProducts.and.returnValue(of(mockProducts));
+    (productService.searchProducts as any) = vi.fn().mockReturnValue(of(mockProducts));
 
     component.searchControl.setValue('test');
     tick(300);
@@ -57,7 +60,7 @@ describe('ProductSearchComponent', () => {
   }));
 
   it('should debounce search input', fakeAsync(() => {
-    productService.searchProducts.and.returnValue(of(mockProducts));
+    (productService.searchProducts as any) = vi.fn().mockReturnValue(of(mockProducts));
 
     component.searchControl.setValue('t');
     tick(100);
@@ -71,7 +74,7 @@ describe('ProductSearchComponent', () => {
   }));
 
   it('should not search for empty query', fakeAsync(() => {
-    productService.searchProducts.and.returnValue(of([]));
+    (productService.searchProducts as any) = vi.fn().mockReturnValue(of([]));
 
     component.searchControl.setValue('');
     tick(300);
@@ -80,40 +83,40 @@ describe('ProductSearchComponent', () => {
   }));
 
   it('should emit searchSubmit when onSearch is called', () => {
-    spyOn(component.searchSubmit, 'emit');
+    const emitSpy = vi.spyOn(component.searchSubmit, 'emit');
 
     component.searchControl.setValue('test');
     component.onSearch();
 
-    expect(component.searchSubmit.emit).toHaveBeenCalledWith('test');
+    expect(emitSpy).toHaveBeenCalledWith('test');
   });
 
   it('should not emit searchSubmit for empty search', () => {
-    spyOn(component.searchSubmit, 'emit');
+    const emitSpy = vi.spyOn(component.searchSubmit, 'emit');
 
     component.searchControl.setValue('');
     component.onSearch();
 
-    expect(component.searchSubmit.emit).not.toHaveBeenCalled();
+    expect(emitSpy).not.toHaveBeenCalled();
   });
 
   it('should select suggestion and emit it', () => {
-    spyOn(component.suggestionsSelected, 'emit');
+    const emitSpy = vi.spyOn(component.suggestionsSelected, 'emit');
 
     component.selectSuggestion(mockProducts[0]);
 
     expect(component.searchControl.value).toBe('Test Product');
-    expect(component.suggestionsSelected.emit).toHaveBeenCalledWith([mockProducts[0]]);
+    expect(emitSpy).toHaveBeenCalledWith([mockProducts[0]]);
   });
 
   it('should clear search', () => {
-    spyOn(component.searchSubmit, 'emit');
+    const emitSpy = vi.spyOn(component.searchSubmit, 'emit');
 
     component.searchControl.setValue('test');
     component.clearSearch();
 
     expect(component.searchControl.value).toBeNull();
-    expect(component.searchSubmit.emit).toHaveBeenCalledWith('');
+    expect(emitSpy).toHaveBeenCalledWith('');
   });
 
   it('should show suggestions on focus when text exists', () => {
@@ -123,24 +126,22 @@ describe('ProductSearchComponent', () => {
     expect(component.showSuggestions).toBe(true);
   });
 
-  it('should hide suggestions on blur', (done) => {
+  it('should hide suggestions on blur', async () => {
     component.showSuggestions = true;
 
     component.onBlur();
 
-    setTimeout(() => {
-      expect(component.showSuggestions).toBe(false);
-      done();
-    }, 250);
+    await new Promise(resolve => setTimeout(resolve, 250));
+    expect(component.showSuggestions).toBe(false);
   });
 
   it('should unsubscribe on destroy', () => {
-    spyOn(component['destroy$'], 'next');
-    spyOn(component['destroy$'], 'complete');
+    const nextSpy = vi.spyOn(component['destroy$'], 'next');
+    const completeSpy = vi.spyOn(component['destroy$'], 'complete');
 
     component.ngOnDestroy();
 
-    expect(component['destroy$'].next).toHaveBeenCalled();
-    expect(component['destroy$'].complete).toHaveBeenCalled();
+    expect(nextSpy).toHaveBeenCalled();
+    expect(completeSpy).toHaveBeenCalled();
   });
 });

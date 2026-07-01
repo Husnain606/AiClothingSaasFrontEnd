@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { CategoryListComponent } from './category-list.component';
 import { ProductService } from '../../services/product.service';
@@ -7,7 +8,7 @@ import { of, throwError } from 'rxjs';
 describe('CategoryListComponent', () => {
   let component: CategoryListComponent;
   let fixture: ComponentFixture<CategoryListComponent>;
-  let productService: jasmine.SpyObj<ProductService>;
+  let productService: Partial<ProductService>;
 
   const mockCategories: Category[] = [
     {
@@ -33,16 +34,18 @@ describe('CategoryListComponent', () => {
   ];
 
   beforeEach(async () => {
-    const productServiceSpy = jasmine.createSpyObj('ProductService', ['getCategories']);
+    const productServiceMock = {
+      getCategories: vi.fn(),
+    } as unknown as Partial<ProductService>;
 
     await TestBed.configureTestingModule({
       imports: [CategoryListComponent],
-      providers: [{ provide: ProductService, useValue: productServiceSpy }],
+      providers: [{ provide: ProductService, useValue: productServiceMock }],
     }).compileComponents();
 
     fixture = TestBed.createComponent(CategoryListComponent);
     component = fixture.componentInstance;
-    productService = TestBed.inject(ProductService) as jasmine.SpyObj<ProductService>;
+    productService = TestBed.inject(ProductService) as unknown as Partial<ProductService>;
   });
 
   it('should create', () => {
@@ -50,7 +53,7 @@ describe('CategoryListComponent', () => {
   });
 
   it('should load categories on init', () => {
-    productService.getCategories.and.returnValue(of(mockCategories));
+    (productService.getCategories as any) = vi.fn().mockReturnValue(of(mockCategories));
 
     component.ngOnInit();
 
@@ -59,7 +62,7 @@ describe('CategoryListComponent', () => {
   });
 
   it('should handle error when loading categories', () => {
-    productService.getCategories.and.returnValue(throwError(() => new Error('Test error')));
+    (productService.getCategories as any) = vi.fn().mockReturnValue(throwError(() => new Error('Test error')));
 
     component.ngOnInit();
 
@@ -68,22 +71,22 @@ describe('CategoryListComponent', () => {
   });
 
   it('should emit selectedCategory when category is selected', () => {
-    spyOn(component.selectedCategory, 'emit');
+    const emitSpy = vi.spyOn(component.selectedCategory, 'emit');
 
     component.selectCategory(mockCategories[0]);
 
     expect(component.selectedCategoryId$.value).toBe('cat1');
-    expect(component.selectedCategory.emit).toHaveBeenCalledWith(mockCategories[0]);
+    expect(emitSpy).toHaveBeenCalledWith(mockCategories[0]);
   });
 
   it('should clear category selection', () => {
-    spyOn(component.selectedCategory, 'emit');
+    const emitSpy = vi.spyOn(component.selectedCategory, 'emit');
 
     component.selectCategory(mockCategories[0]);
     component.clearSelection();
 
     expect(component.selectedCategoryId$.value).toBeNull();
-    expect(component.selectedCategory.emit).toHaveBeenCalled();
+    expect(emitSpy).toHaveBeenCalled();
   });
 
   it('should get child categories for a parent', () => {
@@ -94,13 +97,13 @@ describe('CategoryListComponent', () => {
   });
 
   it('should unsubscribe on destroy', () => {
-    spyOn(component['destroy$'], 'next');
-    spyOn(component['destroy$'], 'complete');
+    const nextSpy = vi.spyOn(component['destroy$'], 'next');
+    const completeSpy = vi.spyOn(component['destroy$'], 'complete');
 
     component.ngOnDestroy();
 
-    expect(component['destroy$'].next).toHaveBeenCalled();
-    expect(component['destroy$'].complete).toHaveBeenCalled();
+    expect(nextSpy).toHaveBeenCalled();
+    expect(completeSpy).toHaveBeenCalled();
   });
 
   it('should filter out inactive categories', () => {
@@ -109,7 +112,7 @@ describe('CategoryListComponent', () => {
       isActive: false,
     };
 
-    productService.getCategories.and.returnValue(of([inactiveCategory]));
+    (productService.getCategories as any) = vi.fn().mockReturnValue(of([inactiveCategory]));
 
     component.ngOnInit();
 
@@ -117,7 +120,7 @@ describe('CategoryListComponent', () => {
   });
 
   it('should show loading state during load', () => {
-    productService.getCategories.and.returnValue(of(mockCategories));
+    (productService.getCategories as any) = vi.fn().mockReturnValue(of(mockCategories));
 
     component.ngOnInit();
 

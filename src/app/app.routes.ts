@@ -4,6 +4,8 @@ import { RegisterComponent } from './features/auth/components/register/register.
 import { authGuard } from './features/auth/guards/auth.guard';
 import { CatalogComponent } from './features/catalog/components/catalog/catalog.component';
 import { ProductDetailComponent } from './features/catalog/components/product-detail/product-detail.component';
+import { CartComponent } from './features/cart/components/cart/cart.component';
+import { cartNotEmptyGuard } from './features/cart/guards/cart-not-empty.guard';
 
 export const routes: Routes = [
   {
@@ -23,6 +25,16 @@ export const routes: Routes = [
     path: 'products/:id',
     component: ProductDetailComponent,
     canActivate: [authGuard],
+  },
+  {
+    path: 'cart',
+    component: CartComponent,
+    canActivate: [authGuard],
+  },
+  {
+    path: 'checkout',
+    canActivate: [authGuard, cartNotEmptyGuard],
+    loadComponent: () => import('./features/checkout/components/checkout/checkout.component').then(m => m.CheckoutComponent),
   },
   {
     path: '',

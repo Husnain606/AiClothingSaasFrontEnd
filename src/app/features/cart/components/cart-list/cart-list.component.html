@@ -1,0 +1,56 @@
+<div class="list-group">
+  <div *ngIf="items.length === 0" class="alert alert-info" role="alert">
+    Your cart is empty. <a routerLink="/products">Continue shopping</a>
+  </div>
+
+  <div *ngFor="let item of items" class="list-group-item">
+    <div class="row align-items-center">
+      <div class="col-md-2">
+        <img [src]="item.imageUrl" alt="{{ item.productName }}" class="img-fluid rounded" />
+      </div>
+
+      <div class="col-md-4">
+        <h5 class="mb-2">{{ item.productName }}</h5>
+        <p class="text-muted mb-2">Price: ${{ item.price | number: '1.2-2' }}</p>
+        <div *ngIf="item.selectedVariant.size || item.selectedVariant.color" class="small text-secondary">
+          <span *ngIf="item.selectedVariant.size">Size: {{ item.selectedVariant.size }}</span>
+          <span *ngIf="item.selectedVariant.color"> | Color: {{ item.selectedVariant.color }}</span>
+        </div>
+      </div>
+
+      <div class="col-md-3">
+        <div class="input-group input-group-sm">
+          <button
+            class="btn btn-outline-secondary"
+            type="button"
+            (click)="onQuantityChange(item.productId, item.quantity - 1)"
+            [disabled]="item.quantity <= 1"
+          >
+            -
+          </button>
+          <input
+            type="number"
+            class="form-control text-center"
+            [value]="item.quantity"
+            readonly
+            min="1"
+          />
+          <button
+            class="btn btn-outline-secondary"
+            type="button"
+            (click)="onQuantityChange(item.productId, item.quantity + 1)"
+          >
+            +
+          </button>
+        </div>
+      </div>
+
+      <div class="col-md-2 text-end">
+        <div class="fw-bold mb-2">${{ (item.price * item.quantity) | number: '1.2-2' }}</div>
+        <button class="btn btn-sm btn-danger" type="button" (click)="onRemove(item.productId)">
+          Remove
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

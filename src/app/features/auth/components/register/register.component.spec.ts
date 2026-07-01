@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RegisterComponent } from './register.component';
 import { AuthService } from '../../../../core/services/auth.service';
@@ -7,12 +8,12 @@ import { of, throwError } from 'rxjs';
 describe('RegisterComponent', () => {
   let component: RegisterComponent;
   let fixture: ComponentFixture<RegisterComponent>;
-  let mockAuthService: jasmine.SpyObj<AuthService>;
-  let mockRouter: jasmine.SpyObj<Router>;
+  let mockAuthService: Partial<AuthService>;
+  let mockRouter: Partial<Router>;
 
   beforeEach(async () => {
-    mockAuthService = jasmine.createSpyObj('AuthService', ['register']);
-    mockRouter = jasmine.createSpyObj('Router', ['navigate']);
+    mockAuthService = { register: vi.fn() };
+    mockRouter = { navigate: vi.fn() };
 
     await TestBed.configureTestingModule({
       imports: [RegisterComponent],

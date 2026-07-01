@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ProductListComponent } from './product-list.component';
 import { Product } from '../../models/product.model';
@@ -90,7 +91,7 @@ describe('ProductListComponent', () => {
   });
 
   it('should emit pageChange when page navigation is clicked', () => {
-    spyOn(component.pageChange, 'emit');
+    const emitSpy = vi.spyOn(component.pageChange, 'emit');
     component.products = mockProducts;
     component.currentPage = 1;
     component.totalPages = 3;
@@ -98,17 +99,17 @@ describe('ProductListComponent', () => {
 
     component.onPageChange(2);
 
-    expect(component.pageChange.emit).toHaveBeenCalledWith(2);
+    expect(emitSpy).toHaveBeenCalledWith(2);
   });
 
   it('should emit addToCart when add to cart button is clicked', () => {
-    spyOn(component.addToCart, 'emit');
+    const emitSpy = vi.spyOn(component.addToCart, 'emit');
     component.products = mockProducts;
     fixture.detectChanges();
 
     component.onAddToCart(mockProducts[0]);
 
-    expect(component.addToCart.emit).toHaveBeenCalledWith(mockProducts[0]);
+    expect(emitSpy).toHaveBeenCalledWith(mockProducts[0]);
   });
 
   it('should format price correctly', () => {
@@ -134,12 +135,12 @@ describe('ProductListComponent', () => {
   });
 
   it('should not emit pageChange for invalid page numbers', () => {
-    spyOn(component.pageChange, 'emit');
+    const emitSpy = vi.spyOn(component.pageChange, 'emit');
     component.totalPages = 3;
 
     component.onPageChange(0);
     component.onPageChange(4);
 
-    expect(component.pageChange.emit).not.toHaveBeenCalled();
+    expect(emitSpy).not.toHaveBeenCalled();
   });
 });

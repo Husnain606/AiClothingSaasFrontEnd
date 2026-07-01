@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ProductDetailComponent } from './product-detail.component';
 import { ProductService } from '../../services/product.service';
@@ -8,8 +9,8 @@ import { of } from 'rxjs';
 describe('ProductDetailComponent', () => {
   let component: ProductDetailComponent;
   let fixture: ComponentFixture<ProductDetailComponent>;
-  let productService: jasmine.SpyObj<ProductService>;
-  let router: jasmine.SpyObj<Router>;
+  let productService: Partial<ProductService>;
+  let router: Partial<Router>;
   let activatedRoute: any;
 
   const mockProduct: Product = {
@@ -57,11 +58,13 @@ describe('ProductDetailComponent', () => {
   ];
 
   beforeEach(async () => {
-    const productServiceSpy = jasmine.createSpyObj('ProductService', [
-      'getProductById',
-      'getProductVariants',
-    ]);
-    const routerSpy = jasmine.createSpyObj('Router', ['navigate']);
+    const productServiceMock = {
+      getProductById: vi.fn(),
+      getProductVariants: vi.fn(),
+    } as unknown as Partial<ProductService>;
+    const routerMock = {
+      navigate: vi.fn(),
+    } as unknown as Partial<Router>;
 
     activatedRoute = {
       params: of({ id: '1' }),
@@ -70,16 +73,16 @@ describe('ProductDetailComponent', () => {
     await TestBed.configureTestingModule({
       imports: [ProductDetailComponent],
       providers: [
-        { provide: ProductService, useValue: productServiceSpy },
-        { provide: Router, useValue: routerSpy },
+        { provide: ProductService, useValue: productServiceMock },
+        { provide: Router, useValue: routerMock },
         { provide: ActivatedRoute, useValue: activatedRoute },
       ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(ProductDetailComponent);
     component = fixture.componentInstance;
-    productService = TestBed.inject(ProductService) as jasmine.SpyObj<ProductService>;
-    router = TestBed.inject(Router) as jasmine.SpyObj<Router>;
+    productService = TestBed.inject(ProductService) as unknown as Partial<ProductService>;
+    router = TestBed.inject(Router) as unknown as Partial<Router>;
   });
 
   it('should create', () => {
@@ -87,8 +90,8 @@ describe('ProductDetailComponent', () => {
   });
 
   it('should load product on init', () => {
-    productService.getProductById.and.returnValue(of(mockProduct));
-    productService.getProductVariants.and.returnValue(of(mockVariants));
+    (productService.getProductById as any) = vi.fn().mockReturnValue(of(mockProduct));
+    (productService.getProductVariants as any) = vi.fn().mockReturnValue(of(mockVariants));
 
     component.ngOnInit();
 
@@ -97,8 +100,8 @@ describe('ProductDetailComponent', () => {
   });
 
   it('should load variants after product loads', () => {
-    productService.getProductById.and.returnValue(of(mockProduct));
-    productService.getProductVariants.and.returnValue(of(mockVariants));
+    (productService.getProductById as any) = vi.fn().mockReturnValue(of(mockProduct));
+    (productService.getProductVariants as any) = vi.fn().mockReturnValue(of(mockVariants));
 
     component.ngOnInit();
 
@@ -107,8 +110,8 @@ describe('ProductDetailComponent', () => {
   });
 
   it('should select first variant by default', () => {
-    productService.getProductById.and.returnValue(of(mockProduct));
-    productService.getProductVariants.and.returnValue(of(mockVariants));
+    (productService.getProductById as any) = vi.fn().mockReturnValue(of(mockProduct));
+    (productService.getProductVariants as any) = vi.fn().mockReturnValue(of(mockVariants));
 
     component.ngOnInit();
 
@@ -116,8 +119,8 @@ describe('ProductDetailComponent', () => {
   });
 
   it('should select a variant', () => {
-    productService.getProductById.and.returnValue(of(mockProduct));
-    productService.getProductVariants.and.returnValue(of(mockVariants));
+    (productService.getProductById as any) = vi.fn().mockReturnValue(of(mockProduct));
+    (productService.getProductVariants as any) = vi.fn().mockReturnValue(of(mockVariants));
 
     component.ngOnInit();
     component.selectVariant(mockVariants[1]);
@@ -175,15 +178,15 @@ describe('ProductDetailComponent', () => {
   });
 
   it('should add to cart with product and variant', () => {
-    spyOn(window, 'alert');
-    productService.getProductById.and.returnValue(of(mockProduct));
-    productService.getProductVariants.and.returnValue(of(mockVariants));
+    const alertSpy = vi.spyOn(window, 'alert');
+    (productService.getProductById as any) = vi.fn().mockReturnValue(of(mockProduct));
+    (productService.getProductVariants as any) = vi.fn().mockReturnValue(of(mockVariants));
 
     component.ngOnInit();
     component.quantity.setValue(2);
     component.addToCart();
 
-    expect(window.alert).toHaveBeenCalled();
+    expect(alertSpy).toHaveBeenCalled();
   });
 
   it('should navigate back to products', () => {
@@ -193,7 +196,7 @@ describe('ProductDetailComponent', () => {
   });
 
   it('should handle product not found error', () => {
-    productService.getProductById.and.returnValue(of(null as any));
+    (productService.getProductById as any) = vi.fn().mockReturnValue(of(null as any));
 
     component.ngOnInit();
 
@@ -201,12 +204,12 @@ describe('ProductDetailComponent', () => {
   });
 
   it('should unsubscribe on destroy', () => {
-    spyOn(component['destroy$'], 'next');
-    spyOn(component['destroy$'], 'complete');
+    const nextSpy = vi.spyOn(component['destroy$'], 'next');
+    const completeSpy = vi.spyOn(component['destroy$'], 'complete');
 
     component.ngOnDestroy();
 
-    expect(component['destroy$'].next).toHaveBeenCalled();
-    expect(component['destroy$'].complete).toHaveBeenCalled();
+    expect(nextSpy).toHaveBeenCalled();
+    expect(completeSpy).toHaveBeenCalled();
   });
 });

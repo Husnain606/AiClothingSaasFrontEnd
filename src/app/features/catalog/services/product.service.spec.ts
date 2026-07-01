@@ -1,13 +1,15 @@
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { ProductService } from './product.service';
 import { ApiService } from '../../../core/services/api.service';
 import { Product, Category, ProductVariant, ProductFilter } from '../models/product.model';
 import { ApiResponse, PagedResult } from '../../../core/models/api-response.model';
+import { of } from 'rxjs';
 
 describe('ProductService', () => {
   let service: ProductService;
-  let apiService: jasmine.SpyObj<ApiService>;
+  let apiService: Partial<ApiService>;
   let httpMock: HttpTestingController;
 
   const mockCategories: Category[] = [
@@ -58,15 +60,17 @@ describe('ProductService', () => {
   ];
 
   beforeEach(() => {
-    const apiServiceSpy = jasmine.createSpyObj('ApiService', ['get']);
+    const apiServiceMock = {
+      get: vi.fn(),
+    } as unknown as Partial<ApiService>;
 
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
-      providers: [ProductService, { provide: ApiService, useValue: apiServiceSpy }],
+      providers: [ProductService, { provide: ApiService, useValue: apiServiceMock }],
     });
 
     service = TestBed.inject(ProductService);
-    apiService = TestBed.inject(ApiService) as jasmine.SpyObj<ApiService>;
+    apiService = TestBed.inject(ApiService) as unknown as Partial<ApiService>;
     httpMock = TestBed.inject(HttpTestingController);
   });
 
@@ -79,57 +83,26 @@ describe('ProductService', () => {
   });
 
   describe('getCategories', () => {
-    it('should fetch categories and cache them', (done) => {
-      const mockResponse: ApiResponse<Category[]> = {
-        data: mockCategories,
-        success: true,
-        message: '',
-      };
+    it('should fetch categories and cache them', async () => {
+      (apiService.get as any) = vi.fn().mockReturnValue(of(mockCategories));
 
-      apiService.get.and.returnValue(jasmine.createSpy('get').and.returnValue({
-        pipe: jasmine.createSpy('pipe').and.returnValue(
-          new Promise((resolve) => {
-            resolve(mockCategories);
-          })
-        ),
-      }));
-
-      service.getCategories().subscribe((categories) => {
-        expect(categories).toEqual(mockCategories);
-        done();
-      });
+      const result = await service.getCategories().toPromise();
+      expect(result).toEqual(mockCategories);
     });
 
-    it('should return cached categories on subsequent calls', (done) => {
-      const mockResponse: ApiResponse<Category[]> = {
-        data: mockCategories,
-        success: true,
-        message: '',
-      };
+    it('should return cached categories on subsequent calls', async () => {
+      (apiService.get as any) = vi.fn().mockReturnValue(of(mockCategories));
 
-      apiService.get.and.returnValue({
-        pipe: () => ({
-          subscribe: (callback: any) => {
-            callback.next(mockCategories);
-          },
-        }),
-      } as any);
+      const result1 = await service.getCategories().toPromise();
+      const result2 = await service.getCategories().toPromise();
 
-      let callCount = 0;
-      service.getCategories().subscribe(() => {
-        callCount++;
-      });
-
-      service.getCategories().subscribe(() => {
-        callCount++;
-        expect(callCount).toBe(2);
-        done();
-      });
+      expect(result1).toEqual(mockCategories);
+      expect(result2).toEqual(mockCategories);
     });
   });
 
   describe('getProducts', () => {
-    it('should fetch products with filters', (done) => {
+    it('should fetch products with filters', async () => {
       const filter: ProductFilter = {
         page: 1,
         pageSize: 20,
@@ -145,75 +118,43 @@ describe('ProductService', () => {
         totalPages: 1,
       };
 
-      apiService.get.and.returnValue({
-        pipe: () => ({
-          subscribe: (callback: any) => {
-            callback.next(mockPagedResult);
-          },
-        }),
-      } as any);
+      (apiService.get as any) = vi.fn().mockReturnValue(of(mockPagedResult));
 
-      service.getProducts(filter).subscribe((result) => {
-        expect(result).toEqual(mockPagedResult);
-        done();
-      });
+      const result = await service.getProducts(filter).toPromise();
+      expect(result).toEqual(mockPagedResult);
     });
   });
 
   describe('getProductById', () => {
-    it('should fetch a single product', (done) => {
+    it('should fetch a single product', async () => {
       const productId = 'prod1';
 
-      apiService.get.and.returnValue({
-        pipe: () => ({
-          subscribe: (callback: any) => {
-            callback.next(mockProducts[0]);
-          },
-        }),
-      } as any);
+      (apiService.get as any) = vi.fn().mockReturnValue(of(mockProducts[0]));
 
-      service.getProductById(productId).subscribe((product) => {
-        expect(product).toEqual(mockProducts[0]);
-        done();
-      });
+      const result = await service.getProductById(productId).toPromise();
+      expect(result).toEqual(mockProducts[0]);
     });
   });
 
   describe('searchProducts', () => {
-    it('should search products by query', (done) => {
+    it('should search products by query', async () => {
       const query = 'electronics';
 
-      apiService.get.and.returnValue({
-        pipe: () => ({
-          subscribe: (callback: any) => {
-            callback.next(mockProducts);
-          },
-        }),
-      } as any);
+      (apiService.get as any) = vi.fn().mockReturnValue(of(mockProducts));
 
-      service.searchProducts(query).subscribe((products) => {
-        expect(products).toEqual(mockProducts);
-        done();
-      });
+      const result = await service.searchProducts(query).toPromise();
+      expect(result).toEqual(mockProducts);
     });
   });
 
   describe('getProductVariants', () => {
-    it('should fetch product variants', (done) => {
+    it('should fetch product variants', async () => {
       const productId = 'prod1';
 
-      apiService.get.and.returnValue({
-        pipe: () => ({
-          subscribe: (callback: any) => {
-            callback.next(mockVariants);
-          },
-        }),
-      } as any);
+      (apiService.get as any) = vi.fn().mockReturnValue(of(mockVariants));
 
-      service.getProductVariants(productId).subscribe((variants) => {
-        expect(variants).toEqual(mockVariants);
-        done();
-      });
+      const result = await service.getProductVariants(productId).toPromise();
+      expect(result).toEqual(mockVariants);
     });
   });
 

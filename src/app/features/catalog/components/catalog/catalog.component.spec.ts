@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { CatalogComponent } from './catalog.component';
 import { ProductService } from '../../services/product.service';
@@ -8,7 +9,7 @@ import { of } from 'rxjs';
 describe('CatalogComponent', () => {
   let component: CatalogComponent;
   let fixture: ComponentFixture<CatalogComponent>;
-  let productService: jasmine.SpyObj<ProductService>;
+  let productService: Partial<ProductService>;
 
   const mockCategories: Category[] = [
     {
@@ -51,19 +52,19 @@ describe('CatalogComponent', () => {
   };
 
   beforeEach(async () => {
-    const productServiceSpy = jasmine.createSpyObj('ProductService', [
-      'getCategories',
-      'getProducts',
-    ]);
+    const productServiceMock = {
+      getCategories: vi.fn(),
+      getProducts: vi.fn(),
+    } as unknown as Partial<ProductService>;
 
     await TestBed.configureTestingModule({
       imports: [CatalogComponent],
-      providers: [{ provide: ProductService, useValue: productServiceSpy }],
+      providers: [{ provide: ProductService, useValue: productServiceMock }],
     }).compileComponents();
 
     fixture = TestBed.createComponent(CatalogComponent);
     component = fixture.componentInstance;
-    productService = TestBed.inject(ProductService) as jasmine.SpyObj<ProductService>;
+    productService = TestBed.inject(ProductService) as unknown as Partial<ProductService>;
   });
 
   it('should create', () => {
@@ -71,8 +72,8 @@ describe('CatalogComponent', () => {
   });
 
   it('should load data on init', () => {
-    productService.getCategories.and.returnValue(of(mockCategories));
-    productService.getProducts.and.returnValue(of(mockPagedResult));
+    (productService.getCategories as any) = vi.fn().mockReturnValue(of(mockCategories));
+    (productService.getProducts as any) = vi.fn().mockReturnValue(of(mockPagedResult));
 
     component.ngOnInit();
 
@@ -81,8 +82,8 @@ describe('CatalogComponent', () => {
   });
 
   it('should handle category selection', () => {
-    productService.getCategories.and.returnValue(of(mockCategories));
-    productService.getProducts.and.returnValue(of(mockPagedResult));
+    (productService.getCategories as any) = vi.fn().mockReturnValue(of(mockCategories));
+    (productService.getProducts as any) = vi.fn().mockReturnValue(of(mockPagedResult));
 
     component.ngOnInit();
     component.onCategorySelected(mockCategories[0]);
@@ -92,8 +93,8 @@ describe('CatalogComponent', () => {
   });
 
   it('should clear category filter when null is passed', () => {
-    productService.getCategories.and.returnValue(of(mockCategories));
-    productService.getProducts.and.returnValue(of(mockPagedResult));
+    (productService.getCategories as any) = vi.fn().mockReturnValue(of(mockCategories));
+    (productService.getProducts as any) = vi.fn().mockReturnValue(of(mockPagedResult));
 
     component.ngOnInit();
     component.onCategorySelected(mockCategories[0]);
@@ -103,8 +104,8 @@ describe('CatalogComponent', () => {
   });
 
   it('should handle search', () => {
-    productService.getCategories.and.returnValue(of(mockCategories));
-    productService.getProducts.and.returnValue(of(mockPagedResult));
+    (productService.getCategories as any) = vi.fn().mockReturnValue(of(mockCategories));
+    (productService.getProducts as any) = vi.fn().mockReturnValue(of(mockPagedResult));
 
     component.ngOnInit();
     component.onSearch('test query');
@@ -114,8 +115,8 @@ describe('CatalogComponent', () => {
   });
 
   it('should handle page change', () => {
-    productService.getCategories.and.returnValue(of(mockCategories));
-    productService.getProducts.and.returnValue(of(mockPagedResult));
+    (productService.getCategories as any) = vi.fn().mockReturnValue(of(mockCategories));
+    (productService.getProducts as any) = vi.fn().mockReturnValue(of(mockPagedResult));
 
     component.ngOnInit();
     component.onPageChange(2);
@@ -124,16 +125,16 @@ describe('CatalogComponent', () => {
   });
 
   it('should handle add to cart', () => {
-    spyOn(window, 'alert');
+    const alertSpy = vi.spyOn(window, 'alert');
 
     component.onAddToCart(mockProducts[0]);
 
-    expect(window.alert).toHaveBeenCalled();
+    expect(alertSpy).toHaveBeenCalled();
   });
 
   it('should handle suggestions selected', () => {
-    productService.getCategories.and.returnValue(of(mockCategories));
-    productService.getProducts.and.returnValue(of(mockPagedResult));
+    (productService.getCategories as any) = vi.fn().mockReturnValue(of(mockCategories));
+    (productService.getProducts as any) = vi.fn().mockReturnValue(of(mockPagedResult));
 
     component.ngOnInit();
     component.onSuggestionsSelected(mockProducts);
@@ -143,18 +144,18 @@ describe('CatalogComponent', () => {
   });
 
   it('should unsubscribe on destroy', () => {
-    spyOn(component['destroy$'], 'next');
-    spyOn(component['destroy$'], 'complete');
+    const nextSpy = vi.spyOn(component['destroy$'], 'next');
+    const completeSpy = vi.spyOn(component['destroy$'], 'complete');
 
     component.ngOnDestroy();
 
-    expect(component['destroy$'].next).toHaveBeenCalled();
-    expect(component['destroy$'].complete).toHaveBeenCalled();
+    expect(nextSpy).toHaveBeenCalled();
+    expect(completeSpy).toHaveBeenCalled();
   });
 
   it('should update products when loading products', () => {
-    productService.getCategories.and.returnValue(of(mockCategories));
-    productService.getProducts.and.returnValue(of(mockPagedResult));
+    (productService.getCategories as any) = vi.fn().mockReturnValue(of(mockCategories));
+    (productService.getProducts as any) = vi.fn().mockReturnValue(of(mockPagedResult));
 
     component.ngOnInit();
 
@@ -163,8 +164,8 @@ describe('CatalogComponent', () => {
   });
 
   it('should set loading state correctly', () => {
-    productService.getCategories.and.returnValue(of(mockCategories));
-    productService.getProducts.and.returnValue(of(mockPagedResult));
+    (productService.getCategories as any) = vi.fn().mockReturnValue(of(mockCategories));
+    (productService.getProducts as any) = vi.fn().mockReturnValue(of(mockPagedResult));
 
     component.ngOnInit();
 

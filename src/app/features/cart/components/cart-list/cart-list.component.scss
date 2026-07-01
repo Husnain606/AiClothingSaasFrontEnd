@@ -1,0 +1,17 @@
+img {
+  max-width: 100%;
+  height: auto;
+  background-color: #f8f9fa;
+}
+
+.list-group-item {
+  border-bottom: 1px solid #dee2e6;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.input-group-sm input {
+  max-width: 60px;
+}
