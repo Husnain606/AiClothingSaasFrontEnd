@@ -1,0 +1,128 @@
+<!-- Loading State -->
+<div *ngIf="loading" class="text-center py-5">
+  <div class="spinner-border text-primary" role="status">
+    <span class="visually-hidden">Loading products...</span>
+  </div>
+  <p class="mt-3 text-muted">Loading products...</p>
+</div>
+
+<!-- Error State -->
+<div *ngIf="error" class="alert alert-danger" role="alert">
+  <strong>Error:</strong> {{ error }}
+</div>
+
+<!-- Empty State -->
+<div
+  *ngIf="!loading && products.length === 0 && !error"
+  class="text-center py-5"
+>
+  <i class="bi bi-inbox" style="font-size: 3rem; color: #ccc"></i>
+  <p class="mt-3 text-muted">No products found.</p>
+</div>
+
+<!-- Products Grid -->
+<div *ngIf="!loading && products.length > 0" class="row g-4">
+  <div
+    *ngFor="let product of products"
+    class="col-12 col-sm-6 col-lg-4 col-xl-3"
+  >
+    <div class="card product-card h-100">
+      <!-- Product Image -->
+      <div class="product-image-wrapper position-relative overflow-hidden">
+        <img
+          [src]="product.primaryImageUrl"
+          [alt]="product.name"
+          class="card-img-top"
+          onerror="this.src='assets/images/placeholder-product.png'"
+        />
+        <div class="product-overlay">
+          <button
+            class="btn btn-primary btn-sm"
+            (click)="onAddToCart(product)"
+            title="Add to cart"
+          >
+            <i class="bi bi-cart-plus me-2"></i>Add to Cart
+          </button>
+        </div>
+      </div>
+
+      <!-- Product Info -->
+      <div class="card-body d-flex flex-column">
+        <!-- Category -->
+        <small class="text-muted text-uppercase mb-2">{{ product.categoryName }}</small>
+
+        <!-- Product Name -->
+        <h5 class="card-title">
+          <a [routerLink]="['/products', product.id]" class="text-dark text-decoration-none">
+            {{ product.name }}
+          </a>
+        </h5>
+
+        <!-- Description -->
+        <p class="card-text text-muted small flex-grow-1">
+          {{ product.description | slice: 0: 80 }}
+          <span *ngIf="product.description.length > 80">...</span>
+        </p>
+
+        <!-- Rating -->
+        <div class="mb-2">
+          <small class="d-block mb-1">
+            <span *ngFor="let filled of getStarArray(product.averageRating)">
+              <i [class]="filled ? 'bi bi-star-fill text-warning' : 'bi bi-star text-warning'"></i>
+            </span>
+            <span class="ms-2 text-muted">
+              ({{ product.averageRating | number: '1.1-1' }})
+            </span>
+          </small>
+          <small class="text-muted">{{ product.approvedReviewCount }} reviews</small>
+        </div>
+
+        <!-- Price and Variants -->
+        <div class="d-flex justify-content-between align-items-center mt-auto">
+          <div>
+            <h6 class="mb-0 text-primary">{{ formatPrice(product.basePrice) }}</h6>
+            <small class="text-muted">{{ product.variantCount }} variants</small>
+          </div>
+          <a [routerLink]="['/products', product.id]" class="btn btn-outline-primary btn-sm">
+            View <i class="bi bi-arrow-right"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Pagination -->
+<nav *ngIf="!loading && products.length > 0" class="mt-4" aria-label="Page navigation">
+  <ul class="pagination justify-content-center">
+    <li class="page-item" [class.disabled]="currentPage === 1">
+      <button
+        class="page-link"
+        (click)="onPageChange(currentPage - 1)"
+        [disabled]="currentPage === 1"
+      >
+        Previous
+      </button>
+    </li>
+
+    <li class="page-item" *ngFor="let page of [].constructor(totalPages); let i = index">
+      <button
+        class="page-link"
+        [class.active]="i + 1 === currentPage"
+        (click)="onPageChange(i + 1)"
+      >
+        {{ i + 1 }}
+      </button>
+    </li>
+
+    <li class="page-item" [class.disabled]="currentPage === totalPages">
+      <button
+        class="page-link"
+        (click)="onPageChange(currentPage + 1)"
+        [disabled]="currentPage === totalPages"
+      >
+        Next
+      </button>
+    </li>
+  </ul>
+</nav>

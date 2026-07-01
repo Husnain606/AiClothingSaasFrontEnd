@@ -1,0 +1,55 @@
+<div class="category-list">
+  <!-- Loading State -->
+  <div *ngIf="loading$ | async" class="text-center py-3">
+    <div class="spinner-border spinner-border-sm text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error$ | async as error" class="alert alert-danger" role="alert">
+    {{ error }}
+  </div>
+
+  <!-- Categories Navigation -->
+  <div *ngIf="(categories$ | async) as categories" class="nav nav-pills flex-column gap-2">
+    <!-- Clear/All Products Button -->
+    <button
+      class="nav-link text-start"
+      [class.active]="!(selectedCategoryId$ | async)"
+      (click)="clearSelection()"
+    >
+      <i class="bi bi-grid-3x3-gap me-2"></i>
+      All Products
+    </button>
+
+    <!-- Root Categories -->
+    <ng-container *ngFor="let category of categories">
+      <button
+        class="nav-link text-start"
+        [class.active]="(selectedCategoryId$ | async) === category.id"
+        (click)="selectCategory(category)"
+        [disabled]="!category.isActive"
+      >
+        <i class="bi bi-tag me-2"></i>
+        {{ category.name }}
+        <span *ngIf="category.isActive" class="badge bg-secondary float-end">
+          {{ getChildCategories(category.id, categories).length }}
+        </span>
+      </button>
+
+      <!-- Child Categories with indentation -->
+      <ng-container *ngFor="let child of getChildCategories(category.id, categories)">
+        <button
+          class="nav-link text-start ps-5"
+          [class.active]="(selectedCategoryId$ | async) === child.id"
+          (click)="selectCategory(child)"
+          [disabled]="!child.isActive"
+        >
+          <i class="bi bi-tag-fill me-2"></i>
+          {{ child.name }}
+        </button>
+      </ng-container>
+    </ng-container>
+  </div>
+</div>

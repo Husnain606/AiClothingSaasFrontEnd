@@ -1,0 +1,67 @@
+<div class="product-search">
+  <form (submit)="onSearch($event)" class="position-relative">
+    <div class="input-group">
+      <span class="input-group-text bg-white border-end-0">
+        <i class="bi bi-search"></i>
+      </span>
+      <input
+        #searchInput
+        type="text"
+        class="form-control border-start-0 border-end-0"
+        placeholder="Search products..."
+        [formControl]="searchControl"
+        (focus)="onFocus()"
+        (blur)="onBlur()"
+        autocomplete="off"
+      />
+      <button
+        *ngIf="searchControl.value"
+        type="button"
+        class="input-group-text bg-white border-start-0"
+        (click)="clearSearch()"
+        title="Clear search"
+      >
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <!-- Search Loading -->
+    <div *ngIf="isSearching" class="search-loading">
+      <small class="text-muted">
+        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+        Searching...
+      </small>
+    </div>
+
+    <!-- Suggestions Dropdown -->
+    <div
+      *ngIf="showSuggestions && (suggestions$ | async) as suggestions"
+      class="suggestions-dropdown"
+    >
+      <div *ngIf="suggestions.length === 0" class="suggestion-item text-muted">
+        <small>No products found</small>
+      </div>
+
+      <button
+        *ngFor="let product of suggestions"
+        type="button"
+        class="suggestion-item"
+        (click)="selectSuggestion(product)"
+      >
+        <img
+          [src]="product.primaryImageUrl"
+          [alt]="product.name"
+          class="suggestion-image"
+          onerror="this.src='assets/images/placeholder-product.png'"
+        />
+        <div class="suggestion-content">
+          <div class="suggestion-name">{{ product.name }}</div>
+          <small class="text-muted">
+            {{ product.basePrice | currency: 'USD' }}
+          </small>
+        </div>
+        <i class="bi bi-chevron-right text-muted"></i>
+      </button>
+    </div>
+  </form>
+</div>
