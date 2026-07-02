@@ -1,50 +1,88 @@
 import { Routes } from '@angular/router';
-import { LoginComponent } from './features/auth/components/login/login.component';
-import { RegisterComponent } from './features/auth/components/register/register.component';
 import { authGuard } from './features/auth/guards/auth.guard';
-import { CatalogComponent } from './features/catalog/components/catalog/catalog.component';
-import { ProductDetailComponent } from './features/catalog/components/product-detail/product-detail.component';
-import { CartComponent } from './features/cart/components/cart/cart.component';
 import { cartNotEmptyGuard } from './features/cart/guards/cart-not-empty.guard';
-import { AccountComponent } from './features/account/components/account/account.component';
+import { MainLayoutComponent } from './layouts/main-layout/main-layout.component';
+import { AuthLayoutComponent } from './layouts/auth-layout/auth-layout.component';
+import { NotFoundComponent } from './shared/components/not-found/not-found.component';
 
 export const routes: Routes = [
   {
-    path: 'login',
-    component: LoginComponent,
-  },
-  {
-    path: 'register',
-    component: RegisterComponent,
-  },
-  {
-    path: 'products',
-    component: CatalogComponent,
-    canActivate: [authGuard],
-  },
-  {
-    path: 'products/:id',
-    component: ProductDetailComponent,
-    canActivate: [authGuard],
-  },
-  {
-    path: 'account',
-    component: AccountComponent,
-    canActivate: [authGuard],
-  },
-  {
-    path: 'cart',
-    component: CartComponent,
-    canActivate: [authGuard],
-  },
-  {
-    path: 'checkout',
-    canActivate: [authGuard, cartNotEmptyGuard],
-    loadComponent: () => import('./features/checkout/components/checkout/checkout.component').then(m => m.CheckoutComponent),
+    path: '',
+    component: MainLayoutComponent,
+    children: [
+      {
+        path: '',
+        redirectTo: 'products',
+        pathMatch: 'full',
+      },
+      {
+        path: 'products',
+        canActivate: [authGuard],
+        title: 'Products | FashionSaaS',
+        loadComponent: () =>
+          import('./features/catalog/components/catalog/catalog.component').then(
+            m => m.CatalogComponent
+          ),
+      },
+      {
+        path: 'products/:id',
+        canActivate: [authGuard],
+        title: 'Product Details | FashionSaaS',
+        loadComponent: () =>
+          import('./features/catalog/components/product-detail/product-detail.component').then(
+            m => m.ProductDetailComponent
+          ),
+      },
+      {
+        path: 'cart',
+        canActivate: [authGuard],
+        title: 'Shopping Cart | FashionSaaS',
+        loadComponent: () =>
+          import('./features/cart/components/cart/cart.component').then(m => m.CartComponent),
+      },
+      {
+        path: 'checkout',
+        canActivate: [authGuard, cartNotEmptyGuard],
+        title: 'Checkout | FashionSaaS',
+        loadComponent: () =>
+          import('./features/checkout/components/checkout/checkout.component').then(
+            m => m.CheckoutComponent
+          ),
+      },
+      {
+        path: 'account',
+        canActivate: [authGuard],
+        title: 'My Account | FashionSaaS',
+        loadComponent: () =>
+          import('./features/account/components/account/account.component').then(
+            m => m.AccountComponent
+          ),
+      },
+    ],
   },
   {
     path: '',
-    redirectTo: '/products',
-    pathMatch: 'full',
+    component: AuthLayoutComponent,
+    children: [
+      {
+        path: 'login',
+        title: 'Sign In | FashionSaaS',
+        loadComponent: () =>
+          import('./features/auth/components/login/login.component').then(m => m.LoginComponent),
+      },
+      {
+        path: 'register',
+        title: 'Create Account | FashionSaaS',
+        loadComponent: () =>
+          import('./features/auth/components/register/register.component').then(
+            m => m.RegisterComponent
+          ),
+      },
+    ],
+  },
+  {
+    path: '**',
+    component: NotFoundComponent,
+    title: 'Page Not Found | FashionSaaS',
   },
 ];

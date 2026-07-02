@@ -6,6 +6,7 @@ export * from './components/alert/alert.component';
 export * from './components/pagination/pagination.component';
 export * from './components/modal/modal.component';
 export * from './components/search-bar/search-bar.component';
+export * from './components/not-found/not-found.component';
 
 // Directives
 export * from './directives/highlight.directive';

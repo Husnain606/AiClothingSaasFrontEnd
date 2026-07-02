@@ -1,0 +1,14 @@
+.not-found {
+  min-height: 60vh;
+}
+
+.not-found__code {
+  font-size: clamp(5rem, 18vw, 9rem);
+  line-height: 1;
+  letter-spacing: -0.05em;
+  opacity: 0.85;
+}
+
+.not-found__lead {
+  max-width: 32rem;
+}

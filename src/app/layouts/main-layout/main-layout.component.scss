@@ -1,0 +1,9 @@
+.app-shell {
+  // Sticky footer: shell fills at least the viewport, content area grows.
+  // min-height (not height) avoids nested-scroll / double-scrollbar traps.
+  min-height: 100vh;
+}
+
+.app-shell__content {
+  display: block;
+}
