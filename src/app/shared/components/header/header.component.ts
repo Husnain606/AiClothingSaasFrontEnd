@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, ElementRef, HostListener, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { Observable } from 'rxjs';
@@ -19,11 +19,13 @@ export class HeaderComponent implements OnInit {
   currentUser$!: Observable<CurrentUser | null>;
   cartItemCount$!: Observable<number>;
   isNavbarOpen = false;
+  isUserMenuOpen = false;
 
   constructor(
     private authService: AuthService,
     private cartService: CartService,
-    private router: Router
+    private router: Router,
+    private elementRef: ElementRef<HTMLElement>
   ) {}
 
   ngOnInit(): void {
@@ -40,16 +42,30 @@ export class HeaderComponent implements OnInit {
 
   closeNavbar(): void {
     this.isNavbarOpen = false;
+    this.isUserMenuOpen = false;
+  }
+
+  toggleUserMenu(): void {
+    this.isUserMenuOpen = !this.isUserMenuOpen;
+  }
+
+  closeUserMenu(): void {
+    this.isUserMenuOpen = false;
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    if (
+      this.isUserMenuOpen &&
+      !this.elementRef.nativeElement.contains(event.target as Node)
+    ) {
+      this.isUserMenuOpen = false;
+    }
   }
 
   onLogout(): void {
     this.authService.logout();
     this.router.navigate(['/login']);
-    this.closeNavbar();
-  }
-
-  onNavigate(path: string): void {
-    this.router.navigate([path]);
     this.closeNavbar();
   }
 }

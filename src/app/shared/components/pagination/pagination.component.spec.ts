@@ -25,7 +25,6 @@ describe('PaginationComponent', () => {
   it('should have default values', () => {
     expect(component.currentPage).toBe(1);
     expect(component.totalPages).toBe(1);
-    expect(component.pageSize).toBe(10);
   });
 
   it('should emit pageChange when onPageChange is called with valid page', () => {

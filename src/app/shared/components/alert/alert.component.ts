@@ -1,4 +1,12 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnDestroy } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  Input,
+  Output,
+  EventEmitter,
+  OnInit,
+  OnDestroy,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -18,6 +26,8 @@ export class AlertComponent implements OnInit, OnDestroy {
   isVisible = true;
   private timeoutId?: number;
 
+  constructor(private cdr: ChangeDetectorRef) {}
+
   ngOnInit(): void {
     if (this.autoDismissMs > 0) {
       this.timeoutId = window.setTimeout(() => this.onDismiss(), this.autoDismissMs);
@@ -33,6 +43,9 @@ export class AlertComponent implements OnInit, OnDestroy {
   onDismiss(): void {
     this.isVisible = false;
     this.dismissed.emit();
+    // Auto-dismiss fires from a raw setTimeout; under zoneless change
+    // detection no CD pass is scheduled, so mark the view dirty explicitly.
+    this.cdr.markForCheck();
   }
 
   getAlertClass(): string {

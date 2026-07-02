@@ -3,8 +3,8 @@
     <!-- Brand/Logo -->
     <a
       class="navbar-brand fw-bold text-primary"
-      (click)="onNavigate('/home')"
-      style="cursor: pointer;">
+      routerLink="/home"
+      (click)="closeNavbar()">
       <i class="bi bi-shop me-2"></i>FashionSaaS
     </a>
 
@@ -27,8 +27,8 @@
         <li class="nav-item">
           <a
             class="nav-link"
-            (click)="onNavigate('/catalog')"
-            style="cursor: pointer;">
+            routerLink="/catalog"
+            (click)="closeNavbar()">
             Catalog
           </a>
         </li>
@@ -37,8 +37,8 @@
         <li class="nav-item">
           <a
             class="nav-link position-relative"
-            (click)="onNavigate('/cart')"
-            style="cursor: pointer;">
+            routerLink="/cart"
+            (click)="closeNavbar()">
             <i class="bi bi-bag-check"></i> Cart
             <span
               *ngIf="cartItemCount$ | async as count"
@@ -53,16 +53,16 @@
           <li class="nav-item">
             <a
               class="nav-link"
-              (click)="onNavigate('/login')"
-              style="cursor: pointer;">
+              routerLink="/login"
+              (click)="closeNavbar()">
               Login
             </a>
           </li>
           <li class="nav-item">
             <a
               class="nav-link"
-              (click)="onNavigate('/register')"
-              style="cursor: pointer;">
+              routerLink="/register"
+              (click)="closeNavbar()">
               Register
             </a>
           </li>
@@ -71,49 +71,51 @@
         <!-- User dropdown menu -->
         <ng-container *ngIf="isLoggedIn$ | async">
           <li class="nav-item dropdown">
-            <a
+            <button
               class="nav-link dropdown-toggle"
-              href="#"
+              type="button"
               id="navbarDropdown"
-              role="button"
-              data-bs-toggle="dropdown"
-              aria-expanded="false">
+              (click)="toggleUserMenu()"
+              [attr.aria-expanded]="isUserMenuOpen">
               <i class="bi bi-person-circle"></i>
               {{ (currentUser$ | async)?.firstName || 'Account' }}
-            </a>
-            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+            </button>
+            <ul
+              class="dropdown-menu dropdown-menu-end"
+              [class.show]="isUserMenuOpen"
+              aria-labelledby="navbarDropdown">
               <li>
                 <a
                   class="dropdown-item"
-                  (click)="onNavigate('/account/profile')"
-                  style="cursor: pointer;">
+                  routerLink="/account/profile"
+                  (click)="closeNavbar()">
                   <i class="bi bi-person me-2"></i>Profile
                 </a>
               </li>
               <li>
                 <a
                   class="dropdown-item"
-                  (click)="onNavigate('/account/orders')"
-                  style="cursor: pointer;">
+                  routerLink="/account/orders"
+                  (click)="closeNavbar()">
                   <i class="bi bi-bag me-2"></i>Orders
                 </a>
               </li>
               <li>
                 <a
                   class="dropdown-item"
-                  (click)="onNavigate('/account/addresses')"
-                  style="cursor: pointer;">
+                  routerLink="/account/addresses"
+                  (click)="closeNavbar()">
                   <i class="bi bi-geo-alt me-2"></i>Addresses
                 </a>
               </li>
               <li><hr class="dropdown-divider"></li>
               <li>
-                <a
+                <button
+                  type="button"
                   class="dropdown-item text-danger"
-                  (click)="onLogout()"
-                  style="cursor: pointer;">
+                  (click)="onLogout()">
                   <i class="bi bi-box-arrow-right me-2"></i>Logout
-                </a>
+                </button>
               </li>
             </ul>
           </li>

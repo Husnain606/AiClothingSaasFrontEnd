@@ -11,6 +11,18 @@
     }
   }
 
+  .navbar-brand,
+  .nav-link,
+  .dropdown-item {
+    cursor: pointer;
+  }
+
+  // Reset native button styles for button-based nav items (dropdown toggle)
+  button.nav-link {
+    background: none;
+    border: 0;
+  }
+
   .nav-link {
     margin-right: 1rem;
     color: #495057;

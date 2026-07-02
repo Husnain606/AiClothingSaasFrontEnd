@@ -66,10 +66,30 @@ describe('HeaderComponent', () => {
     expect(component.isNavbarOpen).toBe(false);
   });
 
-  it('should navigate when onNavigate is called', () => {
-    const routerSpy = vi.spyOn(component['router'], 'navigate').mockResolvedValue(true);
-    component.onNavigate('/catalog');
-    expect(routerSpy).toHaveBeenCalledWith(['/catalog']);
+  it('should toggle user menu', () => {
+    expect(component.isUserMenuOpen).toBe(false);
+    component.toggleUserMenu();
+    expect(component.isUserMenuOpen).toBe(true);
+    component.toggleUserMenu();
+    expect(component.isUserMenuOpen).toBe(false);
+  });
+
+  it('should close user menu on outside click', () => {
+    component.isUserMenuOpen = true;
+    const outsideClick = new MouseEvent('click', { bubbles: true });
+    Object.defineProperty(outsideClick, 'target', { value: document.body });
+    component.onDocumentClick(outsideClick);
+    expect(component.isUserMenuOpen).toBe(false);
+  });
+
+  it('should keep user menu open when clicking inside the header', () => {
+    component.isUserMenuOpen = true;
+    const insideClick = new MouseEvent('click', { bubbles: true });
+    Object.defineProperty(insideClick, 'target', {
+      value: fixture.nativeElement,
+    });
+    component.onDocumentClick(insideClick);
+    expect(component.isUserMenuOpen).toBe(true);
   });
 
   it('should logout and navigate to login on onLogout', () => {
@@ -87,10 +107,11 @@ describe('HeaderComponent', () => {
     expect(count).toBe(2);
   });
 
-  it('should close navbar after navigation', () => {
-    vi.spyOn(component['router'], 'navigate').mockResolvedValue(true);
+  it('should close user menu when navbar closes', () => {
     component.isNavbarOpen = true;
-    component.onNavigate('/catalog');
+    component.isUserMenuOpen = true;
+    component.closeNavbar();
     expect(component.isNavbarOpen).toBe(false);
+    expect(component.isUserMenuOpen).toBe(false);
   });
 });

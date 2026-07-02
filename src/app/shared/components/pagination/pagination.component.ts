@@ -11,7 +11,6 @@ import { CommonModule } from '@angular/common';
 export class PaginationComponent {
   @Input() currentPage = 1;
   @Input() totalPages = 1;
-  @Input() pageSize = 10;
   @Output() pageChange = new EventEmitter<number>();
 
   onPageChange(page: number): void {

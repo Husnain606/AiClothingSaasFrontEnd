@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, HostListener, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -17,6 +17,13 @@ export class ModalComponent {
   @Input() type: 'info' | 'warning' | 'danger' = 'info';
   @Output() confirmed = new EventEmitter<void>();
   @Output() cancelled = new EventEmitter<void>();
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    if (this.isVisible) {
+      this.onCancel();
+    }
+  }
 
   onConfirm(): void {
     this.confirmed.emit();

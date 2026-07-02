@@ -2,42 +2,42 @@
   <ul class="pagination mb-0">
     <!-- Previous button -->
     <li class="page-item" [class.disabled]="!canGoPrevious">
-      <a
+      <button
+        type="button"
         class="page-link"
-        href="javascript:void(0)"
-        (click)="canGoPrevious && onPageChange(currentPage - 1)"
-        [attr.aria-label]="'Previous page'"
-        [attr.tabindex]="canGoPrevious ? 0 : -1">
+        [disabled]="!canGoPrevious"
+        (click)="onPageChange(currentPage - 1)"
+        aria-label="Previous page">
         <i class="bi bi-chevron-left"></i>
         <span class="d-none d-sm-inline">Previous</span>
-      </a>
+      </button>
     </li>
 
     <!-- Page numbers -->
     <ng-container *ngFor="let page of pages">
       <li class="page-item" [class.active]="page === currentPage">
-        <a
+        <button
+          type="button"
           class="page-link"
-          href="javascript:void(0)"
           (click)="onPageChange(page)"
           [attr.aria-label]="'Go to page ' + page"
           [attr.aria-current]="page === currentPage ? 'page' : null">
           {{ page }}
-        </a>
+        </button>
       </li>
     </ng-container>
 
     <!-- Next button -->
     <li class="page-item" [class.disabled]="!canGoNext">
-      <a
+      <button
+        type="button"
         class="page-link"
-        href="javascript:void(0)"
-        (click)="canGoNext && onPageChange(currentPage + 1)"
-        [attr.aria-label]="'Next page'"
-        [attr.tabindex]="canGoNext ? 0 : -1">
+        [disabled]="!canGoNext"
+        (click)="onPageChange(currentPage + 1)"
+        aria-label="Next page">
         <span class="d-none d-sm-inline">Next</span>
         <i class="bi bi-chevron-right"></i>
-      </a>
+      </button>
     </li>
   </ul>
 
