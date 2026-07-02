@@ -2,26 +2,31 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { LoginComponent } from './login.component';
 import { AuthService } from '../../../../core/services/auth.service';
-import { Router } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 
 describe('LoginComponent', () => {
   let component: LoginComponent;
   let fixture: ComponentFixture<LoginComponent>;
   let mockAuthService: Partial<AuthService>;
-  let mockRouter: Partial<Router>;
+  let router: Router;
 
   beforeEach(async () => {
+    TestBed.resetTestingModule();
     mockAuthService = { login: vi.fn() };
-    mockRouter = { navigate: vi.fn() };
 
     await TestBed.configureTestingModule({
       imports: [LoginComponent],
       providers: [
         { provide: AuthService, useValue: mockAuthService },
-        { provide: Router, useValue: mockRouter },
+        // Real router (with ActivatedRoute) so RouterLink in the template resolves;
+        // navigation itself is stubbed below.
+        provideRouter([]),
       ],
     }).compileComponents();
+
+    router = TestBed.inject(Router);
+    vi.spyOn(router, 'navigate').mockResolvedValue(true);
 
     fixture = TestBed.createComponent(LoginComponent);
     component = fixture.componentInstance;

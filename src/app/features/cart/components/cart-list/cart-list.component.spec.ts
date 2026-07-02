@@ -7,7 +7,8 @@ describe('CartListComponent', () => {
   let component: CartListComponent;
   let fixture: ComponentFixture<CartListComponent>;
 
-  const mockCartItems: CartItem[] = [
+  // Factory so each test gets a fresh copy — tests must not mutate shared state
+  const createMockCartItems = (): CartItem[] => [
     {
       productId: 'prod1',
       productName: 'Leather Jacket',
@@ -27,13 +28,14 @@ describe('CartListComponent', () => {
   ];
 
   beforeEach(async () => {
+    TestBed.resetTestingModule();
     await TestBed.configureTestingModule({
       imports: [CartListComponent],
     }).compileComponents();
 
     fixture = TestBed.createComponent(CartListComponent);
     component = fixture.componentInstance;
-    component.items = mockCartItems;
+    fixture.componentRef.setInput('items', createMockCartItems());
     fixture.detectChanges();
   });
 
@@ -66,7 +68,7 @@ describe('CartListComponent', () => {
     });
 
     it('should display empty cart message when no items', () => {
-      component.items = [];
+      fixture.componentRef.setInput('items', []);
       fixture.detectChanges();
 
       const emptyMessage = fixture.nativeElement.querySelector('.alert-info');
@@ -91,13 +93,14 @@ describe('CartListComponent', () => {
     });
 
     it('should disable minus button when quantity is 1', () => {
+      // Provide a fresh items array where the first item has quantity 1
+      const items = createMockCartItems();
+      items[0].quantity = 1;
+      fixture.componentRef.setInput('items', items);
       fixture.detectChanges();
+
       const minusButtons = fixture.nativeElement.querySelectorAll('button');
       const minusButtonForFirst = minusButtons[0];
-
-      // Set component item quantity to 1
-      component.items[0].quantity = 1;
-      fixture.detectChanges();
 
       expect(minusButtonForFirst.disabled).toBe(true);
     });

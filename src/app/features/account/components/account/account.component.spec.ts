@@ -1,10 +1,9 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { fakeAsync, tick } from '@angular/core/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { AccountComponent } from './account.component';
 import { AccountService } from '../../services/account.service';
 import { AccountStateService } from '../../services/account-state.service';
-import { of, throwError } from 'rxjs';
+import { of, throwError, Subject } from 'rxjs';
 import { CustomerProfile } from '../../models/account.model';
 
 describe('AccountComponent', () => {
@@ -94,27 +93,31 @@ describe('AccountComponent', () => {
       expect(mockAccountService.getProfile).toHaveBeenCalled();
     });
 
-    it('should set profile in state service on successful load', fakeAsync(() => {
+    it('should set profile in state service on successful load', () => {
       component.ngOnInit();
-      tick();
 
       expect(mockStateService.setProfile).toHaveBeenCalledWith(mockProfile);
-    }));
+    });
 
-    it('should set loading to false on successful profile load', fakeAsync(() => {
+    it('should set loading to false on successful profile load', () => {
       component.ngOnInit();
-      tick();
 
       expect(component.isLoading).toBe(false);
-    }));
+    });
   });
 
   describe('Profile Loading', () => {
-    it('should set loading state to true when loading profile', fakeAsync(() => {
+    it('should set loading state to true when loading profile', () => {
+      // Use a pending Subject so the loading state can be observed before the response
+      const pending = new Subject<CustomerProfile>();
+      mockAccountService.getProfile = vi.fn().mockReturnValue(pending.asObservable());
+
       component['loadProfile']();
       expect(component.isLoading).toBe(true);
-      tick();
-    }));
+
+      pending.next(mockProfile);
+      pending.complete();
+    });
 
     it('should clear error state when loading profile', () => {
       component.hasError = true;
@@ -124,20 +127,19 @@ describe('AccountComponent', () => {
       expect(component.hasError).toBe(false);
     });
 
-    it('should handle profile load error', fakeAsync(() => {
+    it('should handle profile load error', () => {
       mockAccountService.getProfile = vi
         .fn()
         .mockReturnValue(throwError(() => new Error('Network error')));
 
       component['loadProfile']();
-      tick();
 
       expect(component.hasError).toBe(true);
       expect(component.errorMessage).toBe('Failed to load profile. Please try again later.');
       expect(component.isLoading).toBe(false);
-    }));
+    });
 
-    it('should set error message on 401 unauthorized error', fakeAsync(() => {
+    it('should set error message on 401 unauthorized error', () => {
       mockAccountService.getProfile = vi.fn().mockReturnValue(
         throwError(() => ({
           status: 401,
@@ -146,21 +148,19 @@ describe('AccountComponent', () => {
       );
 
       component['loadProfile']();
-      tick();
 
       expect(component.hasError).toBe(true);
-    }));
+    });
 
-    it('should set loading to false on error', fakeAsync(() => {
+    it('should set loading to false on error', () => {
       mockAccountService.getProfile = vi
         .fn()
         .mockReturnValue(throwError(() => new Error('Network error')));
 
       component['loadProfile']();
-      tick();
 
       expect(component.isLoading).toBe(false);
-    }));
+    });
   });
 
   describe('Tab Navigation', () => {
@@ -219,9 +219,8 @@ describe('AccountComponent', () => {
       expect(component.profile$).toBeDefined();
     });
 
-    it('should emit profile values through profile$ observable', fakeAsync(() => {
+    it('should emit profile values through profile$ observable', () => {
       component.ngOnInit();
-      tick();
 
       let emitted = false;
       component.profile$.subscribe((profile) => {
@@ -230,14 +229,14 @@ describe('AccountComponent', () => {
           emitted = true;
         }
       });
-    }));
+    });
 
-    it('should use takeUntil to unsubscribe on destroy', fakeAsync(() => {
+    it('should use takeUntil to unsubscribe on destroy', () => {
       component.ngOnInit();
-      tick();
       component.ngOnDestroy();
-      expect(component['destroy$'].closed).toBe(true);
-    }));
+      // ngOnDestroy calls next() + complete() on destroy$; a completed Subject is stopped
+      expect(component['destroy$'].isStopped).toBe(true);
+    });
   });
 
   describe('Error Handling', () => {
@@ -254,16 +253,15 @@ describe('AccountComponent', () => {
       consoleSpy.mockRestore();
     });
 
-    it('should display user-friendly error message on failure', fakeAsync(() => {
+    it('should display user-friendly error message on failure', () => {
       mockAccountService.getProfile = vi
         .fn()
         .mockReturnValue(throwError(() => new Error('API error')));
 
       component['loadProfile']();
-      tick();
 
       expect(component.errorMessage).toContain('Failed to load profile');
-    }));
+    });
   });
 
   describe('State Management', () => {
@@ -276,12 +274,17 @@ describe('AccountComponent', () => {
       expect(component.currentTab).toBe(selectedTab);
     });
 
-    it('should reset loading state properly', fakeAsync(() => {
+    it('should reset loading state properly', () => {
+      // Use a pending Subject so both loading states can be observed
+      const pending = new Subject<CustomerProfile>();
+      mockAccountService.getProfile = vi.fn().mockReturnValue(pending.asObservable());
+
       component['loadProfile']();
       expect(component.isLoading).toBe(true);
 
-      tick();
+      pending.next(mockProfile);
+      pending.complete();
       expect(component.isLoading).toBe(false);
-    }));
+    });
   });
 });

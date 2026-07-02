@@ -39,7 +39,7 @@ describe('CartSummaryComponent', () => {
 
     fixture = TestBed.createComponent(CartSummaryComponent);
     component = fixture.componentInstance;
-    component.cart = mockCart;
+    fixture.componentRef.setInput('cart', mockCart);
     fixture.detectChanges();
   });
 
@@ -71,7 +71,7 @@ describe('CartSummaryComponent', () => {
 
   describe('buttons', () => {
     it('should have checkout button enabled when cart has items', () => {
-      component.cart = mockCart;
+      fixture.componentRef.setInput('cart', mockCart);
       fixture.detectChanges();
 
       const checkoutButton = fixture.nativeElement.querySelector('button:first-of-type');
@@ -79,7 +79,7 @@ describe('CartSummaryComponent', () => {
     });
 
     it('should disable checkout button when cart is empty', () => {
-      component.cart = emptyCart;
+      fixture.componentRef.setInput('cart', emptyCart);
       fixture.detectChanges();
 
       const checkoutButton = fixture.nativeElement.querySelector('button:first-of-type');
@@ -87,7 +87,7 @@ describe('CartSummaryComponent', () => {
     });
 
     it('should disable clear button when cart is empty', () => {
-      component.cart = emptyCart;
+      fixture.componentRef.setInput('cart', emptyCart);
       fixture.detectChanges();
 
       const buttons = fixture.nativeElement.querySelectorAll('button');
@@ -96,7 +96,7 @@ describe('CartSummaryComponent', () => {
     });
 
     it('should have clear button enabled when cart has items', () => {
-      component.cart = mockCart;
+      fixture.componentRef.setInput('cart', mockCart);
       fixture.detectChanges();
 
       const buttons = fixture.nativeElement.querySelectorAll('button');

@@ -233,10 +233,13 @@ describe('AccountStateService', () => {
         const subscription = service.wishlist$.subscribe((items) => {
           emissions++;
           if (emissions === 1) {
-            // First emission: initial set
-            expect(items.length).toBe(2);
+            // First emission: initial empty state (BehaviorSubject replays current value)
+            expect(items.length).toBe(0);
           } else if (emissions === 2) {
-            // Second emission: after removal
+            // Second emission: initial set
+            expect(items.length).toBe(2);
+          } else if (emissions === 3) {
+            // Third emission: after removal
             expect(items.length).toBe(1);
             expect(items[0].id).toBe('WISH-001');
             subscription.unsubscribe();

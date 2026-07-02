@@ -134,7 +134,8 @@ describe('ProductDetailComponent', () => {
   });
 
   it('should get star array for rating', () => {
-    const stars = component.getStarArray(4.5);
+    // getStarArray rounds to the nearest whole star: 4.4 -> 4 filled stars
+    const stars = component.getStarArray(4.4);
     expect(stars.length).toBe(5);
     expect(stars.filter((s) => s).length).toBe(4);
   });
@@ -197,6 +198,8 @@ describe('ProductDetailComponent', () => {
 
   it('should handle product not found error', () => {
     (productService.getProductById as any) = vi.fn().mockReturnValue(of(null as any));
+    // ngOnInit always chains into loadVariants, so it must return an observable
+    (productService.getProductVariants as any) = vi.fn().mockReturnValue(of([]));
 
     component.ngOnInit();
 

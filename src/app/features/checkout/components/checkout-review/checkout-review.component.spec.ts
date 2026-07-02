@@ -52,8 +52,8 @@ describe('CheckoutReviewComponent', () => {
 
     fixture = TestBed.createComponent(CheckoutReviewComponent);
     component = fixture.componentInstance;
-    component.cart = mockCart;
-    component.checkoutForm = mockCheckoutForm;
+    fixture.componentRef.setInput('cart', mockCart);
+    fixture.componentRef.setInput('checkoutForm', mockCheckoutForm);
     fixture.detectChanges();
   });
 
@@ -93,7 +93,7 @@ describe('CheckoutReviewComponent', () => {
   });
 
   it('should disable button when submitting', () => {
-    component.isSubmitting = true;
+    fixture.componentRef.setInput('isSubmitting', true);
     fixture.detectChanges();
 
     const button = fixture.nativeElement.querySelector('button');

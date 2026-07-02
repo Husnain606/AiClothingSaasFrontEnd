@@ -12,6 +12,15 @@ describe('ProductService', () => {
   let apiService: Partial<ApiService>;
   let httpMock: HttpTestingController;
 
+  /** ApiService returns ApiResponse<T>; ProductService maps response.data */
+  const asApiResponse = <T>(data: T): ApiResponse<T> => ({
+    statusCode: 200,
+    message: 'OK',
+    data,
+    errors: null,
+    timestamp: '2024-01-01T00:00:00Z',
+  });
+
   const mockCategories: Category[] = [
     {
       id: 'cat1',
@@ -84,14 +93,14 @@ describe('ProductService', () => {
 
   describe('getCategories', () => {
     it('should fetch categories and cache them', async () => {
-      (apiService.get as any) = vi.fn().mockReturnValue(of(mockCategories));
+      (apiService.get as any) = vi.fn().mockReturnValue(of(asApiResponse(mockCategories)));
 
       const result = await service.getCategories().toPromise();
       expect(result).toEqual(mockCategories);
     });
 
     it('should return cached categories on subsequent calls', async () => {
-      (apiService.get as any) = vi.fn().mockReturnValue(of(mockCategories));
+      (apiService.get as any) = vi.fn().mockReturnValue(of(asApiResponse(mockCategories)));
 
       const result1 = await service.getCategories().toPromise();
       const result2 = await service.getCategories().toPromise();
@@ -118,7 +127,7 @@ describe('ProductService', () => {
         totalPages: 1,
       };
 
-      (apiService.get as any) = vi.fn().mockReturnValue(of(mockPagedResult));
+      (apiService.get as any) = vi.fn().mockReturnValue(of(asApiResponse(mockPagedResult)));
 
       const result = await service.getProducts(filter).toPromise();
       expect(result).toEqual(mockPagedResult);
@@ -129,7 +138,7 @@ describe('ProductService', () => {
     it('should fetch a single product', async () => {
       const productId = 'prod1';
 
-      (apiService.get as any) = vi.fn().mockReturnValue(of(mockProducts[0]));
+      (apiService.get as any) = vi.fn().mockReturnValue(of(asApiResponse(mockProducts[0])));
 
       const result = await service.getProductById(productId).toPromise();
       expect(result).toEqual(mockProducts[0]);
@@ -140,7 +149,7 @@ describe('ProductService', () => {
     it('should search products by query', async () => {
       const query = 'electronics';
 
-      (apiService.get as any) = vi.fn().mockReturnValue(of(mockProducts));
+      (apiService.get as any) = vi.fn().mockReturnValue(of(asApiResponse(mockProducts)));
 
       const result = await service.searchProducts(query).toPromise();
       expect(result).toEqual(mockProducts);
@@ -151,7 +160,7 @@ describe('ProductService', () => {
     it('should fetch product variants', async () => {
       const productId = 'prod1';
 
-      (apiService.get as any) = vi.fn().mockReturnValue(of(mockVariants));
+      (apiService.get as any) = vi.fn().mockReturnValue(of(asApiResponse(mockVariants)));
 
       const result = await service.getProductVariants(productId).toPromise();
       expect(result).toEqual(mockVariants);

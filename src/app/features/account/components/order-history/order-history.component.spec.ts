@@ -1,12 +1,11 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { fakeAsync, tick } from '@angular/core/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { OrderHistoryComponent } from './order-history.component';
 import { AccountService } from '../../services/account.service';
 import { AccountStateService } from '../../services/account-state.service';
 import { CartService } from '../../../cart/services/cart.service';
 import { Router } from '@angular/router';
-import { of, throwError } from 'rxjs';
+import { of, throwError, Subject } from 'rxjs';
 import { Order } from '../../models/account.model';
 
 describe('OrderHistoryComponent', () => {
@@ -138,20 +137,25 @@ describe('OrderHistoryComponent', () => {
       expect(mockAccountService.getOrders).toHaveBeenCalled();
     });
 
-    it('should set loading to false after loading orders', fakeAsync(() => {
+    it('should set loading to false after loading orders', () => {
       component.ngOnInit();
-      tick();
 
       expect(component.isLoading).toBe(false);
-    }));
+    });
   });
 
   describe('Load Orders', () => {
-    it('should set loading state to true when loading', fakeAsync(() => {
+    it('should set loading state to true when loading', () => {
+      // Use a pending Subject so the loading state can be observed before the response
+      const pending = new Subject<Order[]>();
+      mockAccountService.getOrders = vi.fn().mockReturnValue(pending.asObservable());
+
       component['loadOrders']();
       expect(component.isLoading).toBe(true);
-      tick();
-    }));
+
+      pending.next(mockOrders);
+      pending.complete();
+    });
 
     it('should clear error state when loading', () => {
       component.hasError = true;
@@ -181,18 +185,17 @@ describe('OrderHistoryComponent', () => {
       }, 100);
     }); });
 
-    it('should handle orders load error', fakeAsync(() => {
+    it('should handle orders load error', () => {
       mockAccountService.getOrders = vi
         .fn()
         .mockReturnValue(throwError(() => new Error('Network error')));
 
       component['loadOrders']();
-      tick();
 
       expect(component.hasError).toBe(true);
       expect(component.errorMessage).toContain('Failed to load orders');
       expect(component.isLoading).toBe(false);
-    }));
+    });
 
     it('should set orders$ observable from state service', () => {
       component['loadOrders']();
@@ -227,65 +230,65 @@ describe('OrderHistoryComponent', () => {
   });
 
   describe('Reorder Functionality', () => {
-    it('should set reordering flag to true', fakeAsync(() => {
+    it('should set reordering flag to true', () => {
+      // Use a pending Subject so the in-flight reordering state can be observed
+      const pending = new Subject<unknown>();
+      mockCartService.addItem = vi.fn().mockReturnValue(pending.asObservable());
+
       component.isReordering = false;
       component.onReorder(mockOrders[0]);
 
       expect(component.isReordering).toBe(true);
-      tick();
-    }));
 
-    it('should add all order items to cart', fakeAsync(() => {
+      pending.next({});
+      pending.complete();
+    });
+
+    it('should add all order items to cart', () => {
       component.onReorder(mockOrders[0]);
-      tick();
 
       expect(mockCartService.addItem).toHaveBeenCalled();
-    }));
+    });
 
-    it('should navigate to cart after reorder', fakeAsync(() => {
+    it('should navigate to cart after reorder', () => {
       component.onReorder(mockOrders[0]);
-      tick();
 
       expect(mockRouter.navigate).toHaveBeenCalledWith(['/cart']);
-    }));
+    });
 
-    it('should set reordering flag to false after completion', fakeAsync(() => {
+    it('should set reordering flag to false after completion', () => {
       component.onReorder(mockOrders[0]);
-      tick();
 
       expect(component.isReordering).toBe(false);
-    }));
+    });
 
-    it('should handle error during reorder', fakeAsync(() => {
+    it('should handle error during reorder', () => {
       mockCartService.addItem = vi.fn().mockReturnValue(throwError(() => new Error('Cart error')));
 
       component.onReorder(mockOrders[0]);
-      tick();
 
       expect(component.isReordering).toBe(false);
-    }));
+    });
 
-    it('should add item with correct quantity from order', fakeAsync(() => {
+    it('should add item with correct quantity from order', () => {
       const order = mockOrders[0];
       component.onReorder(order);
-      tick();
 
       expect(mockCartService.addItem).toHaveBeenCalled();
       const callArgs = (mockCartService.addItem as any).mock.calls[0];
       expect(callArgs[1]).toBe(2); // quantity
-    }));
+    });
 
-    it('should add item with variant from order', fakeAsync(() => {
+    it('should add item with variant from order', () => {
       const order = mockOrders[0];
       component.onReorder(order);
-      tick();
 
       expect(mockCartService.addItem).toHaveBeenCalled();
       const callArgs = (mockCartService.addItem as any).mock.calls[0];
       expect(callArgs[2]).toEqual({ size: 'M', color: 'Blue' }); // variant
-    }));
+    });
 
-    it('should handle multiple items in order', fakeAsync(() => {
+    it('should handle multiple items in order', () => {
       const multiItemOrder: Order = {
         ...mockOrders[0],
         items: [
@@ -296,11 +299,10 @@ describe('OrderHistoryComponent', () => {
       };
 
       component.onReorder(multiItemOrder);
-      tick();
 
       expect(mockCartService.addItem).toHaveBeenCalledTimes(3);
       expect(mockRouter.navigate).toHaveBeenCalledWith(['/cart']);
-    }));
+    });
   });
 
   describe('Status Badge Styling', () => {
@@ -341,9 +343,8 @@ describe('OrderHistoryComponent', () => {
       expect(component.orders$).toBeDefined();
     });
 
-    it('should emit orders through orders$ observable', fakeAsync(() => {
+    it('should emit orders through orders$ observable', () => {
       component['loadOrders']();
-      tick();
 
       let emitted = false;
       component.orders$.subscribe((orders) => {
@@ -353,7 +354,7 @@ describe('OrderHistoryComponent', () => {
           emitted = true;
         }
       });
-    }));
+    });
   });
 
   describe('Error Handling', () => {

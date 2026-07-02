@@ -1,12 +1,11 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { fakeAsync, tick } from '@angular/core/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { WishlistComponent } from './wishlist.component';
 import { AccountService } from '../../services/account.service';
 import { AccountStateService } from '../../services/account-state.service';
 import { CartService } from '../../../cart/services/cart.service';
 import { Router } from '@angular/router';
-import { of, throwError } from 'rxjs';
+import { of, throwError, Subject } from 'rxjs';
 import { WishlistItem } from '../../models/account.model';
 
 describe('WishlistComponent', () => {
@@ -103,28 +102,32 @@ describe('WishlistComponent', () => {
       expect(mockAccountService.getWishlist).toHaveBeenCalled();
     });
 
-    it('should set loading to false after loading', fakeAsync(() => {
+    it('should set loading to false after loading', () => {
       component.ngOnInit();
-      tick();
 
       expect(component.isLoading).toBe(false);
-    }));
+    });
   });
 
   describe('Load Wishlist', () => {
-    it('should set loading state to true', fakeAsync(() => {
+    it('should set loading state to true', () => {
+      // Use a pending Subject so the loading state can be observed before the response
+      const pending = new Subject<WishlistItem[]>();
+      mockAccountService.getWishlist = vi.fn().mockReturnValue(pending.asObservable());
+
       component['loadWishlist']();
       expect(component.isLoading).toBe(true);
-      tick();
-    }));
 
-    it('should handle wishlist load error', fakeAsync(() => {
+      pending.next(mockWishlistItems);
+      pending.complete();
+    });
+
+    it('should handle wishlist load error', () => {
       mockAccountService.getWishlist = vi.fn().mockReturnValue(throwError(() => new Error('Error')));
       component['loadWishlist']();
-      tick();
 
       expect(component.hasError).toBe(true);
-    }));
+    });
 
     it('should set wishlist$ observable', () => {
       component['loadWishlist']();
@@ -133,20 +136,25 @@ describe('WishlistComponent', () => {
   });
 
   describe('Add to Cart', () => {
-    it('should set addingToCart flag', fakeAsync(() => {
+    it('should set addingToCart flag', () => {
+      // Use a pending Subject so the in-flight adding state can be observed
+      const pending = new Subject<unknown>();
+      mockCartService.addItem = vi.fn().mockReturnValue(pending.asObservable());
+
       const item = mockWishlistItems[0];
       component.onAddToCart(item);
       expect(component.addingToCart[item.id]).toBe(true);
-      tick();
-    }));
 
-    it('should navigate to cart', fakeAsync(() => {
+      pending.next({});
+      pending.complete();
+    });
+
+    it('should navigate to cart', () => {
       const item = mockWishlistItems[0];
       component.onAddToCart(item);
-      tick();
 
       expect(mockRouter.navigate).toHaveBeenCalledWith(['/cart']);
-    }));
+    });
   });
 
   describe('Remove from Wishlist', () => {

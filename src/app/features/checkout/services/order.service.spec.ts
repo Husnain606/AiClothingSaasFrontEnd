@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
+import { environment } from '@env/environment';
 import { ApiService } from '../../../core/services/api.service';
 import { OrderService } from './order.service';
 import { Order } from '../models/order.model';
@@ -10,7 +11,18 @@ describe('OrderService', () => {
   let service: OrderService;
   let httpMock: HttpTestingController;
 
+  const ordersUrl = `${environment.apiBaseUrl}/orders`;
+
+  const emptyApiResponse = {
+    statusCode: 200,
+    message: 'OK',
+    data: null,
+    errors: null,
+    timestamp: '2026-01-01T00:00:00Z',
+  };
+
   beforeEach(() => {
+    TestBed.resetTestingModule();
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
       providers: [OrderService, ApiService]
@@ -64,25 +76,29 @@ describe('OrderService', () => {
 
     service.createOrder(checkoutForm, cartItems).subscribe();
 
-    const req = httpMock.expectOne('http://localhost:3000/api/orders');
+    const req = httpMock.expectOne(ordersUrl);
     expect(req.request.method).toBe('POST');
+    req.flush(emptyApiResponse);
   });
 
   it('should retrieve all orders', () => {
     service.getOrders().subscribe();
-    const req = httpMock.expectOne('http://localhost:3000/api/orders');
+    const req = httpMock.expectOne(ordersUrl);
     expect(req.request.method).toBe('GET');
+    req.flush({ ...emptyApiResponse, data: [] });
   });
 
   it('should retrieve order by id', () => {
     service.getOrderById('ORD-2026-001').subscribe();
-    const req = httpMock.expectOne('http://localhost:3000/api/orders/ORD-2026-001');
+    const req = httpMock.expectOne(`${ordersUrl}/ORD-2026-001`);
     expect(req.request.method).toBe('GET');
+    req.flush(emptyApiResponse);
   });
 
   it('should cancel order', () => {
     service.cancelOrder('ORD-2026-001').subscribe();
-    const req = httpMock.expectOne('http://localhost:3000/api/orders/ORD-2026-001/cancel');
+    const req = httpMock.expectOne(`${ordersUrl}/ORD-2026-001/cancel`);
     expect(req.request.method).toBe('PUT');
+    req.flush(emptyApiResponse);
   });
 });

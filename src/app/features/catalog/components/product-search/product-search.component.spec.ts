@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ProductSearchComponent } from './product-search.component';
 import { ProductService } from '../../services/product.service';
 import { ReactiveFormsModule } from '@angular/forms';
@@ -50,37 +50,52 @@ describe('ProductSearchComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should setup search with debounce', fakeAsync(() => {
-    (productService.searchProducts as any) = vi.fn().mockReturnValue(of(mockProducts));
+  // Zoneless app: fakeAsync/tick are unavailable — drive debounceTime with vi fake timers
+  describe('debounced search', () => {
+    beforeEach(async () => {
+      // ngOnInit's startWith('') schedules a debounce task with REAL timers; rxjs
+      // debounceTime reuses its active task, so later values would never reach the
+      // fake clock. Let that initial task flush before switching to fake timers.
+      await new Promise((resolve) => setTimeout(resolve, 350));
+      vi.useFakeTimers();
+    });
 
-    component.searchControl.setValue('test');
-    tick(300);
+    afterEach(() => {
+      vi.useRealTimers();
+    });
 
-    expect(productService.searchProducts).toHaveBeenCalledWith('test');
-  }));
+    it('should setup search with debounce', () => {
+      (productService.searchProducts as any) = vi.fn().mockReturnValue(of(mockProducts));
 
-  it('should debounce search input', fakeAsync(() => {
-    (productService.searchProducts as any) = vi.fn().mockReturnValue(of(mockProducts));
+      component.searchControl.setValue('test');
+      vi.advanceTimersByTime(300);
 
-    component.searchControl.setValue('t');
-    tick(100);
-    component.searchControl.setValue('te');
-    tick(100);
-    component.searchControl.setValue('test');
-    tick(300);
+      expect(productService.searchProducts).toHaveBeenCalledWith('test');
+    });
 
-    expect(productService.searchProducts).toHaveBeenCalledTimes(1);
-    expect(productService.searchProducts).toHaveBeenCalledWith('test');
-  }));
+    it('should debounce search input', () => {
+      (productService.searchProducts as any) = vi.fn().mockReturnValue(of(mockProducts));
 
-  it('should not search for empty query', fakeAsync(() => {
-    (productService.searchProducts as any) = vi.fn().mockReturnValue(of([]));
+      component.searchControl.setValue('t');
+      vi.advanceTimersByTime(100);
+      component.searchControl.setValue('te');
+      vi.advanceTimersByTime(100);
+      component.searchControl.setValue('test');
+      vi.advanceTimersByTime(300);
 
-    component.searchControl.setValue('');
-    tick(300);
+      expect(productService.searchProducts).toHaveBeenCalledTimes(1);
+      expect(productService.searchProducts).toHaveBeenCalledWith('test');
+    });
 
-    expect(productService.searchProducts).not.toHaveBeenCalled();
-  }));
+    it('should not search for empty query', () => {
+      (productService.searchProducts as any) = vi.fn().mockReturnValue(of([]));
+
+      component.searchControl.setValue('');
+      vi.advanceTimersByTime(300);
+
+      expect(productService.searchProducts).not.toHaveBeenCalled();
+    });
+  });
 
   it('should emit searchSubmit when onSearch is called', () => {
     const emitSpy = vi.spyOn(component.searchSubmit, 'emit');

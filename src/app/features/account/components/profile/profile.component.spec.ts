@@ -1,11 +1,10 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { fakeAsync, tick } from '@angular/core/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { ProfileComponent } from './profile.component';
 import { AccountService } from '../../services/account.service';
 import { AccountStateService } from '../../services/account-state.service';
-import { of, throwError } from 'rxjs';
+import { of, throwError, Subject } from 'rxjs';
 import { CustomerProfile } from '../../models/account.model';
 
 describe('ProfileComponent', () => {
@@ -263,104 +262,106 @@ describe('ProfileComponent', () => {
       expect(mockAccountService.updateProfile).not.toHaveBeenCalled();
     });
 
-    it('should call updateProfile on valid form submit', fakeAsync(() => {
+    it('should call updateProfile on valid form submit', () => {
       component.form.get('firstName')?.setValue('Jane');
 
       component.onSave();
-      tick();
 
       expect(mockAccountService.updateProfile).toHaveBeenCalled();
-    }));
+    });
 
-    it('should set submitting to true during submission', fakeAsync(() => {
+    it('should set submitting to true during submission', () => {
+      // Use a pending Subject so the in-flight submitting state can be observed
+      const pending = new Subject<CustomerProfile>();
+      mockAccountService.updateProfile = vi.fn().mockReturnValue(pending.asObservable());
+
       component.isSubmitting = false;
       component.onSave();
 
       expect(component.isSubmitting).toBe(true);
-      tick();
-    }));
 
-    it('should set submitting to false after submission', fakeAsync(() => {
+      pending.next(mockProfile);
+      pending.complete();
+    });
+
+    it('should set submitting to false after submission', () => {
       component.onSave();
-      tick();
 
       expect(component.isSubmitting).toBe(false);
-    }));
+    });
 
-    it('should update state service with new profile', fakeAsync(() => {
+    it('should update state service with new profile', () => {
       component.onSave();
-      tick();
 
       expect(mockStateService.setProfile).toHaveBeenCalledWith(mockProfile);
-    }));
+    });
 
-    it('should disable edit mode after successful save', fakeAsync(() => {
+    it('should disable edit mode after successful save', () => {
       component.isEditing = true;
       component.onSave();
-      tick();
 
       expect(component.isEditing).toBe(false);
-    }));
+    });
 
-    it('should show success alert after save', fakeAsync(() => {
+    it('should show success alert after save', () => {
       component.showSuccessAlert = false;
       component.onSave();
-      tick();
 
       expect(component.showSuccessAlert).toBe(true);
-    }));
+    });
 
-    it('should hide success alert after 3 seconds', fakeAsync(() => {
-      component.showSuccessAlert = false;
-      component.onSave();
-      tick();
+    it('should hide success alert after 3 seconds', () => {
+      // Zoneless app: use vi fake timers instead of fakeAsync/tick
+      vi.useFakeTimers();
+      try {
+        component.showSuccessAlert = false;
+        component.onSave();
 
-      expect(component.showSuccessAlert).toBe(true);
-      tick(3000);
-      expect(component.showSuccessAlert).toBe(false);
-    }));
+        expect(component.showSuccessAlert).toBe(true);
+        vi.advanceTimersByTime(3000);
+        expect(component.showSuccessAlert).toBe(false);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
 
-    it('should send form data in update request', fakeAsync(() => {
+    it('should send form data in update request', () => {
       component.form.get('firstName')?.setValue('Jane');
       component.form.get('phone')?.setValue('9876543210');
 
       component.onSave();
-      tick();
 
       expect(mockAccountService.updateProfile).toHaveBeenCalled();
-    }));
+    });
 
-    it('should repopulate form with server response after save', fakeAsync(() => {
+    it('should repopulate form with server response after save', () => {
       component.onSave();
-      tick();
 
       expect(component.form.get('firstName')?.value).toBe('John');
-    }));
+    });
   });
 
   describe('Error Handling', () => {
-    it('should handle profile update error', fakeAsync(() => {
+    it('should handle profile update error', () => {
       mockAccountService.updateProfile = vi
         .fn()
         .mockReturnValue(throwError(() => ({ error: { message: 'Update failed' } })));
 
       component.onSave();
-      tick();
 
       expect(component.errorMessage).toBe('Update failed');
       expect(component.isSubmitting).toBe(false);
-    }));
+    });
 
-    it('should set default error message if no message provided', fakeAsync(() => {
+    it('should set default error message if no message provided', () => {
       mockAccountService.updateProfile = vi
         .fn()
         .mockReturnValue(throwError(() => ({ error: {} })));
 
       component.onSave();
-      tick();
 
       expect(component.errorMessage).toContain('Failed to update profile');
-    }));
+    });
 
     it('should clear error message before saving', () => {
       component.errorMessage = 'Previous error';
@@ -370,16 +371,15 @@ describe('ProfileComponent', () => {
       expect(component.errorMessage).toBe('');
     });
 
-    it('should set submitting to false on error', fakeAsync(() => {
+    it('should set submitting to false on error', () => {
       mockAccountService.updateProfile = vi
         .fn()
         .mockReturnValue(throwError(() => new Error('API error')));
 
       component.onSave();
-      tick();
 
       expect(component.isSubmitting).toBe(false);
-    }));
+    });
   });
 
   describe('Field Error Messages', () => {
