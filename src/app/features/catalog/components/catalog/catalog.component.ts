@@ -8,6 +8,7 @@ import { PagedResult } from '../../../../core/models/api-response.model';
 import { CategoryListComponent } from '../category-list/category-list.component';
 import { ProductListComponent } from '../product-list/product-list.component';
 import { ProductSearchComponent } from '../product-search/product-search.component';
+import { CartService } from '../../../cart/services/cart.service';
 
 @Component({
   selector: 'app-catalog',
@@ -34,7 +35,10 @@ export class CatalogComponent implements OnInit, OnDestroy {
 
   private destroy$ = new Subject<void>();
 
-  constructor(private productService: ProductService) {}
+  constructor(
+    private productService: ProductService,
+    private cartService: CartService
+  ) {}
 
   ngOnInit(): void {
     this.loadData();
@@ -129,12 +133,21 @@ export class CatalogComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Handle add to cart (will be connected to CartService in Task 4)
+   * Handle add to cart from the product grid (no variant selection at this level)
    */
   onAddToCart(product: Product): void {
-    console.log('Add to cart:', product);
-    // TODO: Connect to CartService in Task 4
-    alert(`${product.name} added to cart!`);
+    this.cartService
+      .addItem(product, 1)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          alert(`${product.name} added to cart!`);
+        },
+        error: (err) => {
+          console.error('Failed to add to cart:', err);
+          alert('Failed to add item to cart. Please try again.');
+        },
+      });
   }
 
   /**

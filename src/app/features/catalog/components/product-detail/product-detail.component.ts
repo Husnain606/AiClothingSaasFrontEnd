@@ -6,6 +6,7 @@ import { BehaviorSubject, Subject } from 'rxjs';
 import { takeUntil, switchMap } from 'rxjs/operators';
 import { ProductService } from '../../services/product.service';
 import { Product, ProductVariant } from '../../models/product.model';
+import { CartService } from '../../../cart/services/cart.service';
 
 @Component({
   selector: 'app-product-detail',
@@ -30,6 +31,7 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
 
   constructor(
     private productService: ProductService,
+    private cartService: CartService,
     private route: ActivatedRoute,
     private router: Router
   ) {}
@@ -133,16 +135,18 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
       return;
     }
 
-    console.log('Adding to cart:', {
-      product: product.id,
-      variant: variant?.id,
-      quantity: qty,
-    });
-
-    // TODO: Connect to CartService in Task 4
-    alert(
-      `${qty} x ${product.name}${variant ? ` (${variant.color}, ${variant.size})` : ''} added to cart!`
-    );
+    this.cartService
+      .addItem(product, qty, variant ? { size: variant.size, color: variant.color } : undefined)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.router.navigate(['/cart']);
+        },
+        error: (err) => {
+          console.error('Failed to add to cart:', err);
+          this.error$.next('Failed to add item to cart. Please try again.');
+        },
+      });
   }
 
   /**

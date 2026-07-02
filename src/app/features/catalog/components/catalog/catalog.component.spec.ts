@@ -2,14 +2,17 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { CatalogComponent } from './catalog.component';
 import { ProductService } from '../../services/product.service';
+import { CartService } from '../../../cart/services/cart.service';
 import { Category, Product } from '../../models/product.model';
 import { PagedResult } from '../../../../core/models/api-response.model';
-import { of } from 'rxjs';
+import { Cart } from '../../../cart/models/cart.model';
+import { of, throwError } from 'rxjs';
 
 describe('CatalogComponent', () => {
   let component: CatalogComponent;
   let fixture: ComponentFixture<CatalogComponent>;
   let productService: Partial<ProductService>;
+  let cartService: Partial<CartService>;
 
   const mockCategories: Category[] = [
     {
@@ -51,20 +54,36 @@ describe('CatalogComponent', () => {
     totalPages: 1,
   };
 
+  const mockCart: Cart = {
+    items: [],
+    subtotal: 0,
+    tax: 0,
+    total: 0,
+    itemCount: 0,
+  };
+
   beforeEach(async () => {
     const productServiceMock = {
       getCategories: vi.fn(),
       getProducts: vi.fn(),
     } as unknown as Partial<ProductService>;
 
+    const cartServiceMock = {
+      addItem: vi.fn().mockReturnValue(of(mockCart)),
+    } as unknown as Partial<CartService>;
+
     await TestBed.configureTestingModule({
       imports: [CatalogComponent],
-      providers: [{ provide: ProductService, useValue: productServiceMock }],
+      providers: [
+        { provide: ProductService, useValue: productServiceMock },
+        { provide: CartService, useValue: cartServiceMock },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(CatalogComponent);
     component = fixture.componentInstance;
     productService = TestBed.inject(ProductService) as unknown as Partial<ProductService>;
+    cartService = TestBed.inject(CartService) as unknown as Partial<CartService>;
   });
 
   it('should create', () => {
@@ -125,11 +144,23 @@ describe('CatalogComponent', () => {
   });
 
   it('should handle add to cart', () => {
-    const alertSpy = vi.spyOn(window, 'alert');
+    const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
 
     component.onAddToCart(mockProducts[0]);
 
+    expect(cartService.addItem).toHaveBeenCalledWith(mockProducts[0], 1);
     expect(alertSpy).toHaveBeenCalled();
+  });
+
+  it('should show an error alert when add to cart fails', () => {
+    const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    (cartService.addItem as any) = vi.fn().mockReturnValue(throwError(() => new Error('fail')));
+
+    component.onAddToCart(mockProducts[0]);
+
+    expect(consoleErrorSpy).toHaveBeenCalled();
+    expect(alertSpy).toHaveBeenCalledWith('Failed to add item to cart. Please try again.');
   });
 
   it('should handle suggestions selected', () => {

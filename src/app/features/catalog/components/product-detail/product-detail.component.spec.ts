@@ -2,14 +2,17 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ProductDetailComponent } from './product-detail.component';
 import { ProductService } from '../../services/product.service';
+import { CartService } from '../../../cart/services/cart.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Product, ProductVariant } from '../../models/product.model';
-import { of } from 'rxjs';
+import { Cart } from '../../../cart/models/cart.model';
+import { of, throwError } from 'rxjs';
 
 describe('ProductDetailComponent', () => {
   let component: ProductDetailComponent;
   let fixture: ComponentFixture<ProductDetailComponent>;
   let productService: Partial<ProductService>;
+  let cartService: Partial<CartService>;
   let router: Partial<Router>;
   let activatedRoute: any;
 
@@ -57,11 +60,22 @@ describe('ProductDetailComponent', () => {
     },
   ];
 
+  const mockCart: Cart = {
+    items: [],
+    subtotal: 0,
+    tax: 0,
+    total: 0,
+    itemCount: 0,
+  };
+
   beforeEach(async () => {
     const productServiceMock = {
       getProductById: vi.fn(),
       getProductVariants: vi.fn(),
     } as unknown as Partial<ProductService>;
+    const cartServiceMock = {
+      addItem: vi.fn().mockReturnValue(of(mockCart)),
+    } as unknown as Partial<CartService>;
     const routerMock = {
       navigate: vi.fn(),
     } as unknown as Partial<Router>;
@@ -74,6 +88,7 @@ describe('ProductDetailComponent', () => {
       imports: [ProductDetailComponent],
       providers: [
         { provide: ProductService, useValue: productServiceMock },
+        { provide: CartService, useValue: cartServiceMock },
         { provide: Router, useValue: routerMock },
         { provide: ActivatedRoute, useValue: activatedRoute },
       ],
@@ -82,6 +97,7 @@ describe('ProductDetailComponent', () => {
     fixture = TestBed.createComponent(ProductDetailComponent);
     component = fixture.componentInstance;
     productService = TestBed.inject(ProductService) as unknown as Partial<ProductService>;
+    cartService = TestBed.inject(CartService) as unknown as Partial<CartService>;
     router = TestBed.inject(Router) as unknown as Partial<Router>;
   });
 
@@ -179,7 +195,6 @@ describe('ProductDetailComponent', () => {
   });
 
   it('should add to cart with product and variant', () => {
-    const alertSpy = vi.spyOn(window, 'alert');
     (productService.getProductById as any) = vi.fn().mockReturnValue(of(mockProduct));
     (productService.getProductVariants as any) = vi.fn().mockReturnValue(of(mockVariants));
 
@@ -187,7 +202,55 @@ describe('ProductDetailComponent', () => {
     component.quantity.setValue(2);
     component.addToCart();
 
-    expect(alertSpy).toHaveBeenCalled();
+    expect(cartService.addItem).toHaveBeenCalledWith(mockProduct, 2, {
+      size: mockVariants[0].size,
+      color: mockVariants[0].color,
+    });
+    expect(router.navigate).toHaveBeenCalledWith(['/cart']);
+  });
+
+  it('should add to cart without a variant when product has no variants', () => {
+    const noVariantProduct: Product = { ...mockProduct, variantCount: 0 };
+    (productService.getProductById as any) = vi.fn().mockReturnValue(of(noVariantProduct));
+    (productService.getProductVariants as any) = vi.fn().mockReturnValue(of([]));
+
+    component.ngOnInit();
+    component.addToCart();
+
+    expect(cartService.addItem).toHaveBeenCalledWith(noVariantProduct, 1, undefined);
+    expect(router.navigate).toHaveBeenCalledWith(['/cart']);
+  });
+
+  it('should show an error message when add to cart fails', () => {
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    (productService.getProductById as any) = vi.fn().mockReturnValue(of(mockProduct));
+    (productService.getProductVariants as any) = vi.fn().mockReturnValue(of(mockVariants));
+    (cartService.addItem as any) = vi.fn().mockReturnValue(throwError(() => new Error('fail')));
+
+    component.ngOnInit();
+    component.addToCart();
+
+    expect(consoleErrorSpy).toHaveBeenCalled();
+    expect(component.error$.value).toBe('Failed to add item to cart. Please try again.');
+    expect(router.navigate).not.toHaveBeenCalledWith(['/cart']);
+  });
+
+  it('should not add to cart when product is missing', () => {
+    component.addToCart();
+
+    expect(cartService.addItem).not.toHaveBeenCalled();
+    expect(component.error$.value).toBe('Product not found');
+  });
+
+  it('should not add to cart when a variant is required but not selected', () => {
+    (productService.getProductById as any) = vi.fn().mockReturnValue(of(mockProduct));
+    (productService.getProductVariants as any) = vi.fn().mockReturnValue(of([]));
+
+    component.ngOnInit();
+    component.addToCart();
+
+    expect(cartService.addItem).not.toHaveBeenCalled();
+    expect(component.error$.value).toBe('Please select a variant');
   });
 
   it('should navigate back to products', () => {
