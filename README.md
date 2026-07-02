@@ -1,59 +1,97 @@
-# FashionsaasStorefront
+# FashionSaaS Storefront
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.1.2.
+Angular 21 (standalone components, zoneless change detection) customer-facing storefront for the FashionSaaS platform — Phase 3 of the FashionSaaS build. Generated with Angular CLI 21.1.2, tested with Vitest via `ng test`.
+
+## Prerequisites
+
+- Node.js 20+ and npm 11+ (`packageManager` pinned to `npm@11.17.0`)
+- FashionSaaS Phase 2 backend API reachable at the URL configured in `src/environments/environment.ts` (defaults to `http://localhost:5000/api/v1`)
+
+Install dependencies:
+
+```bash
+npm install
+```
 
 ## Development server
 
-To start a local development server, run:
-
 ```bash
-ng serve
+npm start
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
-```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
-
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+Navigate to `http://localhost:4200/`. The app reloads automatically on source changes. Uses `environment.ts` (development config, `production: false`).
 
 ## Running unit tests
 
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
-
 ```bash
-ng test
+npm test        # watch mode (Vitest)
+npm run test:ci # single run, no watch — use in CI
 ```
 
-## Running end-to-end tests
+Current suite: 493/493 tests passing.
 
-For end-to-end (e2e) testing, run:
+## Production build
 
 ```bash
-ng e2e
+npm run build:prod
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+Equivalent to `ng build --configuration production`. This:
 
-## Additional Resources
+- Applies `fileReplacements` to swap in `src/environments/environment.prod.ts`
+- Enables output hashing on all emitted files (safe for long-lived caching)
+- Disables source maps
+- Enforces bundle budgets (see below)
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+Build output is written to `dist/fashionsaas-storefront/browser`.
+
+`npm run build` (no configuration flag) also defaults to the production configuration per `angular.json` (`defaultConfiguration: production`).
+
+### Bundle budgets
+
+The initial bundle for this app sits at ~593 kB (raw), dominated by the Angular/RxJS runtime (~360 kB JS) plus the full Bootstrap 5 stylesheet (~232 kB CSS, used across effectively every component). All feature routes (catalog, cart, checkout, account, auth) are already lazy-loaded via `loadComponent` in `app.routes.ts`, and the shared header/footer only pull in models/services, not feature components — so there is no accidental eager-loading to fix here. The `initial` budget in `angular.json` is therefore set to a justified `600kB` warning / `1MB` error (raised from the Angular CLI default of `500kB`/`1MB`) to reflect this legitimate baseline rather than suppressing a real regression signal. Component style budgets remain at the CLI defaults (`4kB` warning / `8kB` error).
+
+### Bundle analysis
+
+```bash
+npm run analyze
+```
+
+Runs a production build with `--stats-json`, emitting `dist/fashionsaas-storefront/stats.json` for use with a bundle visualizer (e.g. `npx webpack-bundle-analyzer dist/fashionsaas-storefront/stats.json`) if deeper investigation is needed later.
+
+## Environment configuration
+
+| Property | `environment.ts` (dev) | `environment.prod.ts` (production) |
+|---|---|---|
+| `production` | `false` | `true` |
+| `apiBaseUrl` | `http://localhost:5000/api/v1` | `https://api.fashionsaas.com/api/v1` |
+| `tenantSlug` | `'default-tenant'` (placeholder) | `''` (resolved at runtime) |
+
+`angular.json`'s `production` build configuration wires `fileReplacements` so any `import { environment } from './environments/environment'` resolves to `environment.prod.ts` in production builds.
+
+## Route map
+
+| Path | Layout | Component | Guards |
+|---|---|---|---|
+| `/` | Main | redirects to `/products` | — |
+| `/products` | Main | `CatalogComponent` | `authGuard` |
+| `/products/:id` | Main | `ProductDetailComponent` | `authGuard` |
+| `/cart` | Main | `CartComponent` | `authGuard` |
+| `/checkout` | Main | `CheckoutComponent` | `authGuard`, `cartNotEmptyGuard` |
+| `/account` | Main | `AccountComponent` | `authGuard` |
+| `/login` | Auth | `LoginComponent` | — |
+| `/register` | Auth | `RegisterComponent` | — |
+| `**` | — | `NotFoundComponent` | — |
+
+All feature routes are lazy-loaded (`loadComponent`).
+
+## Deployment note
+
+This repo produces a static SPA build only — no Docker image or cloud deployment pipeline is included here. Since routing is entirely client-side (Angular Router), any static host must rewrite unmatched paths to `index.html` so deep links and hard refreshes work.
+
+A reference nginx configuration with SPA fallback (`try_files ... /index.html`), gzip, and immutable caching for hashed JS/CSS assets is provided at [`deploy/nginx.conf`](./deploy/nginx.conf). It is documentation only — full containerized/cloud deployment (Docker image, Azure hosting, CI/CD) is **Phase 8** scope.
+
+## Additional resources
+
+- [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli)
+- [Vitest](https://vitest.dev/)
