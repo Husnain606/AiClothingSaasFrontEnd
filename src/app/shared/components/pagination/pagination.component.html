@@ -1,0 +1,48 @@
+<nav aria-label="Page navigation" class="pagination-container">
+  <ul class="pagination mb-0">
+    <!-- Previous button -->
+    <li class="page-item" [class.disabled]="!canGoPrevious">
+      <a
+        class="page-link"
+        href="javascript:void(0)"
+        (click)="canGoPrevious && onPageChange(currentPage - 1)"
+        [attr.aria-label]="'Previous page'"
+        [attr.tabindex]="canGoPrevious ? 0 : -1">
+        <i class="bi bi-chevron-left"></i>
+        <span class="d-none d-sm-inline">Previous</span>
+      </a>
+    </li>
+
+    <!-- Page numbers -->
+    <ng-container *ngFor="let page of pages">
+      <li class="page-item" [class.active]="page === currentPage">
+        <a
+          class="page-link"
+          href="javascript:void(0)"
+          (click)="onPageChange(page)"
+          [attr.aria-label]="'Go to page ' + page"
+          [attr.aria-current]="page === currentPage ? 'page' : null">
+          {{ page }}
+        </a>
+      </li>
+    </ng-container>
+
+    <!-- Next button -->
+    <li class="page-item" [class.disabled]="!canGoNext">
+      <a
+        class="page-link"
+        href="javascript:void(0)"
+        (click)="canGoNext && onPageChange(currentPage + 1)"
+        [attr.aria-label]="'Next page'"
+        [attr.tabindex]="canGoNext ? 0 : -1">
+        <span class="d-none d-sm-inline">Next</span>
+        <i class="bi bi-chevron-right"></i>
+      </a>
+    </li>
+  </ul>
+
+  <!-- Page info for mobile -->
+  <div class="pagination-info d-sm-none mt-2">
+    <small class="text-muted">Page {{ currentPage }} of {{ totalPages }}</small>
+  </div>
+</nav>

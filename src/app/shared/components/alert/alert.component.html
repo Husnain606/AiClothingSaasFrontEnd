@@ -1,0 +1,17 @@
+<div
+  *ngIf="isVisible"
+  [class]="getAlertClass()"
+  role="alert">
+  <div class="d-flex align-items-start">
+    <i [class]="'alert-icon ' + getIconClass()" aria-hidden="true"></i>
+    <div class="flex-grow-1 ms-2">
+      <p class="mb-0">{{ message }}</p>
+    </div>
+    <button
+      *ngIf="dismissible"
+      type="button"
+      class="btn-close"
+      (click)="onDismiss()"
+      aria-label="Close alert"></button>
+  </div>
+</div>

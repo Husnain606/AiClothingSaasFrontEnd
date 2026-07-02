@@ -1,0 +1,8 @@
+<div [class.spinner-overlay]="fullPage">
+  <div [class]="'spinner-container ' + getSizeClass()">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <p *ngIf="message" class="spinner-message mt-3">{{ message }}</p>
+  </div>
+</div>

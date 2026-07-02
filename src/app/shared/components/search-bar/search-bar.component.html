@@ -1,0 +1,25 @@
+<div class="search-bar-container">
+  <div class="input-group">
+    <span class="input-group-text bg-white">
+      <i class="bi bi-search"></i>
+    </span>
+    <input
+      #searchInput
+      type="text"
+      class="form-control"
+      placeholder="Search products..."
+      [(ngModel)]="searchTerm"
+      (input)="onSearch()"
+      (keypress)="onKeyPress($event)"
+      aria-label="Search products">
+    <button
+      *ngIf="searchTerm"
+      type="button"
+      class="btn btn-outline-secondary"
+      (click)="onClear()"
+      title="Clear search"
+      aria-label="Clear search">
+      <i class="bi bi-x-lg"></i>
+    </button>
+  </div>
+</div>

@@ -1,0 +1,73 @@
+.spinner-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  backdrop-filter: blur(2px);
+}
+
+.spinner-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  &.spinner-sm {
+    .spinner-border {
+      width: 2rem;
+      height: 2rem;
+      border-width: 0.2em;
+    }
+
+    .spinner-message {
+      font-size: 0.875rem;
+    }
+  }
+
+  &.spinner-md {
+    .spinner-border {
+      width: 3rem;
+      height: 3rem;
+      border-width: 0.25em;
+    }
+
+    .spinner-message {
+      font-size: 1rem;
+    }
+  }
+
+  &.spinner-lg {
+    .spinner-border {
+      width: 4rem;
+      height: 4rem;
+      border-width: 0.3em;
+    }
+
+    .spinner-message {
+      font-size: 1.125rem;
+    }
+  }
+}
+
+.spinner-border {
+  animation: spinner-border 0.75s linear infinite;
+}
+
+.spinner-message {
+  color: #495057;
+  font-weight: 500;
+  text-align: center;
+  max-width: 300px;
+}
+
+@keyframes spinner-border {
+  to {
+    transform: rotate(360deg);
+  }
+}

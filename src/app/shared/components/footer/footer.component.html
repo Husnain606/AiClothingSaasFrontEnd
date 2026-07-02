@@ -1,0 +1,64 @@
+<footer class="bg-dark text-light py-5 mt-5">
+  <div class="container">
+    <div class="row">
+      <!-- Brand Section -->
+      <div class="col-md-3 mb-4">
+        <h5 class="fw-bold mb-3">
+          <i class="bi bi-shop me-2"></i>FashionSaaS
+        </h5>
+        <p class="text-muted small">Your destination for trendy fashion, quality products, and great deals.</p>
+
+        <!-- Social Links -->
+        <div class="d-flex gap-3 mt-3">
+          <a
+            *ngFor="let social of socialLinks"
+            [href]="social.url"
+            [attr.aria-label]="social.label"
+            class="text-light text-decoration-none link-hover"
+            title="{{ social.label }}">
+            <i [class]="'bi ' + social.icon"></i>
+          </a>
+        </div>
+      </div>
+
+      <!-- Footer Links -->
+      <ng-container *ngFor="let section of footerLinks">
+        <div class="col-md-3 mb-4">
+          <h6 class="fw-bold mb-3">{{ section.title }}</h6>
+          <ul class="list-unstyled">
+            <li *ngFor="let link of section.links" class="mb-2">
+              <a [href]="link.url" class="text-muted text-decoration-none link-hover">
+                {{ link.label }}
+              </a>
+            </li>
+          </ul>
+        </div>
+      </ng-container>
+
+      <!-- Newsletter Section -->
+      <div class="col-md-3 mb-4">
+        <h6 class="fw-bold mb-3">Newsletter</h6>
+        <p class="text-muted small mb-3">Subscribe to get special offers and updates!</p>
+        <form class="input-group input-group-sm">
+          <input
+            type="email"
+            class="form-control"
+            placeholder="Your email"
+            aria-label="Email address">
+          <button class="btn btn-primary" type="submit">Subscribe</button>
+        </form>
+      </div>
+    </div>
+
+    <hr class="my-4 bg-secondary">
+
+    <!-- Copyright Section -->
+    <div class="row">
+      <div class="col-12 text-center">
+        <p class="text-muted small mb-0">
+          &copy; {{ currentYear }} FashionSaaS. All rights reserved.
+        </p>
+      </div>
+    </div>
+  </div>
+</footer>
