@@ -156,8 +156,9 @@ export class CartService {
    * Check if two variants match
    */
   private variantsMatch(variant1?: { size?: string; color?: string }, variant2?: { size?: string; color?: string }): boolean {
-    if (!variant1 && !variant2) return true;
-    if (!variant1 || !variant2) return false;
-    return variant1.size === variant2.size && variant1.color === variant2.color;
+    // Treat a missing variant and an empty variant ({ size: undefined, color: undefined })
+    // as equivalent, so adding the same variant-less product twice increments quantity
+    // instead of creating a duplicate line item.
+    return variant1?.size === variant2?.size && variant1?.color === variant2?.color;
   }
 }
