@@ -3,7 +3,7 @@
     <!-- Brand/Logo -->
     <a
       class="navbar-brand fw-bold text-primary"
-      routerLink="/home"
+      routerLink="/"
       (click)="closeNavbar()">
       <i class="bi bi-shop me-2"></i>FashionSaaS
     </a>
@@ -27,7 +27,7 @@
         <li class="nav-item">
           <a
             class="nav-link"
-            routerLink="/catalog"
+            routerLink="/products"
             (click)="closeNavbar()">
             Catalog
           </a>
@@ -87,25 +87,9 @@
               <li>
                 <a
                   class="dropdown-item"
-                  routerLink="/account/profile"
+                  routerLink="/account"
                   (click)="closeNavbar()">
-                  <i class="bi bi-person me-2"></i>Profile
-                </a>
-              </li>
-              <li>
-                <a
-                  class="dropdown-item"
-                  routerLink="/account/orders"
-                  (click)="closeNavbar()">
-                  <i class="bi bi-bag me-2"></i>Orders
-                </a>
-              </li>
-              <li>
-                <a
-                  class="dropdown-item"
-                  routerLink="/account/addresses"
-                  (click)="closeNavbar()">
-                  <i class="bi bi-geo-alt me-2"></i>Addresses
+                  <i class="bi bi-person me-2"></i>My Account
                 </a>
               </li>
               <li><hr class="dropdown-divider"></li>
