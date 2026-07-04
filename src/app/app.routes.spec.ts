@@ -98,6 +98,13 @@ describe('app routes configuration', () => {
     expect(wildcard.component).toBe(NotFoundComponent);
     expect(routes.indexOf(wildcard)).toBe(routes.length - 1);
   });
+
+  it('lazily loads the admin area without a component on the app-level route', () => {
+    const adminRoute = routes.find(r => r.path === 'admin')!;
+    expect(adminRoute).toBeDefined();
+    expect(adminRoute.component).toBeUndefined();
+    expect(typeof adminRoute.loadChildren).toBe('function');
+  });
 });
 
 describe('app routes navigation', () => {

@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
-import { of } from 'rxjs';
+import { firstValueFrom, of } from 'rxjs';
 import { HeaderComponent } from './header.component';
 import { AuthService } from '../../../core/services/auth.service';
 import { CartService } from '../../../features/cart/services/cart.service';
@@ -13,14 +13,20 @@ describe('HeaderComponent', () => {
     logout: ReturnType<typeof vi.fn>;
     isAuthenticated: ReturnType<typeof vi.fn>;
     getCurrentUser: ReturnType<typeof vi.fn>;
+    isTenantAdmin: ReturnType<typeof vi.fn>;
+    isSuperAdmin: ReturnType<typeof vi.fn>;
   };
+  let mockAuthService: typeof authService;
 
   beforeEach(async () => {
     authService = {
       logout: vi.fn(),
       isAuthenticated: vi.fn().mockReturnValue(of(false)),
       getCurrentUser: vi.fn().mockReturnValue(of(null)),
+      isTenantAdmin: vi.fn().mockReturnValue(false),
+      isSuperAdmin: vi.fn().mockReturnValue(false),
     };
+    mockAuthService = authService;
     const cartServiceMock = {
       cart$: of({ items: [], subtotal: 0, tax: 0, total: 0, itemCount: 2 }),
     };
@@ -113,5 +119,29 @@ describe('HeaderComponent', () => {
     component.closeNavbar();
     expect(component.isNavbarOpen).toBe(false);
     expect(component.isUserMenuOpen).toBe(false);
+  });
+
+  it('shows the Dashboard link for a tenant-admin role', async () => {
+    mockAuthService.isTenantAdmin = vi.fn().mockReturnValue(true);
+    mockAuthService.isSuperAdmin = vi.fn().mockReturnValue(false);
+    mockAuthService.getCurrentUser = vi
+      .fn()
+      .mockReturnValue(of({ id: '1', email: 'a@b.com', firstName: 'A', lastName: 'B', roles: ['StoreManager'] }));
+    component.ngOnInit();
+
+    const visible = await firstValueFrom(component.showDashboardLink$);
+    expect(visible).toBe(true);
+  });
+
+  it('hides the Dashboard link for a Customer', async () => {
+    mockAuthService.isTenantAdmin = vi.fn().mockReturnValue(false);
+    mockAuthService.isSuperAdmin = vi.fn().mockReturnValue(false);
+    mockAuthService.getCurrentUser = vi
+      .fn()
+      .mockReturnValue(of({ id: '1', email: 'a@b.com', firstName: 'A', lastName: 'B', roles: ['Customer'] }));
+    component.ngOnInit();
+
+    const visible = await firstValueFrom(component.showDashboardLink$);
+    expect(visible).toBe(false);
   });
 });

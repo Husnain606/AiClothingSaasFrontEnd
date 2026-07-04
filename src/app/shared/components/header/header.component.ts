@@ -18,6 +18,7 @@ export class HeaderComponent implements OnInit {
   isLoggedIn$!: Observable<boolean>;
   currentUser$!: Observable<CurrentUser | null>;
   cartItemCount$!: Observable<number>;
+  showDashboardLink$!: Observable<boolean>;
   isNavbarOpen = false;
   isUserMenuOpen = false;
 
@@ -33,6 +34,9 @@ export class HeaderComponent implements OnInit {
     this.currentUser$ = this.authService.getCurrentUser();
     this.cartItemCount$ = this.cartService.cart$.pipe(
       map(cart => cart.itemCount)
+    );
+    this.showDashboardLink$ = this.currentUser$.pipe(
+      map((user) => !!user && (this.authService.isTenantAdmin() || this.authService.isSuperAdmin()))
     );
   }
 

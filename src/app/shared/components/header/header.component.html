@@ -84,6 +84,11 @@
               class="dropdown-menu dropdown-menu-end"
               [class.show]="isUserMenuOpen"
               aria-labelledby="navbarDropdown">
+              <li *ngIf="showDashboardLink$ | async">
+                <a class="dropdown-item" routerLink="/admin" (click)="closeNavbar()">
+                  <i class="bi bi-speedometer2 me-2"></i>Dashboard
+                </a>
+              </li>
               <li>
                 <a
                   class="dropdown-item"

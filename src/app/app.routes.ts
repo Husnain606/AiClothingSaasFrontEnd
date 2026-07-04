@@ -81,6 +81,10 @@ export const routes: Routes = [
     ],
   },
   {
+    path: 'admin',
+    loadChildren: () => import('./admin/admin.routes').then((m) => m.adminRoutes),
+  },
+  {
     path: '**',
     component: NotFoundComponent,
     title: 'Page Not Found | FashionSaaS',

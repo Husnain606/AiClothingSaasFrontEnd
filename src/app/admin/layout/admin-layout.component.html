@@ -1,0 +1,46 @@
+<div class="admin-shell">
+  <button
+    type="button"
+    class="btn btn-outline-secondary d-lg-none admin-drawer-toggle"
+    (click)="toggleDrawer()"
+    [attr.aria-expanded]="isDrawerOpen"
+    aria-label="Toggle admin navigation">
+    <i class="bi bi-list"></i>
+  </button>
+
+  <aside class="admin-sidebar" [class.admin-sidebar--open]="isDrawerOpen">
+    <div class="admin-sidebar__brand">
+      <i class="bi bi-shop me-2"></i>{{ isPlatform ? 'Platform Console' : 'Store Admin' }}
+    </div>
+    <nav aria-label="Admin navigation">
+      <ul class="nav flex-column">
+        <li class="nav-item" *ngFor="let item of menuItems">
+          <a
+            class="nav-link"
+            [routerLink]="item.path"
+            routerLinkActive="active"
+            [routerLinkActiveOptions]="{ exact: item.path === '/admin' || item.path === '/admin/platform' }"
+            (click)="closeDrawer()">
+            <i class="bi" [class]="'bi-' + item.icon"></i> {{ item.label }}
+          </a>
+        </li>
+      </ul>
+    </nav>
+  </aside>
+
+  <div class="admin-backdrop d-lg-none" *ngIf="isDrawerOpen" (click)="closeDrawer()"></div>
+
+  <div class="admin-content">
+    <header class="admin-topbar d-flex justify-content-between align-items-center border-bottom px-3 py-2">
+      <a routerLink="/products" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Back to store
+      </a>
+      <button type="button" class="btn btn-sm btn-outline-danger" (click)="onLogout()" aria-label="Log out">
+        <i class="bi bi-box-arrow-right"></i> Logout
+      </button>
+    </header>
+    <main class="admin-main p-3">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>
