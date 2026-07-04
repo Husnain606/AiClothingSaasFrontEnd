@@ -5,7 +5,15 @@ import { map, tap, catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { ApiService } from './api.service';
 import { ApiResponse } from '../models/api-response.model';
-import { LoginRequest, LoginResponse, RegisterRequest, CurrentUser } from '../../features/auth/models/auth.model';
+import {
+  LoginRequest,
+  LoginResponse,
+  LoginMfaRequest,
+  RegisterRequest,
+  CurrentUser,
+  AppRole,
+  TENANT_ADMIN_ROLES,
+} from '../../features/auth/models/auth.model';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -28,9 +36,24 @@ export class AuthService {
     return this.apiService.post<LoginResponse>('auth/login', request).pipe(
       tap((response: ApiResponse<LoginResponse>) => {
         const loginResponse = response.data;
-        this.setToken(loginResponse.accessToken);
-        this.isAuthenticated$.next(true);
-        this.loadCurrentUser();
+        if (loginResponse.accessToken) {
+          this.setToken(loginResponse.accessToken);
+          this.isAuthenticated$.next(true);
+          this.loadCurrentUser();
+        }
+      }),
+      map((response: ApiResponse<LoginResponse>) => response.data)
+    );
+  }
+
+  loginMfa(request: LoginMfaRequest): Observable<LoginResponse> {
+    return this.apiService.post<LoginResponse>('auth/login/mfa', request).pipe(
+      tap((response: ApiResponse<LoginResponse>) => {
+        if (response.data.accessToken) {
+          this.setToken(response.data.accessToken);
+          this.isAuthenticated$.next(true);
+          this.loadCurrentUser();
+        }
       }),
       map((response: ApiResponse<LoginResponse>) => response.data)
     );
@@ -40,9 +63,11 @@ export class AuthService {
     return this.apiService.post<LoginResponse>('auth/register', request).pipe(
       tap((response: ApiResponse<LoginResponse>) => {
         const loginResponse = response.data;
-        this.setToken(loginResponse.accessToken);
-        this.isAuthenticated$.next(true);
-        this.loadCurrentUser();
+        if (loginResponse.accessToken) {
+          this.setToken(loginResponse.accessToken);
+          this.isAuthenticated$.next(true);
+          this.loadCurrentUser();
+        }
       }),
       map((response: ApiResponse<LoginResponse>) => response.data)
     );
@@ -74,6 +99,38 @@ export class AuthService {
     return this.currentUser$.asObservable();
   }
 
+  getRoles(): AppRole[] {
+    const token = this.getToken();
+    if (!token) return [];
+    try {
+      const payload = this.decodeToken(token);
+      const raw = payload.role;
+      if (!raw) return [];
+      return (Array.isArray(raw) ? raw : [raw]) as AppRole[];
+    } catch {
+      return [];
+    }
+  }
+
+  hasAnyRole(roles: AppRole[]): boolean {
+    const mine = this.getRoles();
+    return roles.some((r) => mine.includes(r));
+  }
+
+  isSuperAdmin(): boolean {
+    return this.hasAnyRole(['SuperAdmin']);
+  }
+
+  isTenantAdmin(): boolean {
+    return this.hasAnyRole(TENANT_ADMIN_ROLES);
+  }
+
+  postLoginRedirectPath(): string {
+    if (this.isSuperAdmin()) return '/admin/platform';
+    if (this.isTenantAdmin()) return '/admin';
+    return '/products';
+  }
+
   private loadCurrentUser(): void {
     // For MVP, we'll parse the JWT token or fetch from a /me endpoint
     // This is a simplified version that sets current user from auth response
@@ -88,7 +145,7 @@ export class AuthService {
           email: payload.email || '',
           firstName: payload.firstName || '',
           lastName: payload.lastName || '',
-          roles: payload.roles || [],
+          roles: this.getRoles(),
         };
         this.currentUser$.next(currentUser);
       } catch (e) {

@@ -77,4 +77,68 @@ describe('LoginComponent', () => {
     fixture.detectChanges();
     expect(passwordControl?.hasError('minlength')).toBeTruthy();
   });
+
+  it('shows the MFA step when login response requires MFA', () => {
+    mockAuthService.login = vi.fn().mockReturnValue(
+      of({ accessToken: null, refreshToken: null, mfaRequired: true, mfaToken: 'challenge-abc' })
+    );
+    component.loginForm.setValue({ email: 'super@example.com', password: 'Password1!' });
+
+    component.onSubmit();
+
+    expect(component.step).toBe('mfa');
+    expect(component.mfaToken).toBe('challenge-abc');
+  });
+
+  it('navigates by role-based redirect after successful non-MFA login', () => {
+    const navSpy = vi.spyOn(router, 'navigateByUrl');
+    mockAuthService.login = vi.fn().mockReturnValue(
+      of({ accessToken: 'token', refreshToken: null, mfaRequired: false, mfaToken: null })
+    );
+    mockAuthService.postLoginRedirectPath = vi.fn().mockReturnValue('/admin');
+    component.loginForm.setValue({ email: 'owner@example.com', password: 'Password1!' });
+
+    component.onSubmit();
+
+    expect(navSpy).toHaveBeenCalledWith('/admin');
+  });
+
+  it('submits the MFA code and redirects on success', () => {
+    const navSpy = vi.spyOn(router, 'navigateByUrl');
+    mockAuthService.loginMfa = vi.fn().mockReturnValue(
+      of({ accessToken: 'token', refreshToken: null, mfaRequired: false, mfaToken: null })
+    );
+    mockAuthService.postLoginRedirectPath = vi.fn().mockReturnValue('/admin/platform');
+    component.step = 'mfa';
+    component.mfaToken = 'challenge-abc';
+    component.mfaCode = '123456';
+
+    component.onSubmitMfa();
+
+    expect(mockAuthService.loginMfa).toHaveBeenCalledWith({ mfaToken: 'challenge-abc', code: '123456' });
+    expect(navSpy).toHaveBeenCalledWith('/admin/platform');
+  });
+
+  it('shows an error and stays on the MFA step for an invalid code', () => {
+    mockAuthService.loginMfa = vi.fn().mockReturnValue(throwError(() => new Error('invalid')));
+    component.step = 'mfa';
+    component.mfaToken = 'challenge-abc';
+    component.mfaCode = '000000';
+
+    component.onSubmitMfa();
+
+    expect(component.step).toBe('mfa');
+    expect(component.mfaError).toContain('Invalid or expired code');
+  });
+
+  it('rejects a code that is not 6 digits without calling the service', () => {
+    mockAuthService.loginMfa = vi.fn();
+    component.step = 'mfa';
+    component.mfaCode = '123';
+
+    component.onSubmitMfa();
+
+    expect(mockAuthService.loginMfa).not.toHaveBeenCalled();
+    expect(component.mfaError).toBeTruthy();
+  });
 });

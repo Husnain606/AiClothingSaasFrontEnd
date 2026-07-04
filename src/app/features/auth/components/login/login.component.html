@@ -13,7 +13,7 @@
           </div>
 
           <!-- Login Form -->
-          <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+          <form *ngIf="step === 'credentials'" [formGroup]="loginForm" (ngSubmit)="onSubmit()">
             <!-- Email Field -->
             <div class="mb-3">
               <label for="email" class="form-label">Email Address</label>
@@ -64,8 +64,36 @@
             </button>
           </form>
 
+          <!-- MFA Challenge Form -->
+          <form *ngIf="step === 'mfa'" (ngSubmit)="onSubmitMfa()" aria-label="Two-factor verification">
+            <p class="text-muted">Enter the 6-digit code from your authenticator app.</p>
+            <div class="mb-3">
+              <label for="mfaCode" class="form-label">Verification code</label>
+              <input
+                id="mfaCode"
+                name="mfaCode"
+                type="text"
+                inputmode="numeric"
+                maxlength="6"
+                class="form-control"
+                [class.is-invalid]="mfaError"
+                [(ngModel)]="mfaCode"
+                [ngModelOptions]="{standalone: true}"
+                autocomplete="one-time-code"
+                required
+              />
+              <div class="invalid-feedback" *ngIf="mfaError">{{ mfaError }}</div>
+            </div>
+            <button type="submit" class="btn btn-primary w-100" [disabled]="mfaSubmitting">
+              {{ mfaSubmitting ? 'Verifying…' : 'Verify' }}
+            </button>
+            <button type="button" class="btn btn-link w-100" (click)="onBackToCredentials()">
+              Back to sign in
+            </button>
+          </form>
+
           <!-- Register Link -->
-          <div class="text-center mt-3">
+          <div class="text-center mt-3" *ngIf="step === 'credentials'">
             <p>
               Don't have an account?
               <a routerLink="/register" class="text-primary">Register here</a>

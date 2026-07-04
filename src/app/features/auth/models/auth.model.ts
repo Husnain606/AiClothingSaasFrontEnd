@@ -4,9 +4,15 @@ export interface LoginRequest {
 }
 
 export interface LoginResponse {
-  accessToken: string;
-  refreshToken: string;
-  expiresIn: number;
+  accessToken: string | null;
+  refreshToken: string | null;
+  mfaRequired: boolean;
+  mfaToken: string | null;
+}
+
+export interface LoginMfaRequest {
+  mfaToken: string;
+  code: string;
 }
 
 export interface RegisterRequest {
@@ -17,10 +23,27 @@ export interface RegisterRequest {
   confirmPassword: string;
 }
 
+export type AppRole =
+  | 'SuperAdmin'
+  | 'AdminOwner'
+  | 'StoreManager'
+  | 'InventoryManager'
+  | 'OrderManager'
+  | 'ContentManager'
+  | 'Customer';
+
 export interface CurrentUser {
   id: string;
   email: string;
   firstName: string;
   lastName: string;
-  roles: string[];
+  roles: AppRole[];
 }
+
+export const TENANT_ADMIN_ROLES: AppRole[] = [
+  'AdminOwner',
+  'StoreManager',
+  'InventoryManager',
+  'OrderManager',
+  'ContentManager',
+];
