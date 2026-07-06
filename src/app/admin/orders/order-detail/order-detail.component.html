@@ -1,0 +1,108 @@
+<ng-container *ngIf="order as o">
+  <div class="d-flex justify-content-between align-items-start mb-3">
+    <div>
+      <h1 class="h4 mb-0">{{ o.orderId }}</h1>
+      <app-status-badge [status]="o.status"></app-status-badge>
+    </div>
+    <div class="d-flex gap-2 align-items-center">
+      <button *ngIf="actions.includes('confirm')" class="btn btn-primary btn-sm" (click)="onConfirm()">Confirm</button>
+      <ng-container *ngIf="actions.includes('ship')">
+        <input class="form-control form-control-sm d-inline-block w-auto" placeholder="Tracking number (optional)"
+               [(ngModel)]="trackingNumberInput" name="trackingNumberInput" />
+        <button class="btn btn-primary btn-sm" (click)="openShipModal()">Ship</button>
+      </ng-container>
+      <button *ngIf="actions.includes('deliver')" class="btn btn-primary btn-sm" (click)="onDeliver()">Mark Delivered</button>
+      <ng-container *ngIf="actions.includes('cancel')">
+        <input class="form-control form-control-sm d-inline-block w-auto" placeholder="Cancellation reason"
+               [(ngModel)]="cancelReasonInput" name="cancelReasonInput" />
+        <button class="btn btn-outline-danger btn-sm" (click)="openCancelModal()">Cancel</button>
+      </ng-container>
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-body">
+          <h2 class="h6">Items</h2>
+          <table class="table table-sm">
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th>Qty</th>
+                <th>Price</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of o.items">
+                <td>{{ item.productName }} <span *ngIf="item.variant">({{ item.variant.size }} {{ item.variant.color }})</span></td>
+                <td>{{ item.quantity }}</td>
+                <td>{{ item.price | number: '1.2-2' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card mt-3">
+        <div class="card-body">
+          <h2 class="h6">Status timeline</h2>
+          <ol class="list-group list-group-numbered">
+            <li class="list-group-item" [class.list-group-item-primary]="o.status === 'pending'">Pending</li>
+            <li class="list-group-item"
+                [class.list-group-item-primary]="o.status === 'confirmed'"
+                [class.text-muted]="o.status === 'cancelled'">Confirmed</li>
+            <li class="list-group-item"
+                [class.list-group-item-primary]="o.status === 'shipped'"
+                [class.text-muted]="o.status === 'cancelled'">Shipped</li>
+            <li class="list-group-item"
+                [class.list-group-item-success]="o.status === 'delivered'"
+                [class.text-muted]="o.status === 'cancelled'">Delivered</li>
+          </ol>
+          <p *ngIf="o.status === 'cancelled'" class="text-danger mt-2 mb-0">This order was cancelled.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-body">
+          <h2 class="h6">Shipping address</h2>
+          <p class="mb-0">
+            {{ o.shippingAddress.firstName }} {{ o.shippingAddress.lastName }}<br />
+            {{ o.shippingAddress.street }}<br />
+            {{ o.shippingAddress.city }}, {{ o.shippingAddress.state }} {{ o.shippingAddress.zipCode }}<br />
+            {{ o.shippingAddress.country }}
+          </p>
+          <h2 class="h6 mt-3">Totals</h2>
+          <p class="mb-0">
+            Subtotal: {{ o.subtotal | number: '1.2-2' }}<br />
+            Tax: {{ o.tax | number: '1.2-2' }}<br />
+            Shipping: {{ o.shippingCost | number: '1.2-2' }}<br />
+            <strong>Total: {{ o.total | number: '1.2-2' }}</strong>
+          </p>
+          <p *ngIf="o.trackingNumber" class="mt-2">Tracking: {{ o.trackingNumber }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <app-confirm-modal
+    [isOpen]="shipModalOpen"
+    title="Ship order"
+    [message]="'Mark ' + o.orderId + ' as shipped?'"
+    confirmLabel="Ship"
+    (confirmed)="onShipConfirmed(trackingNumberInput)"
+    (cancelled)="onShipCancelled()">
+  </app-confirm-modal>
+
+  <app-confirm-modal
+    [isOpen]="cancelModalOpen"
+    title="Cancel order"
+    [message]="'Cancel ' + o.orderId + '? This cannot be undone.'"
+    confirmLabel="Cancel order"
+    tone="danger"
+    (confirmed)="onCancelConfirmed(cancelReasonInput)"
+    (cancelled)="onCancelCancelled()">
+  </app-confirm-modal>
+</ng-container>

@@ -1,0 +1,40 @@
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h4 mb-0">Orders</h1>
+</div>
+
+<div class="row g-2 mb-3 align-items-end">
+  <div class="col-auto">
+    <label for="status-filter" class="form-label small mb-0">Status</label>
+    <select id="status-filter" class="form-select form-select-sm" (change)="onStatusFilterChange($any($event.target).value)">
+      <option value="">All</option>
+      <option value="pending">Pending</option>
+      <option value="confirmed">Confirmed</option>
+      <option value="shipped">Shipped</option>
+      <option value="delivered">Delivered</option>
+      <option value="cancelled">Cancelled</option>
+    </select>
+  </div>
+  <div class="col-auto">
+    <label for="search" class="form-label small mb-0">Search</label>
+    <input id="search" class="form-control form-control-sm" placeholder="Order number"
+           (change)="onSearchChange($any($event.target).value)" />
+  </div>
+  <div class="col-auto">
+    <app-date-range-picker [range]="range" (rangeChange)="onRangeChange($event)"></app-date-range-picker>
+  </div>
+</div>
+
+<div (click)="handleTableClick($event)" style="cursor:pointer">
+  <app-data-table
+    [columns]="columns"
+    [rows]="rows"
+    [totalCount]="totalCount"
+    [pageNumber]="pageNumber"
+    [pageSize]="pageSize"
+    [sortKey]="null"
+    sortDirection="asc"
+    [loading]="loading"
+    emptyMessage="No orders found."
+    (pageChange)="onPageChange($event)">
+  </app-data-table>
+</div>
