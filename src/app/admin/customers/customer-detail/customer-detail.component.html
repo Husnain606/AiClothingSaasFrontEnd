@@ -1,0 +1,39 @@
+<ng-container *ngIf="customer as c">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h4 mb-0">{{ c.firstName }} {{ c.lastName }} ({{ c.email }})</h1>
+    <button class="btn btn-outline-danger btn-sm" *ngIf="c.isActive" (click)="openDeactivateModal()">Deactivate</button>
+    <span class="badge text-bg-secondary" *ngIf="!c.isActive">Inactive</span>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-md-6">
+      <h2 class="h6">Orders</h2>
+      <table class="table table-sm">
+        <thead><tr><th>Order #</th><th>Status</th><th>Total</th></tr></thead>
+        <tbody>
+          <tr *ngFor="let o of orders">
+            <td>{{ o.orderId }}</td>
+            <td><app-status-badge [status]="o.status"></app-status-badge></td>
+            <td>{{ o.total | number:'1.2-2' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="col-md-6">
+      <h2 class="h6">Wishlist</h2>
+      <ul class="list-group">
+        <li class="list-group-item" *ngFor="let w of wishlist">{{ w.productName }}</li>
+      </ul>
+    </div>
+  </div>
+</ng-container>
+
+<app-confirm-modal
+  [isOpen]="deactivateModalOpen"
+  title="Deactivate customer"
+  message="Deactivate this customer? They will no longer be able to sign in."
+  confirmLabel="Deactivate"
+  tone="danger"
+  (confirmed)="onDeactivateConfirmed()"
+  (cancelled)="onDeactivateCancelled()">
+</app-confirm-modal>

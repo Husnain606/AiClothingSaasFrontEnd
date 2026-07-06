@@ -1,0 +1,14 @@
+<h1 class="h4 mb-3">Customers</h1>
+<input class="form-control form-control-sm mb-3 w-auto" placeholder="Search by email or name"
+       (change)="onSearchChange($any($event.target).value)" />
+
+<app-data-table [columns]="columns" [rows]="rows" [totalCount]="totalCount" [pageNumber]="pageNumber"
+  [pageSize]="pageSize" [sortKey]="null" sortDirection="asc" [loading]="loading"
+  emptyMessage="No customers found." (pageChange)="onPageChange($event)">
+  <ng-template #customCell let-row="row" let-column="column">
+    <ng-container [ngSwitch]="column.key">
+      <a *ngSwitchCase="'email'" [routerLink]="[row.id]">{{ row.email }}</a>
+      <app-status-badge *ngSwitchCase="'isActive'" [status]="row.isActive ? 'active' : 'inactive'"></app-status-badge>
+    </ng-container>
+  </ng-template>
+</app-data-table>
