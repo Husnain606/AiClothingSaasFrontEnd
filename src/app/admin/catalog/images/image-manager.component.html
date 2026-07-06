@@ -1,0 +1,14 @@
+<h2 class="h6">Images</h2>
+<div class="d-flex flex-wrap gap-2 mb-2">
+  <div *ngFor="let img of images; let i = index" class="border rounded p-1 text-center" style="width:120px">
+    <img [src]="img.url" [alt]="'Product image ' + (i + 1)" class="img-fluid" style="max-height:80px" />
+    <div class="small" *ngIf="img.isPrimary">Primary</div>
+    <div class="d-flex justify-content-center gap-1 mt-1">
+      <button class="btn btn-sm btn-outline-secondary" [disabled]="i === 0" (click)="onMoveUp(i)" aria-label="Move up"><i class="bi bi-arrow-up"></i></button>
+      <button class="btn btn-sm btn-outline-primary" *ngIf="!img.isPrimary" (click)="onSetPrimary(img)">Set primary</button>
+      <button class="btn btn-sm btn-outline-danger" (click)="onDelete(img)" aria-label="Delete image"><i class="bi bi-trash"></i></button>
+    </div>
+  </div>
+</div>
+<label for="image-upload" class="form-label small">Upload image</label>
+<input id="image-upload" type="file" accept="image/*" class="form-control form-control-sm w-auto" (change)="onFileSelected($event)" />

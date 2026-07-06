@@ -12,6 +12,8 @@ const COLOR_MAP: Record<string, string> = {
   active: 'text-bg-success',
   inactive: 'text-bg-secondary',
   suspended: 'text-bg-warning',
+  draft: 'text-bg-secondary',
+  archived: 'text-bg-warning',
 };
 
 @Component({

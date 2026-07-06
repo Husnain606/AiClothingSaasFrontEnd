@@ -1,0 +1,36 @@
+<h1 class="h4 mb-3">{{ isEditMode ? 'Edit product' : 'New product' }}</h1>
+
+<form [formGroup]="form" (ngSubmit)="onSubmit()">
+  <div class="mb-3">
+    <label for="name" class="form-label">Name</label>
+    <input id="name" class="form-control" formControlName="name" />
+  </div>
+  <div class="mb-3">
+    <label for="slug" class="form-label">Slug</label>
+    <input id="slug" class="form-control" formControlName="slug" />
+  </div>
+  <div class="mb-3">
+    <label for="description" class="form-label">Description</label>
+    <textarea id="description" class="form-control" formControlName="description"></textarea>
+  </div>
+  <div class="mb-3">
+    <label for="categoryId" class="form-label">Category</label>
+    <select id="categoryId" class="form-select" formControlName="categoryId">
+      <option value="" disabled>Select a category</option>
+      <option *ngFor="let c of categories" [value]="c.id">{{ c.name }}</option>
+    </select>
+  </div>
+  <div class="mb-3">
+    <label for="basePrice" class="form-label">Base price</label>
+    <input id="basePrice" type="number" step="0.01" class="form-control" formControlName="basePrice" />
+  </div>
+  <button type="submit" class="btn btn-primary">Save</button>
+  <a routerLink="/admin/catalog" class="btn btn-link">Cancel</a>
+</form>
+
+<ng-container *ngIf="isEditMode && productId">
+  <hr />
+  <app-variant-table [productId]="productId"></app-variant-table>
+  <hr />
+  <app-image-manager [productId]="productId"></app-image-manager>
+</ng-container>

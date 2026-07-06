@@ -1,0 +1,28 @@
+<div class="d-flex gap-2 mb-3">
+  <input class="form-control form-control-sm w-auto" placeholder="New root category" [(ngModel)]="newCategoryName" name="newCategoryName" />
+  <button class="btn btn-sm btn-primary" (click)="onCreateRoot()">Add</button>
+</div>
+
+<ng-template #node let-category let-depth="depth">
+  <div class="d-flex align-items-center gap-2 py-1" [style.paddingLeft.px]="depth * 20">
+    <i class="bi bi-folder"></i>
+    <span>{{ category.name }}</span>
+    <select
+      class="form-select form-select-sm w-auto ms-auto"
+      [attr.aria-label]="'Move ' + category.name"
+      (change)="onMove(category.id, $any($event.target).value || null)">
+      <option value="">Move to root</option>
+      <option *ngFor="let target of tree" [value]="target.id" [disabled]="target.id === category.id">{{ target.name }}</option>
+    </select>
+    <button class="btn btn-sm btn-outline-danger" [attr.aria-label]="'Delete ' + category.name" (click)="onDelete(category.id)">
+      <i class="bi bi-trash"></i>
+    </button>
+  </div>
+  <ng-container *ngFor="let child of category.children">
+    <ng-container *ngTemplateOutlet="node; context: { $implicit: child, depth: depth + 1 }"></ng-container>
+  </ng-container>
+</ng-template>
+
+<div *ngFor="let root of tree">
+  <ng-container *ngTemplateOutlet="node; context: { $implicit: root, depth: 0 }"></ng-container>
+</div>

@@ -1,0 +1,40 @@
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h4 mb-0">Products</h1>
+  <div class="d-flex gap-2">
+    <a routerLink="categories" class="btn btn-outline-secondary btn-sm">Categories</a>
+    <a routerLink="new" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> New product</a>
+  </div>
+</div>
+
+<input class="form-control form-control-sm mb-3 w-auto" placeholder="Search products"
+       (change)="onSearchChange($any($event.target).value)" />
+
+<app-data-table [columns]="columns" [rows]="rows" [totalCount]="totalCount" [pageNumber]="pageNumber"
+  [pageSize]="pageSize" [sortKey]="null" sortDirection="asc" [loading]="loading"
+  emptyMessage="No products found." (pageChange)="onPageChange($event)">
+</app-data-table>
+
+<table class="table table-sm mt-2">
+  <tbody>
+    <tr *ngFor="let p of rows">
+      <td>{{ p.name }}</td>
+      <td><app-status-badge [status]="p.status"></app-status-badge></td>
+      <td>
+        <a [routerLink]="[p.id]" class="btn btn-sm btn-outline-secondary">Edit</a>
+        <button class="btn btn-sm btn-outline-success" *ngIf="p.status !== 'Active'" (click)="onPublish(p)">Publish</button>
+        <button class="btn btn-sm btn-outline-warning" *ngIf="p.status !== 'Archived'" (click)="onArchive(p)">Archive</button>
+        <button class="btn btn-sm btn-outline-danger" (click)="openDeleteModal(p)">Delete</button>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<app-confirm-modal
+  [isOpen]="deleteModalOpen"
+  title="Delete product"
+  [message]="'Delete ' + (productPendingDelete?.name ?? '') + '? This cannot be undone.'"
+  confirmLabel="Delete"
+  tone="danger"
+  (confirmed)="onDeleteConfirmed()"
+  (cancelled)="onDeleteCancelled()">
+</app-confirm-modal>
