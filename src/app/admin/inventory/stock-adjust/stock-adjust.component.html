@@ -1,0 +1,24 @@
+<div class="row g-2 align-items-end mb-2">
+  <div class="col-auto">
+    <label for="delta" class="form-label small mb-0">Quantity change</label>
+    <input id="delta" type="number" class="form-control form-control-sm" [(ngModel)]="delta" name="delta" />
+  </div>
+  <div class="col-auto">
+    <label for="reason" class="form-label small mb-0">Reason</label>
+    <select id="reason" class="form-select form-select-sm" [(ngModel)]="reason" name="reason">
+      <option value="">Select a reason</option>
+      <option *ngFor="let r of reasons" [value]="r">{{ r }}</option>
+    </select>
+  </div>
+  <div class="col-auto"><button class="btn btn-sm btn-primary" (click)="onSubmit()">Adjust</button></div>
+</div>
+<div class="text-danger small" *ngIf="validationError" role="alert">{{ validationError }}</div>
+
+<table class="table table-sm">
+  <thead><tr><th>Date</th><th>Delta</th><th>Reason</th><th>Resulting qty</th></tr></thead>
+  <tbody>
+    <tr *ngFor="let h of history">
+      <td>{{ h.createdAt | date:'medium' }}</td><td>{{ h.delta }}</td><td>{{ h.reason }}</td><td>{{ h.resultingQuantity }}</td>
+    </tr>
+  </tbody>
+</table>

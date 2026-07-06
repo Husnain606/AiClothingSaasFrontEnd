@@ -1,0 +1,16 @@
+<h1 class="h4 mb-3">Low stock</h1>
+<div class="mb-3">
+  <label for="threshold" class="form-label small mb-0">Threshold</label>
+  <input id="threshold" type="number" class="form-control form-control-sm w-auto" [value]="threshold"
+         (change)="onThresholdChange($any($event.target).valueAsNumber)" />
+</div>
+<table class="table table-sm">
+  <thead><tr><th>SKU</th><th>Size</th><th>Color</th><th>Stock</th><th></th></tr></thead>
+  <tbody>
+    <tr *ngFor="let i of items">
+      <td>{{ i.sku }}</td><td>{{ i.size }}</td><td>{{ i.color }}</td><td>{{ i.stockQuantity }}</td>
+      <td><button class="btn btn-sm btn-outline-primary" (click)="onSelectVariant(i.variantId)">Adjust</button></td>
+    </tr>
+  </tbody>
+</table>
+<app-stock-adjust *ngIf="selectedVariantId" [variantId]="selectedVariantId"></app-stock-adjust>
