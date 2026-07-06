@@ -1,0 +1,18 @@
+<div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1080" role="region" aria-label="Notifications">
+  <div
+    *ngFor="let toast of toasts"
+    class="toast show mb-2"
+    [class]="kindClass(toast.kind)"
+    role="status"
+    aria-live="polite">
+    <div class="d-flex">
+      <div class="toast-body">{{ toast.text }}</div>
+      <button
+        type="button"
+        class="btn-close btn-close-white me-2 m-auto"
+        aria-label="Dismiss notification"
+        (click)="onDismiss(toast.id)">
+      </button>
+    </div>
+  </div>
+</div>

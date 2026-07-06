@@ -68,4 +68,9 @@ describe('AdminLayoutComponent', () => {
     component.onLogout();
     expect(mockAuth.logout).toHaveBeenCalled();
   });
+
+  it('renders the toast container', () => {
+    const el = fixture.nativeElement.querySelector('app-toast-container');
+    expect(el).toBeTruthy();
+  });
 });

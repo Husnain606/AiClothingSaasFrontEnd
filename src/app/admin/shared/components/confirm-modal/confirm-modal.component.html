@@ -1,0 +1,51 @@
+<div
+  class="modal d-block"
+  tabindex="-1"
+  role="dialog"
+  *ngIf="isOpen"
+  aria-modal="true"
+  [attr.aria-label]="title"
+  #dialogEl>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header" [class.bg-danger]="tone === 'danger'" [class.text-white]="tone === 'danger'">
+        <h5 class="modal-title">{{ title }}</h5>
+      </div>
+      <div class="modal-body">
+        <p>{{ message }}</p>
+        <div *ngIf="requireTypedConfirmation" class="mb-2">
+          <label for="typedConfirm" class="form-label">
+            Type <strong>{{ requireTypedConfirmation }}</strong> to confirm
+          </label>
+          <input
+            id="typedConfirm"
+            class="form-control"
+            [(ngModel)]="typedValue"
+            name="typedConfirm"
+            #typedConfirmEl />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button
+          type="button"
+          class="btn btn-secondary"
+          data-testid="cancel-btn"
+          (click)="onCancel()"
+          #cancelBtnEl>
+          {{ cancelLabel }}
+        </button>
+        <button
+          type="button"
+          class="btn"
+          [class.btn-primary]="tone === 'primary'"
+          [class.btn-danger]="tone === 'danger'"
+          data-testid="confirm-btn"
+          [disabled]="!canConfirm"
+          (click)="onConfirm()">
+          {{ confirmLabel }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal-backdrop show" *ngIf="isOpen"></div>

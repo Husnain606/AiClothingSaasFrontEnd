@@ -1,0 +1,59 @@
+<div class="table-responsive">
+  <table class="table table-hover align-middle">
+    <thead>
+      <tr>
+        <th
+          *ngFor="let col of columns"
+          [attr.data-sort-key]="col.sortable ? col.key : null"
+          [class.sortable]="col.sortable"
+          role="columnheader"
+          [attr.aria-sort]="col.sortable ? (sortKey === col.key ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none') : null"
+          [attr.tabindex]="col.sortable ? 0 : null"
+          (click)="onSort(col)"
+          (keydown.enter)="onSort(col)"
+          (keydown.space)="$event.preventDefault(); onSort(col)"
+          [style.cursor]="col.sortable ? 'pointer' : null">
+          {{ col.header }}
+          <i
+            class="bi"
+            *ngIf="col.sortable"
+            [class.bi-arrow-up]="sortKey === col.key && sortDirection === 'asc'"
+            [class.bi-arrow-down]="sortKey === col.key && sortDirection === 'desc'"
+            [class.bi-arrow-down-up]="sortKey !== col.key"></i>
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let row of rows">
+        <td *ngFor="let col of columns">
+          <ng-container [ngSwitch]="col.cellTemplate">
+            <span *ngSwitchCase="'currency'">{{ (cellText(row, col) | number: '1.2-2') }}</span>
+            <span *ngSwitchCase="'date'">{{ cellDate(row, col) | date: 'medium' }}</span>
+            <span *ngSwitchDefault>{{ cellValue(row, col) }}</span>
+          </ng-container>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div *ngIf="loading" data-testid="table-loading" class="text-center py-4">
+    <div class="spinner-border" role="status"><span class="visually-hidden">Loading…</span></div>
+  </div>
+
+  <div *ngIf="!loading && rows.length === 0" class="text-center text-muted py-4">
+    {{ emptyMessage }}
+  </div>
+
+  <nav *ngIf="!loading && rows.length > 0" aria-label="Table pagination" class="d-flex justify-content-between align-items-center mt-2">
+    <span class="text-muted small">{{ totalCount }} total</span>
+    <ul class="pagination pagination-sm mb-0">
+      <li class="page-item" [class.disabled]="pageNumber === 1">
+        <button class="page-link" (click)="goToPage(pageNumber - 1)" aria-label="Previous page">Previous</button>
+      </li>
+      <li class="page-item disabled"><span class="page-link">{{ pageNumber }} / {{ totalPages }}</span></li>
+      <li class="page-item" [class.disabled]="pageNumber === totalPages">
+        <button class="page-link" (click)="goToPage(pageNumber + 1)" aria-label="Next page">Next</button>
+      </li>
+    </ul>
+  </nav>
+</div>
