@@ -23,10 +23,20 @@ describe('ProductListComponent', () => {
     createdAt: '2026-07-01T00:00:00Z',
   };
 
+  const product2: ProductSummaryDto = {
+    id: 'p2',
+    name: 'Trousers',
+    slug: 'trousers',
+    categoryId: 'c1',
+    status: 'Active',
+    basePrice: 49,
+    createdAt: '2026-07-02T00:00:00Z',
+  };
+
   beforeEach(async () => {
     TestBed.resetTestingModule();
     mockCatalog = {
-      getProducts: vi.fn().mockReturnValue(of({ items: [product], totalCount: 1, pageNumber: 1, pageSize: 20, totalPages: 1 })),
+      getProducts: vi.fn().mockReturnValue(of({ items: [product, product2], totalCount: 2, pageNumber: 1, pageSize: 20, totalPages: 1 })),
       publishProduct: vi.fn().mockReturnValue(of({ ...product, status: 'Active' })),
       archiveProduct: vi.fn().mockReturnValue(of({ ...product, status: 'Archived' })),
       deleteProduct: vi.fn().mockReturnValue(of(undefined)),
@@ -47,7 +57,21 @@ describe('ProductListComponent', () => {
   });
 
   it('loads products on init', () => {
-    expect(component.rows.length).toBe(1);
+    expect(component.rows.length).toBe(2);
+  });
+
+  it('renders exactly one table row per product (no duplicate rendering)', () => {
+    const rows = fixture.nativeElement.querySelectorAll('tbody tr');
+    expect(rows.length).toBe(component.rows.length);
+    expect(rows.length).toBe(2);
+  });
+
+  it('renders each product name exactly once in the DOM', () => {
+    const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    const jacketOccurrences = text.split('Jacket').length - 1;
+    const trousersOccurrences = text.split('Trousers').length - 1;
+    expect(jacketOccurrences).toBe(1);
+    expect(trousersOccurrences).toBe(1);
   });
 
   it('publishes a product and reloads', () => {

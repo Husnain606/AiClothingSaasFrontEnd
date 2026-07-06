@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, ContentChild, EventEmitter, Input, Output, TemplateRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 export interface DataTableColumn<T> {
@@ -6,6 +6,11 @@ export interface DataTableColumn<T> {
   header: string;
   sortable?: boolean;
   cellTemplate?: 'text' | 'currency' | 'date' | 'custom';
+}
+
+export interface DataTableCustomCellContext<T> {
+  row: T;
+  column: DataTableColumn<T>;
 }
 
 @Component({
@@ -27,6 +32,8 @@ export class DataTableComponent<T extends object> {
 
   @Output() pageChange = new EventEmitter<number>();
   @Output() sortChange = new EventEmitter<{ key: string; direction: 'asc' | 'desc' }>();
+
+  @ContentChild('customCell') customCellTemplate?: TemplateRef<DataTableCustomCellContext<T>>;
 
   get totalPages(): number {
     return Math.max(1, Math.ceil(this.totalCount / this.pageSize));

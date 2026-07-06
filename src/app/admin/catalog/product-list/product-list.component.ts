@@ -17,9 +17,10 @@ import { ToastService } from '../../shared/services/toast.service';
 export class ProductListComponent implements OnInit {
   columns: DataTableColumn<ProductSummaryDto>[] = [
     { key: 'name', header: 'Name', sortable: true },
-    { key: 'status', header: 'Status' },
+    { key: 'status', header: 'Status', cellTemplate: 'custom' },
     { key: 'basePrice', header: 'Price', cellTemplate: 'currency' },
     { key: 'createdAt', header: 'Created', cellTemplate: 'date' },
+    { key: 'id', header: 'Actions', cellTemplate: 'custom' },
   ];
   rows: ProductSummaryDto[] = [];
   totalCount = 0;

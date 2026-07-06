@@ -29,6 +29,11 @@
           <ng-container [ngSwitch]="col.cellTemplate">
             <span *ngSwitchCase="'currency'">{{ (cellText(row, col) | number: '1.2-2') }}</span>
             <span *ngSwitchCase="'date'">{{ cellDate(row, col) | date: 'medium' }}</span>
+            <ng-container *ngSwitchCase="'custom'">
+              <ng-container
+                *ngTemplateOutlet="customCellTemplate ?? null; context: { row: row, column: col }">
+              </ng-container>
+            </ng-container>
             <span *ngSwitchDefault>{{ cellValue(row, col) }}</span>
           </ng-container>
         </td>

@@ -12,22 +12,18 @@
 <app-data-table [columns]="columns" [rows]="rows" [totalCount]="totalCount" [pageNumber]="pageNumber"
   [pageSize]="pageSize" [sortKey]="null" sortDirection="asc" [loading]="loading"
   emptyMessage="No products found." (pageChange)="onPageChange($event)">
+  <ng-template #customCell let-row="row" let-column="column">
+    <ng-container [ngSwitch]="column.key">
+      <app-status-badge *ngSwitchCase="'status'" [status]="row.status"></app-status-badge>
+      <ng-container *ngSwitchCase="'id'">
+        <a [routerLink]="[row.id]" class="btn btn-sm btn-outline-secondary">Edit</a>
+        <button class="btn btn-sm btn-outline-success" *ngIf="row.status !== 'Active'" (click)="onPublish(row)">Publish</button>
+        <button class="btn btn-sm btn-outline-warning" *ngIf="row.status !== 'Archived'" (click)="onArchive(row)">Archive</button>
+        <button class="btn btn-sm btn-outline-danger" (click)="openDeleteModal(row)">Delete</button>
+      </ng-container>
+    </ng-container>
+  </ng-template>
 </app-data-table>
-
-<table class="table table-sm mt-2">
-  <tbody>
-    <tr *ngFor="let p of rows">
-      <td>{{ p.name }}</td>
-      <td><app-status-badge [status]="p.status"></app-status-badge></td>
-      <td>
-        <a [routerLink]="[p.id]" class="btn btn-sm btn-outline-secondary">Edit</a>
-        <button class="btn btn-sm btn-outline-success" *ngIf="p.status !== 'Active'" (click)="onPublish(p)">Publish</button>
-        <button class="btn btn-sm btn-outline-warning" *ngIf="p.status !== 'Archived'" (click)="onArchive(p)">Archive</button>
-        <button class="btn btn-sm btn-outline-danger" (click)="openDeleteModal(p)">Delete</button>
-      </td>
-    </tr>
-  </tbody>
-</table>
 
 <app-confirm-modal
   [isOpen]="deleteModalOpen"
