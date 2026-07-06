@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { Order, OrderStatus } from '../models/order.model';
+import { Order } from '../models/order.model';
 import { CheckoutForm } from '../models/checkout.model';
 import { CartItem } from '../../cart/models/cart.model';
 import { ApiService } from '../../../core/services/api.service';
@@ -11,7 +11,7 @@ import { ApiResponse } from '../../../core/models/api-response.model';
   providedIn: 'root'
 })
 export class OrderService {
-  private readonly apiUrl = 'orders';
+  private readonly apiUrl = 'store/orders';
 
   constructor(private apiService: ApiService) {}
 
@@ -21,14 +21,10 @@ export class OrderService {
       paymentInfo: {
         cardholderName: checkout.paymentInfo.cardholderName,
         cardNumber: checkout.paymentInfo.cardNumber, // Already masked
-        expiryMonth: checkout.paymentInfo.expiryMonth,
-        expiryYear: checkout.paymentInfo.expiryYear
-        // CVV is NEVER sent to backend
+        // CVV, expiryMonth, expiryYear are never sent — backend CreateOrderRequest does not accept them
       },
       items: cartItems.map(item => ({
         productId: item.productId,
-        productName: item.productName,
-        price: item.price,
         quantity: item.quantity,
         variant: item.selectedVariant
       }))

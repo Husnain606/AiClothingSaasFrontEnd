@@ -201,7 +201,7 @@ describe('AccountService', () => {
         });
 
         const req = httpMock.expectOne((request) =>
-          request.url.includes('account/orders') && request.params.has('pageNumber')
+          request.url.includes('store/orders') && request.params.has('pageNumber')
         );
         expect(req.request.method).toBe('GET');
         expect(req.request.params.get('pageNumber')).toBe('1');
@@ -218,7 +218,7 @@ describe('AccountService', () => {
         });
 
         const req = httpMock.expectOne((request) =>
-          request.url.includes('account/orders') && request.params.has('pageNumber')
+          request.url.includes('store/orders') && request.params.has('pageNumber')
         );
         expect(req.request.params.get('pageNumber')).toBe('2');
         expect(req.request.params.get('pageSize')).toBe('20');
@@ -236,7 +236,7 @@ describe('AccountService', () => {
           }
         );
 
-        const req = httpMock.expectOne((request) => request.url.includes('account/orders'));
+        const req = httpMock.expectOne((request) => request.url.includes('store/orders'));
         req.flush(
           { message: 'Internal server error' },
           { status: 500, statusText: 'Internal Server Error' }
@@ -251,7 +251,7 @@ describe('AccountService', () => {
           resolve();
         });
 
-        const req = httpMock.expectOne((request) => request.url.includes('account/orders'));
+        const req = httpMock.expectOne((request) => request.url.includes('store/orders'));
         req.flush({ data: { items: [] } });
       });
     });
@@ -269,7 +269,7 @@ describe('AccountService', () => {
         });
 
         const req = httpMock.expectOne((request) =>
-          request.url.includes(`account/orders/${orderId}`)
+          request.url.includes(`store/orders/${orderId}`)
         );
         expect(req.request.method).toBe('GET');
         req.flush({ data: mockOrders[0] });
@@ -287,7 +287,7 @@ describe('AccountService', () => {
         );
 
         const req = httpMock.expectOne((request) =>
-          request.url.includes('account/orders/INVALID-ID')
+          request.url.includes('store/orders/INVALID-ID')
         );
         req.flush({ message: 'Order not found' }, { status: 404, statusText: 'Not Found' });
       });
@@ -302,7 +302,7 @@ describe('AccountService', () => {
           resolve();
         });
 
-        const req = httpMock.expectOne((request) => request.url.includes('account/orders/ORD-001'));
+        const req = httpMock.expectOne((request) => request.url.includes('store/orders/ORD-001'));
         req.flush({ data: mockOrders[0] });
       });
     });

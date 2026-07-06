@@ -1,5 +1,5 @@
 export const environment = {
   production: true,
-  apiBaseUrl: 'https://api.fashionsaas.com/api/v1',
+  apiBaseUrl: 'https://api.fashionsaas.com/api',
   tenantSlug: '', // Determined at runtime
 };

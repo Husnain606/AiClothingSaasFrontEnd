@@ -11,7 +11,7 @@ describe('OrderService', () => {
   let service: OrderService;
   let httpMock: HttpTestingController;
 
-  const ordersUrl = `${environment.apiBaseUrl}/orders`;
+  const ordersUrl = `${environment.apiBaseUrl}/store/orders`;
 
   const emptyApiResponse = {
     statusCode: 200,
@@ -39,7 +39,7 @@ describe('OrderService', () => {
     expect(service).toBeTruthy();
   });
 
-  it('should create an order', () => {
+  it('should create an order with only backend-accepted fields', () => {
     const shippingAddress: ShippingAddress = {
       firstName: 'John',
       lastName: 'Doe',
@@ -78,6 +78,11 @@ describe('OrderService', () => {
 
     const req = httpMock.expectOne(ordersUrl);
     expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({
+      shippingAddress,
+      paymentInfo: { cardholderName: 'John Doe', cardNumber: '****1111' },
+      items: [{ productId: '1', quantity: 2, variant: { size: 'M', color: 'Red' } }],
+    });
     req.flush(emptyApiResponse);
   });
 

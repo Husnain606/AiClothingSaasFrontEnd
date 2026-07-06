@@ -42,7 +42,7 @@ export class AccountService {
       .set('pageSize', pageSize.toString());
 
     return this.apiService
-      .get<PagedResult<Order>>('account/orders', params)
+      .get<PagedResult<Order>>('store/orders', params)
       .pipe(
         map((response: ApiResponse<PagedResult<Order>>) => response.data.items)
       );
@@ -53,7 +53,7 @@ export class AccountService {
    */
   getOrderById(orderId: string): Observable<Order> {
     return this.apiService
-      .get<Order>(`account/orders/${orderId}`)
+      .get<Order>(`store/orders/${orderId}`)
       .pipe(map((response: ApiResponse<Order>) => response.data));
   }
 
