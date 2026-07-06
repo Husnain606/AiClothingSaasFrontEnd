@@ -1,5 +1,11 @@
+// Models
+export * from './models/order-admin.model';
+export * from './models/report.model';
+
 // Services
 export * from './services/toast.service';
+export * from './services/order-admin.service';
+export * from './services/report-api.service';
 
 // Components
 export * from './components/toast-container/toast-container.component';
