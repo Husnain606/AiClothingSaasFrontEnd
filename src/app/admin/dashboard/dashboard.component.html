@@ -1,0 +1,65 @@
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+  <h1 class="h4 mb-0">Dashboard</h1>
+  <div class="d-flex align-items-end gap-2">
+    <div>
+      <label for="interval-select" class="form-label small mb-0">Interval</label>
+      <select id="interval-select" class="form-select form-select-sm" [value]="interval"
+              (change)="onIntervalChange($any($event.target).value)">
+        <option value="Day">Day</option>
+        <option value="Week">Week</option>
+        <option value="Month">Month</option>
+      </select>
+    </div>
+    <app-date-range-picker [range]="range" (rangeChange)="onRangeChange($event)"></app-date-range-picker>
+  </div>
+</div>
+
+<div *ngIf="error" class="alert alert-danger" role="alert">{{ error }}</div>
+
+<div *ngIf="loading" class="text-center py-5">
+  <div class="spinner-border" role="status"><span class="visually-hidden">Loading…</span></div>
+</div>
+
+<ng-container *ngIf="!loading && !error && summary as s">
+  <div class="row g-3 mb-4">
+    <div class="col-sm-6 col-lg-4 col-xl-2">
+      <app-kpi-card label="Revenue" [value]="'$' + (s.revenue | number:'1.2-2')" icon="cash-stack"></app-kpi-card>
+    </div>
+    <div class="col-sm-6 col-lg-4 col-xl-2">
+      <app-kpi-card label="Orders" [value]="s.orderCount" icon="bag-check"></app-kpi-card>
+    </div>
+    <div class="col-sm-6 col-lg-4 col-xl-2">
+      <app-kpi-card label="Avg Order Value" [value]="'$' + (s.avgOrderValue | number:'1.2-2')" icon="graph-up"></app-kpi-card>
+    </div>
+    <div class="col-sm-6 col-lg-4 col-xl-2">
+      <app-kpi-card label="New Customers" [value]="s.newCustomers" icon="person-plus"></app-kpi-card>
+    </div>
+    <div class="col-sm-6 col-lg-4 col-xl-2">
+      <app-kpi-card label="Pending Reviews" [value]="s.pendingReviews" icon="star"></app-kpi-card>
+    </div>
+    <div class="col-sm-6 col-lg-4 col-xl-2">
+      <app-kpi-card label="Low Stock" [value]="s.lowStockCount" icon="exclamation-triangle"></app-kpi-card>
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-lg-8">
+      <div class="card"><div class="card-body">
+        <h2 class="h6">Sales over time</h2>
+        <canvas baseChart [data]="salesChartData" type="line"></canvas>
+      </div></div>
+    </div>
+    <div class="col-lg-4">
+      <div class="card"><div class="card-body">
+        <h2 class="h6">Order status</h2>
+        <canvas baseChart [data]="statusChartData" type="doughnut"></canvas>
+      </div></div>
+    </div>
+    <div class="col-12">
+      <div class="card"><div class="card-body">
+        <h2 class="h6">Top products</h2>
+        <canvas baseChart [data]="topProductsChartData" type="bar"></canvas>
+      </div></div>
+    </div>
+  </div>
+</ng-container>
