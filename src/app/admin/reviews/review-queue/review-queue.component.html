@@ -1,0 +1,30 @@
+<h1 class="h4 mb-3">Review moderation queue</h1>
+
+<app-data-table [columns]="columns" [rows]="rows" [totalCount]="totalCount" [pageNumber]="pageNumber"
+  [pageSize]="pageSize" [sortKey]="null" sortDirection="asc" [loading]="loading"
+  emptyMessage="No pending reviews." (pageChange)="onPageChange($event)">
+  <ng-template #customCell let-row="row" let-column="column">
+    <ng-container [ngSwitch]="column.key">
+      <ng-container *ngSwitchCase="'id'">
+        <button class="btn btn-sm btn-outline-success" (click)="onApprove(row)">Approve</button>
+        <button class="btn btn-sm btn-outline-danger" (click)="openRejectModal(row)">Reject</button>
+      </ng-container>
+    </ng-container>
+  </ng-template>
+</app-data-table>
+
+<div *ngIf="rejectModalOpen" class="position-fixed top-50 start-50 translate-middle" style="z-index: 1056; width: 24rem;">
+  <label for="rejectReason" class="visually-hidden">Rejection reason</label>
+  <input id="rejectReason" class="form-control form-control-sm" placeholder="Rejection reason"
+         [(ngModel)]="rejectReasonInput" name="rejectReasonInput" />
+</div>
+
+<app-confirm-modal
+  [isOpen]="rejectModalOpen"
+  title="Reject review"
+  [message]="'Reject this review (rating ' + (reviewPendingReject?.rating ?? '') + ')? Enter a reason above, then confirm.'"
+  confirmLabel="Reject"
+  tone="danger"
+  (confirmed)="onRejectConfirmed()"
+  (cancelled)="onRejectCancelled()">
+</app-confirm-modal>

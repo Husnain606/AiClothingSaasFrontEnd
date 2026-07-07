@@ -1,0 +1,29 @@
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h4 mb-0">Discounts</h1>
+  <a routerLink="new" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> New discount</a>
+</div>
+
+<app-data-table [columns]="columns" [rows]="rows" [totalCount]="totalCount" [pageNumber]="pageNumber"
+  [pageSize]="pageSize" [sortKey]="null" sortDirection="asc" [loading]="loading"
+  emptyMessage="No discounts found." (pageChange)="onPageChange($event)">
+  <ng-template #customCell let-row="row" let-column="column">
+    <ng-container [ngSwitch]="column.key">
+      <app-status-badge *ngSwitchCase="'isActive'" [status]="row.isActive ? 'active' : 'inactive'"></app-status-badge>
+      <ng-container *ngSwitchCase="'id'">
+        <a [routerLink]="[row.id]" class="btn btn-sm btn-outline-secondary">Edit</a>
+        <button class="btn btn-sm btn-outline-warning" *ngIf="row.isActive" (click)="onDeactivate(row)">Deactivate</button>
+        <button class="btn btn-sm btn-outline-danger" (click)="openDeleteModal(row)">Delete</button>
+      </ng-container>
+    </ng-container>
+  </ng-template>
+</app-data-table>
+
+<app-confirm-modal
+  [isOpen]="deleteModalOpen"
+  title="Delete discount"
+  [message]="'Delete ' + (discountPendingDelete?.code ?? '') + '? This cannot be undone.'"
+  confirmLabel="Delete"
+  tone="danger"
+  (confirmed)="onDeleteConfirmed()"
+  (cancelled)="onDeleteCancelled()">
+</app-confirm-modal>

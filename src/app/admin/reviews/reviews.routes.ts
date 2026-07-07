@@ -3,6 +3,6 @@ import { Routes } from '@angular/router';
 export const reviewsRoutes: Routes = [
   {
     path: '',
-    loadComponent: () => import('./reviews-placeholder.component').then((m) => m.ReviewsPlaceholderComponent),
+    loadComponent: () => import('./review-queue/review-queue.component').then((m) => m.ReviewQueueComponent),
   },
 ];
