@@ -14,7 +14,10 @@ import {
   PlatformSubscriptionDto,
   PlatformPaymentDto,
   AuditLogDto,
+  AuditLogFilter,
   LoginAttemptDto,
+  LoginAttemptFilter,
+  PlatformUserFilter,
   MfaSetupResponse,
   PlatformBankAccountDto,
 } from '../models/platform.model';
@@ -56,8 +59,15 @@ export class PlatformAdminService {
     return this.unwrap(this.apiService.delete<void>(`admin/tenants/${id}`));
   }
 
-  getPlatformUsers(): Observable<PlatformUserDto[]> {
-    return this.unwrap(this.apiService.get<PlatformUserDto[]>('admin/users'));
+  getPlatformUsers(
+    page: number,
+    pageSize: number,
+    filter: PlatformUserFilter = {}
+  ): Observable<PagedResult<PlatformUserDto>> {
+    let params = new HttpParams().set('page', String(page)).set('pageSize', String(pageSize));
+    if (filter.search) params = params.set('search', filter.search);
+    if (filter.isActive !== undefined) params = params.set('isActive', String(filter.isActive));
+    return this.unwrap(this.apiService.get<PagedResult<PlatformUserDto>>('admin/users', params));
   }
 
   getPlatformUser(id: string): Observable<PlatformUserDto> {
@@ -117,19 +127,32 @@ export class PlatformAdminService {
     return this.unwrap(this.apiService.put<PlatformPaymentDto>(`admin/payments/${id}/confirm`, {}));
   }
 
-  getAuditLogs(filter: { userId?: string; from?: string; to?: string }): Observable<AuditLogDto[]> {
-    let params = new HttpParams();
+  getAuditLogs(
+    filter: AuditLogFilter,
+    page = 1,
+    pageSize = 50
+  ): Observable<PagedResult<AuditLogDto>> {
+    let params = new HttpParams().set('page', String(page)).set('pageSize', String(pageSize));
+    if (filter.action) params = params.set('action', filter.action);
+    if (filter.entityName) params = params.set('entityName', filter.entityName);
     if (filter.userId) params = params.set('userId', filter.userId);
     if (filter.from) params = params.set('from', filter.from);
     if (filter.to) params = params.set('to', filter.to);
-    return this.unwrap(this.apiService.get<AuditLogDto[]>('admin/audit-logs', params));
+    return this.unwrap(this.apiService.get<PagedResult<AuditLogDto>>('admin/audit-logs', params));
   }
 
-  getLoginAttempts(filter: { email?: string; ipAddress?: string }): Observable<LoginAttemptDto[]> {
-    let params = new HttpParams();
-    if (filter.email) params = params.set('email', filter.email);
+  getLoginAttempts(
+    filter: LoginAttemptFilter,
+    page = 1,
+    pageSize = 50
+  ): Observable<PagedResult<LoginAttemptDto>> {
+    let params = new HttpParams()
+      .set('email', filter.email)
+      .set('page', String(page))
+      .set('pageSize', String(pageSize));
     if (filter.ipAddress) params = params.set('ipAddress', filter.ipAddress);
-    return this.unwrap(this.apiService.get<LoginAttemptDto[]>('admin/login-attempts', params));
+    if (filter.isSuccess !== undefined) params = params.set('isSuccess', String(filter.isSuccess));
+    return this.unwrap(this.apiService.get<PagedResult<LoginAttemptDto>>('admin/login-attempts', params));
   }
 
   setupMfa(): Observable<MfaSetupResponse> {

@@ -1,23 +1,15 @@
 <h1 class="h4 mb-3">Platform users</h1>
-<table class="table table-sm">
-  <thead>
-    <tr>
-      <th>Name</th>
-      <th>Email</th>
-      <th>Roles</th>
-      <th>Status</th>
-      <th></th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr *ngFor="let u of users">
-      <td>{{ u.firstName }} {{ u.lastName }}</td>
-      <td>{{ u.email }}</td>
-      <td>{{ u.roles.join(', ') }}</td>
-      <td>{{ u.isActive ? 'Active' : 'Locked' }}</td>
-      <td>
-        <button class="btn btn-sm btn-outline-warning" *ngIf="!u.isActive" (click)="onUnlock(u)">Unlock</button>
-      </td>
-    </tr>
-  </tbody>
-</table>
+<app-data-table [columns]="columns" [rows]="users" [totalCount]="totalCount" [pageNumber]="pageNumber"
+  [pageSize]="pageSize" [sortKey]="null" sortDirection="asc" [loading]="loading"
+  emptyMessage="No platform users found." (pageChange)="onPageChange($event)">
+  <ng-template #customCell let-row="row" let-column="column">
+    <ng-container [ngSwitch]="column.key">
+      <span *ngSwitchCase="'firstName'">{{ row.firstName }} {{ row.lastName }}</span>
+      <span *ngSwitchCase="'roles'">{{ row.roles.join(', ') }}</span>
+      <span *ngSwitchCase="'isActive'">{{ row.isActive ? 'Active' : 'Locked' }}</span>
+      <ng-container *ngSwitchCase="'id'">
+        <button class="btn btn-sm btn-outline-warning" *ngIf="!row.isActive" (click)="onUnlock(row)">Unlock</button>
+      </ng-container>
+    </ng-container>
+  </ng-template>
+</app-data-table>

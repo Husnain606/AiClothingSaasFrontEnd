@@ -27,7 +27,9 @@ describe('PlatformUserListComponent', () => {
   beforeEach(async () => {
     TestBed.resetTestingModule();
     mockPlatform = {
-      getPlatformUsers: vi.fn().mockReturnValue(of([user, user2])),
+      getPlatformUsers: vi.fn().mockReturnValue(
+        of({ items: [user, user2], totalCount: 2, page: 1, pageSize: 20, totalPages: 1 })
+      ),
       unlockPlatformUser: vi.fn().mockReturnValue(of({ ...user, isActive: true })),
     };
     mockToast = { success: vi.fn(), error: vi.fn() };
@@ -41,8 +43,10 @@ describe('PlatformUserListComponent', () => {
     fixture.detectChanges();
   });
 
-  it('loads platform users on init', () => {
+  it('loads a paged platform user list on init', () => {
+    expect(mockPlatform.getPlatformUsers).toHaveBeenCalledWith(1, 20);
     expect(component.users.length).toBe(2);
+    expect(component.totalCount).toBe(2);
   });
 
   it('renders exactly one row per user (no duplicate rendering)', () => {
@@ -54,5 +58,11 @@ describe('PlatformUserListComponent', () => {
   it('unlocks a locked user', () => {
     component.onUnlock(user);
     expect(mockPlatform.unlockPlatformUser).toHaveBeenCalledWith('u1');
+  });
+
+  it('re-queries with the new page when pagination changes', () => {
+    (mockPlatform.getPlatformUsers as ReturnType<typeof vi.fn>).mockClear();
+    component.onPageChange(2);
+    expect(mockPlatform.getPlatformUsers).toHaveBeenCalledWith(2, 20);
   });
 });

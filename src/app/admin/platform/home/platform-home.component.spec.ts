@@ -17,7 +17,13 @@ describe('PlatformHomeComponent', () => {
         of([{ id: 's1', tenantId: 't1', planName: 'Pro', status: 'Active', startDate: '2026-01-01', endDate: '2027-01-01', price: 99 }])
       ),
       getPlatformUsers: vi.fn().mockReturnValue(
-        of([{ id: 'u1', firstName: 'Super', lastName: 'Admin', email: 'x@y.com', tenantId: null, isActive: true, roles: ['SuperAdmin'], createdAt: '2026-01-01' }])
+        of({
+          items: [{ id: 'u1', firstName: 'Super', lastName: 'Admin', email: 'x@y.com', tenantId: null, isActive: true, roles: ['SuperAdmin'], createdAt: '2026-01-01' }],
+          totalCount: 1,
+          page: 1,
+          pageSize: 1,
+          totalPages: 1,
+        })
       ),
     };
 

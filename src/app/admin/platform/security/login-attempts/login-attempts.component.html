@@ -1,21 +1,29 @@
 <h1 class="h4 mb-3">Login attempts</h1>
-<input class="form-control form-control-sm mb-3 w-auto" placeholder="Filter by email"
-       (change)="onEmailFilterChange($any($event.target).value)" />
-<table class="table table-sm">
-  <thead>
-    <tr>
-      <th>Date</th>
-      <th>Email</th>
-      <th>Success</th>
-      <th>IP</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr *ngFor="let a of attempts">
-      <td>{{ a.createdAt | date: 'medium' }}</td>
-      <td>{{ a.email }}</td>
-      <td>{{ a.isSuccess ? 'Yes' : 'No' }}</td>
-      <td>{{ a.ipAddress }}</td>
-    </tr>
-  </tbody>
-</table>
+<form class="d-flex gap-2 mb-3" (ngSubmit)="onSearch()">
+  <input
+    class="form-control form-control-sm w-auto"
+    placeholder="Email (required)"
+    name="email"
+    [(ngModel)]="emailInput"
+    required />
+  <button type="submit" class="btn btn-sm btn-primary" [disabled]="!canSearch">Search</button>
+</form>
+<p *ngIf="!canSearch && !searched" class="text-muted small">Enter an email address to search login attempts.</p>
+<app-data-table
+  *ngIf="searched"
+  [columns]="columns"
+  [rows]="attempts"
+  [totalCount]="totalCount"
+  [pageNumber]="pageNumber"
+  [pageSize]="pageSize"
+  [sortKey]="null"
+  sortDirection="asc"
+  [loading]="loading"
+  emptyMessage="No login attempts found."
+  (pageChange)="onPageChange($event)">
+  <ng-template #customCell let-row="row" let-column="column">
+    <ng-container [ngSwitch]="column.key">
+      <span *ngSwitchCase="'isSuccess'">{{ row.isSuccess ? 'Yes' : 'No' }}</span>
+    </ng-container>
+  </ng-template>
+</app-data-table>

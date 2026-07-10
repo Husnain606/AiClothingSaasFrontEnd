@@ -106,6 +106,25 @@ export interface LoginAttemptDto {
   createdAt: string;
 }
 
+export interface AuditLogFilter {
+  action?: string;
+  entityName?: string;
+  userId?: string;
+  from?: string;
+  to?: string;
+}
+
+export interface LoginAttemptFilter {
+  email: string;
+  ipAddress?: string;
+  isSuccess?: boolean;
+}
+
+export interface PlatformUserFilter {
+  search?: string;
+  isActive?: boolean;
+}
+
 export interface MfaSetupResponse {
   qrCodeUrl: string;
   secretBase32: string;

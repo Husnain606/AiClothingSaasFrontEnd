@@ -3,15 +3,27 @@ import { CommonModule } from '@angular/common';
 import { PlatformAdminService } from '../../services/platform-admin.service';
 import { PlatformUserDto } from '../../models/platform.model';
 import { ToastService } from '../../../shared/services/toast.service';
+import { DataTableComponent, DataTableColumn } from '../../../shared/components/data-table/data-table.component';
 
 @Component({
   selector: 'app-platform-user-list',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, DataTableComponent],
   templateUrl: './platform-user-list.component.html',
 })
 export class PlatformUserListComponent implements OnInit {
+  columns: DataTableColumn<PlatformUserDto>[] = [
+    { key: 'firstName', header: 'Name', cellTemplate: 'custom' },
+    { key: 'email', header: 'Email' },
+    { key: 'roles', header: 'Roles', cellTemplate: 'custom' },
+    { key: 'isActive', header: 'Status', cellTemplate: 'custom' },
+    { key: 'id', header: 'Actions', cellTemplate: 'custom' },
+  ];
   users: PlatformUserDto[] = [];
+  totalCount = 0;
+  pageNumber = 1;
+  pageSize = 20;
+  loading = false;
 
   constructor(
     private platform: PlatformAdminService,
@@ -19,6 +31,11 @@ export class PlatformUserListComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.load();
+  }
+
+  onPageChange(page: number): void {
+    this.pageNumber = page;
     this.load();
   }
 
@@ -33,6 +50,11 @@ export class PlatformUserListComponent implements OnInit {
   }
 
   private load(): void {
-    this.platform.getPlatformUsers().subscribe((users) => (this.users = users));
+    this.loading = true;
+    this.platform.getPlatformUsers(this.pageNumber, this.pageSize).subscribe((result) => {
+      this.users = result.items;
+      this.totalCount = result.totalCount;
+      this.loading = false;
+    });
   }
 }

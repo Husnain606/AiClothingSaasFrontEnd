@@ -25,7 +25,9 @@ describe('AuditLogsComponent', () => {
 
   beforeEach(async () => {
     TestBed.resetTestingModule();
-    mockPlatform = { getAuditLogs: vi.fn().mockReturnValue(of([log, log2])) };
+    mockPlatform = {
+      getAuditLogs: vi.fn().mockReturnValue(of({ items: [log, log2], totalCount: 2, page: 1, pageSize: 50, totalPages: 1 })),
+    };
 
     await TestBed.configureTestingModule({
       imports: [AuditLogsComponent],
@@ -36,9 +38,10 @@ describe('AuditLogsComponent', () => {
     fixture.detectChanges();
   });
 
-  it('loads audit logs with an empty filter by default', () => {
-    expect(mockPlatform.getAuditLogs).toHaveBeenCalledWith({});
+  it('loads a paged audit log list with an empty filter by default', () => {
+    expect(mockPlatform.getAuditLogs).toHaveBeenCalledWith({}, 1, 50);
     expect(component.logs.length).toBe(2);
+    expect(component.totalCount).toBe(2);
   });
 
   it('renders exactly one row per log entry (no duplicate rendering)', () => {
@@ -47,9 +50,15 @@ describe('AuditLogsComponent', () => {
     expect(rows.length).toBe(2);
   });
 
-  it('re-queries when the range filter changes', () => {
+  it('re-queries page 1 when the range filter changes', () => {
     (mockPlatform.getAuditLogs as ReturnType<typeof vi.fn>).mockClear();
     component.onRangeChange({ from: '2026-06-01', to: '2026-07-01' });
-    expect(mockPlatform.getAuditLogs).toHaveBeenCalledWith({ from: '2026-06-01', to: '2026-07-01' });
+    expect(mockPlatform.getAuditLogs).toHaveBeenCalledWith({ from: '2026-06-01', to: '2026-07-01' }, 1, 50);
+  });
+
+  it('re-queries with the new page when pagination changes', () => {
+    (mockPlatform.getAuditLogs as ReturnType<typeof vi.fn>).mockClear();
+    component.onPageChange(2);
+    expect(mockPlatform.getAuditLogs).toHaveBeenCalledWith({}, 2, 50);
   });
 });

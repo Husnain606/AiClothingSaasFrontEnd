@@ -66,9 +66,19 @@ describe('PlatformAdminService', () => {
     req.flush(wrap(null));
   });
 
-  it('gets platform users', () => {
-    service.getPlatformUsers().subscribe();
-    httpMock.expectOne(`${base}/admin/users`).flush(wrap([]));
+  it('gets a paged platform user list', () => {
+    service.getPlatformUsers(1, 20).subscribe();
+    httpMock
+      .expectOne((r) => r.url === `${base}/admin/users` && r.params.get('page') === '1' && r.params.get('pageSize') === '20')
+      .flush(wrap({ items: [], totalCount: 0, page: 1, pageSize: 20, totalPages: 0 }));
+  });
+
+  it('gets platform users with a search/isActive filter', () => {
+    service.getPlatformUsers(1, 20, { search: 'acme', isActive: true }).subscribe();
+    const req = httpMock.expectOne(
+      (r) => r.url === `${base}/admin/users` && r.params.get('search') === 'acme' && r.params.get('isActive') === 'true'
+    );
+    req.flush(wrap({ items: [], totalCount: 0, page: 1, pageSize: 20, totalPages: 0 }));
   });
 
   it('gets a single platform user', () => {
@@ -172,16 +182,20 @@ describe('PlatformAdminService', () => {
     httpMock.expectOne(`${base}/admin/payments/pay1/confirm`).flush(wrap({}));
   });
 
-  it('gets audit logs with filters', () => {
+  it('gets a paged audit log list with filters', () => {
     service.getAuditLogs({ userId: 'u1' }).subscribe();
-    const req = httpMock.expectOne((r) => r.url === `${base}/admin/audit-logs` && r.params.get('userId') === 'u1');
-    req.flush(wrap([]));
+    const req = httpMock.expectOne(
+      (r) => r.url === `${base}/admin/audit-logs` && r.params.get('userId') === 'u1' && r.params.get('page') === '1'
+    );
+    req.flush(wrap({ items: [], totalCount: 0, page: 1, pageSize: 50, totalPages: 0 }));
   });
 
-  it('gets login attempts with filters', () => {
+  it('gets a paged login attempt list with a required email filter', () => {
     service.getLoginAttempts({ email: 'a@b.com' }).subscribe();
-    const req = httpMock.expectOne((r) => r.url === `${base}/admin/login-attempts` && r.params.get('email') === 'a@b.com');
-    req.flush(wrap([]));
+    const req = httpMock.expectOne(
+      (r) => r.url === `${base}/admin/login-attempts` && r.params.get('email') === 'a@b.com' && r.params.get('page') === '1'
+    );
+    req.flush(wrap({ items: [], totalCount: 0, page: 1, pageSize: 50, totalPages: 0 }));
   });
 
   it('sets up MFA', () => {

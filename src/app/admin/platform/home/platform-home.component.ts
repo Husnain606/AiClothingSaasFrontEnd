@@ -21,11 +21,11 @@ export class PlatformHomeComponent implements OnInit {
     forkJoin({
       tenants: this.platform.getTenants(1, 1),
       subscriptions: this.platform.getSubscriptions(),
-      users: this.platform.getPlatformUsers(),
+      users: this.platform.getPlatformUsers(1, 1),
     }).subscribe(({ tenants, subscriptions, users }) => {
       this.tenantCount = tenants.totalCount;
       this.activeSubscriptionCount = subscriptions.filter((s) => s.status === 'Active').length;
-      this.platformUserCount = users.length;
+      this.platformUserCount = users.totalCount;
     });
   }
 }
