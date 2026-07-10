@@ -7,14 +7,10 @@
     <div class="d-flex gap-2 align-items-center">
       <button *ngIf="actions.includes('confirm')" class="btn btn-primary btn-sm" (click)="onConfirm()">Confirm</button>
       <ng-container *ngIf="actions.includes('ship')">
-        <input class="form-control form-control-sm d-inline-block w-auto" placeholder="Tracking number (optional)"
-               [(ngModel)]="trackingNumberInput" name="trackingNumberInput" />
         <button class="btn btn-primary btn-sm" (click)="openShipModal()">Ship</button>
       </ng-container>
       <button *ngIf="actions.includes('deliver')" class="btn btn-primary btn-sm" (click)="onDeliver()">Mark Delivered</button>
       <ng-container *ngIf="actions.includes('cancel')">
-        <input class="form-control form-control-sm d-inline-block w-auto" placeholder="Cancellation reason"
-               [(ngModel)]="cancelReasonInput" name="cancelReasonInput" />
         <button class="btn btn-outline-danger btn-sm" (click)="openCancelModal()">Cancel</button>
       </ng-container>
     </div>
@@ -92,7 +88,9 @@
     title="Ship order"
     [message]="'Mark ' + o.orderId + ' as shipped?'"
     confirmLabel="Ship"
-    (confirmed)="onShipConfirmed(trackingNumberInput)"
+    [requireReason]="true"
+    reasonLabel="Tracking number"
+    (confirmed)="onShipConfirmed($event)"
     (cancelled)="onShipCancelled()">
   </app-confirm-modal>
 
@@ -102,7 +100,9 @@
     [message]="'Cancel ' + o.orderId + '? This cannot be undone.'"
     confirmLabel="Cancel order"
     tone="danger"
-    (confirmed)="onCancelConfirmed(cancelReasonInput)"
+    [requireReason]="true"
+    reasonLabel="Cancellation reason"
+    (confirmed)="onCancelConfirmed($event)"
     (cancelled)="onCancelCancelled()">
   </app-confirm-modal>
 </ng-container>

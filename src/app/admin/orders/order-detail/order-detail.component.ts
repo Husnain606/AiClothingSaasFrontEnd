@@ -20,8 +20,6 @@ export class OrderDetailComponent implements OnInit {
   actions: ReturnType<typeof availableActions> = [];
   shipModalOpen = false;
   cancelModalOpen = false;
-  trackingNumberInput = '';
-  cancelReasonInput = '';
 
   constructor(
     private route: ActivatedRoute,
@@ -58,7 +56,7 @@ export class OrderDetailComponent implements OnInit {
     this.shipModalOpen = false;
   }
 
-  onShipConfirmed(trackingNumber: string): void {
+  onShipConfirmed(trackingNumber: string | undefined): void {
     if (!this.order) return;
     this.orderApi.ship(this.order.id, trackingNumber || undefined).subscribe({
       next: (order) => {
@@ -92,9 +90,9 @@ export class OrderDetailComponent implements OnInit {
     this.cancelModalOpen = false;
   }
 
-  onCancelConfirmed(reason: string): void {
+  onCancelConfirmed(reason: string | undefined): void {
     if (!this.order) return;
-    this.orderApi.cancel(this.order.id, reason).subscribe({
+    this.orderApi.cancel(this.order.id, reason ?? '').subscribe({
       next: (order) => {
         this.applyOrder(order);
         this.cancelModalOpen = false;

@@ -61,10 +61,31 @@ describe('OrderDetailComponent', () => {
     expect(mockToast.success).toHaveBeenCalled();
   });
 
-  it('opens the ship modal and ships with a tracking number', () => {
-    component.openShipModal();
-    expect(component.shipModalOpen).toBe(true);
-    component.onShipConfirmed('TRACK-1');
+  it('opens the ship modal and ships with a tracking number typed inside the modal dialog', async () => {
+    setup({ ...baseOrder, status: 'confirmed' });
+
+    const shipBtn: HTMLButtonElement = fixture.nativeElement.querySelector('.btn-primary.btn-sm');
+    shipBtn.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const dialog: HTMLElement = fixture.nativeElement.querySelector('[role="dialog"]');
+    expect(dialog).toBeTruthy();
+
+    const reasonInput: HTMLInputElement | null = dialog.querySelector('#confirmReason');
+    expect(reasonInput).toBeTruthy();
+    expect(reasonInput).toBe(document.activeElement);
+
+    reasonInput!.value = 'TRACK-1';
+    reasonInput!.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const confirmBtn: HTMLButtonElement = dialog.querySelector('[data-testid="confirm-btn"]')!;
+    confirmBtn.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
     expect(mockOrderApi.ship).toHaveBeenCalledWith('g1', 'TRACK-1');
     expect(component.shipModalOpen).toBe(false);
   });
@@ -74,9 +95,29 @@ describe('OrderDetailComponent', () => {
     expect(mockOrderApi.deliver).toHaveBeenCalledWith('g1');
   });
 
-  it('opens the cancel modal and cancels with a reason', () => {
-    component.openCancelModal();
-    component.onCancelConfirmed('Out of stock');
+  it('opens the cancel modal and cancels with a reason typed inside the modal dialog', async () => {
+    const cancelBtn: HTMLButtonElement = fixture.nativeElement.querySelector('.btn-outline-danger.btn-sm');
+    cancelBtn.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const dialog: HTMLElement = fixture.nativeElement.querySelector('[role="dialog"]');
+    expect(dialog).toBeTruthy();
+
+    const reasonInput: HTMLInputElement | null = dialog.querySelector('#confirmReason');
+    expect(reasonInput).toBeTruthy();
+    expect(reasonInput).toBe(document.activeElement);
+
+    reasonInput!.value = 'Out of stock';
+    reasonInput!.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const confirmBtn: HTMLButtonElement = dialog.querySelector('[data-testid="confirm-btn"]')!;
+    confirmBtn.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
     expect(mockOrderApi.cancel).toHaveBeenCalledWith('g1', 'Out of stock');
     expect(component.cancelModalOpen).toBe(false);
   });
