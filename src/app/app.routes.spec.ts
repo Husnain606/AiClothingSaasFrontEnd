@@ -34,11 +34,16 @@ describe('app routes configuration', () => {
     expect(redirect.pathMatch).toBe('full');
   });
 
-  it('should guard products, cart, and account with authGuard', () => {
-    for (const path of ['products', 'products/:id', 'cart', 'account']) {
+  it('should allow anonymous browsing and cart access', () => {
+    for (const path of ['products', 'products/:id', 'cart']) {
       const route = findChild(mainLayoutRoute, path);
-      expect(route.canActivate).toContain(authGuard);
+      expect(route.canActivate).toBeUndefined();
     }
+  });
+
+  it('should guard account with authGuard', () => {
+    const route = findChild(mainLayoutRoute, 'account');
+    expect(route.canActivate).toContain(authGuard);
   });
 
   it('should guard checkout with both authGuard and cartNotEmptyGuard', () => {

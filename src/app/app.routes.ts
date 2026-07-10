@@ -17,7 +17,6 @@ export const routes: Routes = [
       },
       {
         path: 'products',
-        canActivate: [authGuard],
         title: 'Products | FashionSaaS',
         loadComponent: () =>
           import('./features/catalog/components/catalog/catalog.component').then(
@@ -26,7 +25,6 @@ export const routes: Routes = [
       },
       {
         path: 'products/:id',
-        canActivate: [authGuard],
         title: 'Product Details | FashionSaaS',
         loadComponent: () =>
           import('./features/catalog/components/product-detail/product-detail.component').then(
@@ -35,7 +33,6 @@ export const routes: Routes = [
       },
       {
         path: 'cart',
-        canActivate: [authGuard],
         title: 'Shopping Cart | FashionSaaS',
         loadComponent: () =>
           import('./features/cart/components/cart/cart.component').then(m => m.CartComponent),

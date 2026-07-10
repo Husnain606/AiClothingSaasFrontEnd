@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { AuthService } from '../../../../core/services/auth.service';
@@ -29,8 +29,22 @@ export class LoginComponent implements OnInit, OnDestroy {
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute
   ) {}
+
+  /**
+   * Only ever navigate to a same-origin relative path captured by a route guard's
+   * `returnUrl` (e.g. authGuard redirecting from /checkout). Rejects absolute/
+   * protocol-relative values to prevent an open-redirect via a crafted query param.
+   */
+  private resolvePostLoginPath(): string {
+    const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+    if (returnUrl && returnUrl.startsWith('/') && !returnUrl.startsWith('//')) {
+      return returnUrl;
+    }
+    return this.authService.postLoginRedirectPath();
+  }
 
   ngOnInit(): void {
     this.initializeForm();
@@ -72,7 +86,7 @@ export class LoginComponent implements OnInit, OnDestroy {
             this.mfaToken = response.mfaToken;
             return;
           }
-          this.router.navigateByUrl(this.authService.postLoginRedirectPath());
+          this.router.navigateByUrl(this.resolvePostLoginPath());
         },
         error: (error: any) => {
           this.isLoading = false;
@@ -97,7 +111,7 @@ export class LoginComponent implements OnInit, OnDestroy {
       .subscribe({
         next: () => {
           this.mfaSubmitting = false;
-          this.router.navigateByUrl(this.authService.postLoginRedirectPath());
+          this.router.navigateByUrl(this.resolvePostLoginPath());
         },
         error: () => {
           this.mfaSubmitting = false;
