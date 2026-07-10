@@ -84,11 +84,29 @@ describe('ReviewQueueComponent', () => {
     expect(mockToast.error).toHaveBeenCalled();
   });
 
-  it('opens the reject modal and rejects with a reason', () => {
-    component.openRejectModal(review);
-    expect(component.rejectModalOpen).toBe(true);
-    component.rejectReasonInput = 'Inappropriate content';
-    component.onRejectConfirmed();
+  it('opens the reject modal and rejects with a reason typed inside the modal dialog', async () => {
+    const rejectBtn: HTMLButtonElement = fixture.nativeElement.querySelector('.btn-outline-danger');
+    rejectBtn.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const dialog: HTMLElement = fixture.nativeElement.querySelector('[role="dialog"]');
+    expect(dialog).toBeTruthy();
+
+    const reasonInput: HTMLInputElement | null = dialog.querySelector('#confirmReason');
+    expect(reasonInput).toBeTruthy();
+    expect(reasonInput).toBe(document.activeElement);
+
+    reasonInput!.value = 'Inappropriate content';
+    reasonInput!.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const confirmBtn: HTMLButtonElement = dialog.querySelector('[data-testid="confirm-btn"]')!;
+    confirmBtn.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
     expect(mockReviews.reject).toHaveBeenCalledWith('r1', 'Inappropriate content');
     expect(component.rejectModalOpen).toBe(false);
   });

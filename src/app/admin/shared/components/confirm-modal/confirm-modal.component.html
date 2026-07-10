@@ -24,6 +24,15 @@
             name="typedConfirm"
             #typedConfirmEl />
         </div>
+        <div *ngIf="requireReason" class="mb-2">
+          <label for="confirmReason" class="form-label">{{ reasonLabel }}</label>
+          <input
+            id="confirmReason"
+            class="form-control form-control-sm"
+            [(ngModel)]="reasonValue"
+            name="confirmReason"
+            #reasonEl />
+        </div>
       </div>
       <div class="modal-footer">
         <button

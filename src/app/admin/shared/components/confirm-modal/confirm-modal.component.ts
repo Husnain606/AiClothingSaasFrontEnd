@@ -27,14 +27,18 @@ export class ConfirmModalComponent implements OnChanges, AfterViewChecked {
   @Input() cancelLabel = 'Cancel';
   @Input() tone: 'primary' | 'danger' = 'primary';
   @Input() requireTypedConfirmation?: string;
-  @Output() confirmed = new EventEmitter<void>();
+  @Input() requireReason = false;
+  @Input() reasonLabel = 'Reason';
+  @Output() confirmed = new EventEmitter<string | undefined>();
   @Output() cancelled = new EventEmitter<void>();
 
   @ViewChild('dialogEl') dialogEl?: ElementRef<HTMLElement>;
   @ViewChild('typedConfirmEl') typedConfirmEl?: ElementRef<HTMLElement>;
+  @ViewChild('reasonEl') reasonEl?: ElementRef<HTMLElement>;
   @ViewChild('cancelBtnEl') cancelBtnEl?: ElementRef<HTMLElement>;
 
   typedValue = '';
+  reasonValue = '';
 
   private previouslyFocused: HTMLElement | null = null;
   private focusHandled = false;
@@ -43,6 +47,7 @@ export class ConfirmModalComponent implements OnChanges, AfterViewChecked {
     if (changes['isOpen']) {
       if (this.isOpen) {
         this.typedValue = '';
+        this.reasonValue = '';
         this.previouslyFocused = (document.activeElement as HTMLElement) ?? null;
         this.focusHandled = false;
       } else if (changes['isOpen'].previousValue) {
@@ -55,6 +60,7 @@ export class ConfirmModalComponent implements OnChanges, AfterViewChecked {
     if (this.isOpen && !this.focusHandled) {
       const target =
         this.typedConfirmEl?.nativeElement ??
+        this.reasonEl?.nativeElement ??
         this.cancelBtnEl?.nativeElement ??
         this.dialogEl?.nativeElement;
       target?.focus();
@@ -75,7 +81,7 @@ export class ConfirmModalComponent implements OnChanges, AfterViewChecked {
 
   onConfirm(): void {
     if (this.canConfirm) {
-      this.confirmed.emit();
+      this.confirmed.emit(this.requireReason ? this.reasonValue : undefined);
     }
   }
 

@@ -1,6 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { ReviewAdminService } from '../services/review-admin.service';
 import { ReviewDto } from '../models/review-admin.model';
 import { DataTableComponent, DataTableColumn } from '../../shared/components/data-table/data-table.component';
@@ -10,7 +9,7 @@ import { ToastService } from '../../shared/services/toast.service';
 @Component({
   selector: 'app-review-queue',
   standalone: true,
-  imports: [CommonModule, FormsModule, DataTableComponent, ConfirmModalComponent],
+  imports: [CommonModule, DataTableComponent, ConfirmModalComponent],
   templateUrl: './review-queue.component.html',
 })
 export class ReviewQueueComponent implements OnInit {
@@ -31,7 +30,6 @@ export class ReviewQueueComponent implements OnInit {
 
   rejectModalOpen = false;
   reviewPendingReject: ReviewDto | null = null;
-  rejectReasonInput = '';
 
   constructor(
     private reviewApi: ReviewAdminService,
@@ -59,7 +57,6 @@ export class ReviewQueueComponent implements OnInit {
 
   openRejectModal(review: ReviewDto): void {
     this.reviewPendingReject = review;
-    this.rejectReasonInput = '';
     this.rejectModalOpen = true;
   }
 
@@ -68,9 +65,9 @@ export class ReviewQueueComponent implements OnInit {
     this.reviewPendingReject = null;
   }
 
-  onRejectConfirmed(): void {
+  onRejectConfirmed(reason: string | undefined): void {
     if (!this.reviewPendingReject) return;
-    this.reviewApi.reject(this.reviewPendingReject.id, this.rejectReasonInput).subscribe({
+    this.reviewApi.reject(this.reviewPendingReject.id, reason ?? '').subscribe({
       next: () => {
         this.toast.success('Review rejected.');
         this.rejectModalOpen = false;

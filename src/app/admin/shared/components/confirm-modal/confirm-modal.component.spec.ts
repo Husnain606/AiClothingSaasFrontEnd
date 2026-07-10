@@ -90,6 +90,52 @@ describe('ConfirmModalComponent', () => {
     );
   });
 
+  it('renders the reason input inside the dialog when requireReason is set', () => {
+    fixture.componentRef.setInput('requireReason', true);
+    fixture.componentRef.setInput('reasonLabel', 'Rejection reason');
+    fixture.detectChanges();
+
+    const dialog: HTMLElement = fixture.nativeElement.querySelector('[role="dialog"]');
+    expect(dialog).toBeTruthy();
+    const reasonInput: HTMLInputElement | null = dialog.querySelector('#confirmReason');
+    expect(reasonInput).toBeTruthy();
+    expect(dialog.querySelector('label[for="confirmReason"]')?.textContent).toContain('Rejection reason');
+  });
+
+  it('moves focus to the reason input when requireReason is set', () => {
+    fixture.componentRef.setInput('requireReason', true);
+    fixture.componentRef.setInput('isOpen', false);
+    fixture.detectChanges();
+    fixture.componentRef.setInput('isOpen', true);
+    fixture.detectChanges();
+
+    expect(document.activeElement).toBe(fixture.nativeElement.querySelector('#confirmReason'));
+  });
+
+  it('emits the typed reason text on confirm when requireReason is set', () => {
+    fixture.componentRef.setInput('requireReason', true);
+    fixture.detectChanges();
+
+    vi.spyOn(component.confirmed, 'emit');
+    const input: HTMLInputElement = fixture.nativeElement.querySelector('#confirmReason');
+    input.value = 'Inappropriate content';
+    input.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    const button: HTMLButtonElement = fixture.nativeElement.querySelector('[data-testid="confirm-btn"]');
+    button.click();
+
+    expect(component.confirmed.emit).toHaveBeenCalledWith('Inappropriate content');
+  });
+
+  it('emits undefined on confirm when requireReason is not set', () => {
+    vi.spyOn(component.confirmed, 'emit');
+    const button: HTMLButtonElement = fixture.nativeElement.querySelector('[data-testid="confirm-btn"]');
+    button.click();
+
+    expect(component.confirmed.emit).toHaveBeenCalledWith(undefined);
+  });
+
   it('restores focus to the previously focused element on close', () => {
     const trigger = document.createElement('button');
     document.body.appendChild(trigger);
