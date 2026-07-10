@@ -1,0 +1,41 @@
+<h1 class="h4 mb-3">Subscription plans</h1>
+<table class="table table-sm">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Price</th>
+      <th>Duration (days)</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let p of plans">
+      <td>{{ p.name }}</td>
+      <td>{{ p.planType }}</td>
+      <td>{{ p.price | number: '1.2-2' }}</td>
+      <td>{{ p.durationDays }}</td>
+      <td><button class="btn btn-sm btn-outline-danger" (click)="onDelete(p)">Delete</button></td>
+    </tr>
+  </tbody>
+</table>
+<h2 class="h6">New plan</h2>
+<div class="row g-2 align-items-end">
+  <div class="col-auto">
+    <input class="form-control form-control-sm" placeholder="Name" [(ngModel)]="newPlan.name" name="name" />
+  </div>
+  <div class="col-auto">
+    <input type="number" step="0.01" class="form-control form-control-sm" placeholder="Price" [(ngModel)]="newPlan.price" name="price" />
+  </div>
+  <div class="col-auto">
+    <input type="number" class="form-control form-control-sm" placeholder="Duration (days)" [(ngModel)]="newPlan.durationDays" name="durationDays" />
+  </div>
+  <div class="col-auto">
+    <select class="form-select form-select-sm" [(ngModel)]="newPlan.planType" name="planType">
+      <option value="FreeTrial">Free trial</option>
+      <option value="Monthly">Monthly</option>
+      <option value="Yearly">Yearly</option>
+    </select>
+  </div>
+  <div class="col-auto"><button class="btn btn-sm btn-primary" (click)="onCreate()">Add plan</button></div>
+</div>

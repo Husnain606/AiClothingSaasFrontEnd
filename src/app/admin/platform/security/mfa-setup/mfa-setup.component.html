@@ -1,0 +1,13 @@
+<h1 class="h4 mb-3">Two-factor authentication setup</h1>
+<div *ngIf="!verified">
+  <img [src]="qrCodeUrl" alt="MFA QR code" *ngIf="qrCodeUrl" style="max-width:200px" />
+  <p class="text-muted small">Or enter this key manually: <code>{{ secretBase32 }}</code></p>
+  <div class="d-flex align-items-end gap-2">
+    <div>
+      <label for="mfa-verify-code" class="form-label small mb-0">Verification code</label>
+      <input id="mfa-verify-code" class="form-control form-control-sm" maxlength="6" [(ngModel)]="verificationCode" name="verificationCode" />
+    </div>
+    <button class="btn btn-sm btn-primary" (click)="onVerify()">Verify and enable</button>
+  </div>
+</div>
+<div *ngIf="verified" class="alert alert-success">Two-factor authentication is now enabled.</div>

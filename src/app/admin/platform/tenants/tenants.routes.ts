@@ -1,8 +1,7 @@
 import { Routes } from '@angular/router';
 
 export const tenantsRoutes: Routes = [
-  {
-    path: '',
-    loadComponent: () => import('./tenants-placeholder.component').then((m) => m.TenantsPlaceholderComponent),
-  },
+  { path: '', loadComponent: () => import('./tenant-list/tenant-list.component').then((m) => m.TenantListComponent) },
+  { path: 'new', loadComponent: () => import('./tenant-form/tenant-form.component').then((m) => m.TenantFormComponent) },
+  { path: ':id', loadComponent: () => import('./tenant-detail/tenant-detail.component').then((m) => m.TenantDetailComponent) },
 ];

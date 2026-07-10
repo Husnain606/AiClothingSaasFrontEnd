@@ -1,0 +1,29 @@
+<h1 class="h4 mb-3">Subscriptions</h1>
+<table class="table table-sm">
+  <thead>
+    <tr>
+      <th>Tenant</th>
+      <th>Plan</th>
+      <th>Status</th>
+      <th>Change plan</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let s of subscriptions">
+      <td>{{ s.tenantId }}</td>
+      <td>{{ s.planName }}</td>
+      <td>{{ s.status }}</td>
+      <td>
+        <select class="form-select form-select-sm d-inline-block w-auto" (change)="onChangePlan(s, $any($event.target).value)">
+          <option value="" selected disabled>Select plan…</option>
+          <option *ngFor="let p of plans" [value]="p.id">{{ p.name }}</option>
+        </select>
+      </td>
+      <td>
+        <button class="btn btn-sm btn-outline-warning" *ngIf="s.status === 'Active'" (click)="onSuspend(s)">Suspend</button>
+        <button class="btn btn-sm btn-outline-success" *ngIf="s.status === 'Suspended'" (click)="onReactivate(s)">Reactivate</button>
+      </td>
+    </tr>
+  </tbody>
+</table>

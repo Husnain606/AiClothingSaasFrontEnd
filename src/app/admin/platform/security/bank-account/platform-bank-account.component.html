@@ -1,0 +1,9 @@
+<h1 class="h4 mb-3">Platform bank account</h1>
+<div class="card" *ngIf="account as a">
+  <div class="card-body">
+    <p><strong>Title:</strong> {{ a.accountTitle }}</p>
+    <p><strong>Bank:</strong> {{ a.bankName }}</p>
+    <p><strong>Branch code:</strong> {{ a.branchCode }}</p>
+    <p><strong>Account number:</strong> {{ a.accountNumber }}</p>
+  </div>
+</div>

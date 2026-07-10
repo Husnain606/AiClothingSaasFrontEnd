@@ -1,0 +1,29 @@
+<h1 class="h4 mb-3">Payments</h1>
+<div class="d-flex align-items-end gap-2 mb-3">
+  <div>
+    <label for="subscription-id" class="form-label small mb-0">Subscription ID</label>
+    <input id="subscription-id" class="form-control form-control-sm" placeholder="Enter a subscription ID"
+      (change)="onSubscriptionIdChange($any($event.target).value)" />
+  </div>
+</div>
+<p *ngIf="noResultsFound" class="text-muted">No payments found for this subscription.</p>
+<table class="table table-sm" *ngIf="payments.length > 0">
+  <thead>
+    <tr>
+      <th>Due date</th>
+      <th>Amount</th>
+      <th>Status</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let p of payments">
+      <td>{{ p.dueDate | date: 'mediumDate' }}</td>
+      <td>{{ p.amount | number: '1.2-2' }}</td>
+      <td>{{ p.status }}</td>
+      <td>
+        <button class="btn btn-sm btn-outline-success" *ngIf="p.status === 'Pending'" (click)="onConfirm(p)">Confirm</button>
+      </td>
+    </tr>
+  </tbody>
+</table>

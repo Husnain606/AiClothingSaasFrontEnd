@@ -1,0 +1,21 @@
+<h1 class="h4 mb-3">Login attempts</h1>
+<input class="form-control form-control-sm mb-3 w-auto" placeholder="Filter by email"
+       (change)="onEmailFilterChange($any($event.target).value)" />
+<table class="table table-sm">
+  <thead>
+    <tr>
+      <th>Date</th>
+      <th>Email</th>
+      <th>Success</th>
+      <th>IP</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let a of attempts">
+      <td>{{ a.createdAt | date: 'medium' }}</td>
+      <td>{{ a.email }}</td>
+      <td>{{ a.isSuccess ? 'Yes' : 'No' }}</td>
+      <td>{{ a.ipAddress }}</td>
+    </tr>
+  </tbody>
+</table>
