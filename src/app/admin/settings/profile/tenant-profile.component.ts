@@ -1,0 +1,47 @@
+import { Component, inject, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { SettingsAdminService } from '../services/settings-admin.service';
+import { ToastService } from '../../shared/services/toast.service';
+
+@Component({
+  selector: 'app-tenant-profile',
+  standalone: true,
+  imports: [CommonModule, ReactiveFormsModule],
+  templateUrl: './tenant-profile.component.html',
+})
+export class TenantProfileComponent implements OnInit {
+  private fb = inject(FormBuilder);
+  private settings = inject(SettingsAdminService);
+  private toast = inject(ToastService);
+
+  form = this.fb.group({
+    name: this.fb.nonNullable.control('', Validators.required),
+    phone: this.fb.nonNullable.control(''),
+    logoUrl: this.fb.nonNullable.control(''),
+  });
+
+  ngOnInit(): void {
+    this.settings.getProfile().subscribe((profile) => {
+      this.form.setValue({
+        name: profile.name,
+        phone: profile.phone ?? '',
+        logoUrl: profile.logoUrl ?? '',
+      });
+    });
+  }
+
+  onSubmit(): void {
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
+    const raw = this.form.getRawValue();
+    this.settings
+      .updateProfile({ name: raw.name, phone: raw.phone || null, logoUrl: raw.logoUrl || null })
+      .subscribe({
+        next: () => this.toast.success('Profile updated.'),
+        error: () => this.toast.error('Failed to update profile.'),
+      });
+  }
+}

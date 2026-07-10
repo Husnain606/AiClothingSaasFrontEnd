@@ -1,0 +1,29 @@
+<h1 class="h4 mb-3">Subscription</h1>
+<div class="card mb-3" *ngIf="subscription as s">
+  <div class="card-body">
+    <p><strong>Plan:</strong> {{ s.planName }}</p>
+    <p><strong>Status:</strong> {{ s.status }}</p>
+    <p><strong>Price:</strong> {{ s.price | number: '1.2-2' }}</p>
+    <p><strong>Renews:</strong> {{ s.endDate | date: 'mediumDate' }}</p>
+  </div>
+</div>
+
+<h2 class="h6">Payment history</h2>
+<table class="table table-sm">
+  <thead>
+    <tr>
+      <th>Due</th>
+      <th>Paid</th>
+      <th>Amount</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let p of payments">
+      <td>{{ p.dueDate | date: 'mediumDate' }}</td>
+      <td>{{ p.paidAt ? (p.paidAt | date: 'mediumDate') : '—' }}</td>
+      <td>{{ p.amount | number: '1.2-2' }}</td>
+      <td>{{ p.status }}</td>
+    </tr>
+  </tbody>
+</table>

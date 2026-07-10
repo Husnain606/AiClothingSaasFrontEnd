@@ -1,0 +1,18 @@
+<h1 class="h4 mb-3">Bank account</h1>
+<div class="card" *ngIf="masked as m">
+  <div class="card-body">
+    <p><strong>Title:</strong> {{ m.accountTitle }}</p>
+    <p><strong>Bank:</strong> {{ m.bankName }}</p>
+    <p><strong>Branch code:</strong> {{ m.branchCode }}</p>
+    <p><strong>Account number:</strong> {{ full ? full.accountNumber : m.accountNumber }}</p>
+    <p *ngIf="full"><strong>IBAN:</strong> {{ full.iban }}</p>
+
+    <div *ngIf="!full" class="d-flex align-items-end gap-2">
+      <div>
+        <label for="totp" class="form-label small mb-0">Authenticator code</label>
+        <input id="totp" class="form-control form-control-sm" maxlength="6" [(ngModel)]="totpCode" name="totpCode" />
+      </div>
+      <button class="btn btn-sm btn-outline-primary" (click)="onReveal()">Reveal full number</button>
+    </div>
+  </div>
+</div>

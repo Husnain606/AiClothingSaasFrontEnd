@@ -1,0 +1,54 @@
+<h1 class="h4 mb-3">Team members</h1>
+
+<app-data-table
+  [columns]="columns"
+  [rows]="users"
+  [totalCount]="users.length"
+  [pageNumber]="1"
+  [pageSize]="users.length || 1"
+  [sortKey]="null"
+  sortDirection="asc"
+  [loading]="loading"
+  emptyMessage="No team members yet.">
+  <ng-template #customCell let-row="row" let-column="column">
+    <ng-container [ngSwitch]="column.key">
+      <ng-container *ngSwitchCase="'roles'">{{ row.roles.join(', ') }}</ng-container>
+      <ng-container *ngSwitchCase="'id'">
+        <select
+          class="form-select form-select-sm d-inline-block w-auto"
+          (change)="onAssignRole(row, $any($event.target).value)">
+          <option value="" disabled selected>Assign role</option>
+          <option *ngFor="let r of roles" [value]="r">{{ r }}</option>
+        </select>
+        <button class="btn btn-sm btn-outline-danger" (click)="onDelete(row)">Remove</button>
+      </ng-container>
+    </ng-container>
+  </ng-template>
+</app-data-table>
+
+<h2 class="h6 mt-4">Invite a user</h2>
+<div class="row g-2 align-items-end">
+  <div class="col-auto">
+    <input class="form-control form-control-sm" placeholder="Email" [(ngModel)]="newUser.email" name="email" />
+  </div>
+  <div class="col-auto">
+    <input
+      class="form-control form-control-sm"
+      placeholder="First name"
+      [(ngModel)]="newUser.firstName"
+      name="firstName" />
+  </div>
+  <div class="col-auto">
+    <input
+      class="form-control form-control-sm"
+      placeholder="Last name"
+      [(ngModel)]="newUser.lastName"
+      name="lastName" />
+  </div>
+  <div class="col-auto">
+    <select class="form-select form-select-sm" [(ngModel)]="newUser.role" name="role">
+      <option *ngFor="let r of roles" [value]="r">{{ r }}</option>
+    </select>
+  </div>
+  <div class="col-auto"><button class="btn btn-sm btn-primary" (click)="onCreate()">Invite</button></div>
+</div>

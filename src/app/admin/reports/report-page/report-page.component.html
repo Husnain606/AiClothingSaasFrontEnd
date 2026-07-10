@@ -1,0 +1,20 @@
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+  <h1 class="h4 mb-0">{{ title }}</h1>
+  <div class="d-flex align-items-end gap-2">
+    <app-date-range-picker [range]="range" (rangeChange)="onRangeChange($event)"></app-date-range-picker>
+    <button class="btn btn-outline-secondary btn-sm" (click)="onDownloadCsv()">
+      <i class="bi bi-download"></i> CSV
+    </button>
+  </div>
+</div>
+<app-data-table
+  [columns]="columns"
+  [rows]="rows"
+  [totalCount]="rows.length"
+  [pageNumber]="1"
+  [pageSize]="rows.length || 1"
+  [sortKey]="null"
+  sortDirection="asc"
+  [loading]="loading"
+  emptyMessage="No data for this range.">
+</app-data-table>
