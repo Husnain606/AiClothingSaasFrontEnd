@@ -28,7 +28,7 @@ npm test        # watch mode (Vitest)
 npm run test:ci # single run, no watch — use in CI
 ```
 
-Current suite: 493/493 tests passing.
+Current suite: 828/828 tests passing.
 
 ## Production build
 
@@ -64,7 +64,7 @@ Runs a production build with `--stats-json`, emitting `dist/fashionsaas-storefro
 | Property | `environment.ts` (dev) | `environment.prod.ts` (production) |
 |---|---|---|
 | `production` | `false` | `true` |
-| `apiBaseUrl` | `http://localhost:5000/api/v1` | `https://api.fashionsaas.com/api/v1` |
+| `apiBaseUrl` | `http://localhost:5000/api` | `https://api.fashionsaas.com/api` |
 | `tenantSlug` | `'default-tenant'` (placeholder) | `''` (resolved at runtime) |
 
 `angular.json`'s `production` build configuration wires `fileReplacements` so any `import { environment } from './environments/environment'` resolves to `environment.prod.ts` in production builds.
@@ -84,6 +84,40 @@ Runs a production build with `--stats-json`, emitting `dist/fashionsaas-storefro
 | `**` | — | `NotFoundComponent` | — |
 
 All feature routes are lazy-loaded (`loadComponent`).
+
+## Admin area routes
+
+The `/admin` subtree (Phase 4b) is a role-routed back-office area, entirely lazy-loaded off the main app shell. Every top-level section below is its own lazy chunk; nothing under `/admin` is part of the initial bundle.
+
+| Path | Guard(s) | Roles |
+| --- | --- | --- |
+| `/admin` | `adminRoleGuard` | `AdminOwner`, `StoreManager`, `InventoryManager`, `OrderManager`, `ContentManager`, `SuperAdmin` |
+| `/admin/orders` | `adminRoleGuard` | `AdminOwner`, `OrderManager`, `StoreManager` |
+| `/admin/catalog` | `adminRoleGuard` | `AdminOwner`, `StoreManager`, `ContentManager` |
+| `/admin/inventory` | `adminRoleGuard` | `AdminOwner`, `InventoryManager` |
+| `/admin/customers` | `adminRoleGuard` | `AdminOwner`, `StoreManager` |
+| `/admin/discounts` | `adminRoleGuard` | `AdminOwner`, `StoreManager` |
+| `/admin/reviews` | `adminRoleGuard` | `AdminOwner`, `StoreManager` |
+| `/admin/reports` | `adminRoleGuard` | `AdminOwner`, `StoreManager` |
+| `/admin/settings` | `adminRoleGuard` + `adminOwnerGuard` | `AdminOwner` |
+| `/admin/platform` | `adminRoleGuard` + `superAdminGuard` | `SuperAdmin` |
+
+### Platform console (`/admin/platform`)
+
+SuperAdmin-only console over the existing `api/admin/*` backend endpoints — no new backend was required for this area.
+
+| Path | Purpose |
+| --- | --- |
+| `/admin/platform` | KPI overview (tenant/subscription/user counts assembled client-side) |
+| `/admin/platform/tenants` | Tenant list, create, detail, suspend/activate, delete (typed-confirmation) |
+| `/admin/platform/plans` | Subscription plan CRUD |
+| `/admin/platform/subscriptions` | Assign/change-plan/suspend/reactivate tenant subscriptions |
+| `/admin/platform/payments` | Payments scoped by subscription ID, confirm pending payments |
+| `/admin/platform/users` | Platform (SuperAdmin) user list + unlock |
+| `/admin/platform/security/audit-logs` | Audit log table with date-range filter |
+| `/admin/platform/security/login-attempts` | Login attempt table with email filter |
+| `/admin/platform/security/mfa-setup` | TOTP QR-code setup + verification flow |
+| `/admin/platform/security/bank-account` | Masked platform bank account view |
 
 ## Deployment note
 
