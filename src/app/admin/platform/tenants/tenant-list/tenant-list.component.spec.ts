@@ -28,7 +28,7 @@ describe('TenantListComponent', () => {
   beforeEach(async () => {
     TestBed.resetTestingModule();
     mockPlatform = {
-      getTenants: vi.fn().mockReturnValue(of({ items: [tenant, tenant2], totalCount: 2, pageNumber: 1, pageSize: 20, totalPages: 1 })),
+      getTenants: vi.fn().mockReturnValue(of({ items: [tenant, tenant2], totalCount: 2, page: 1, pageSize: 20, totalPages: 1 })),
       suspendTenant: vi.fn().mockReturnValue(of({ ...tenant, isActive: false })),
       activateTenant: vi.fn().mockReturnValue(of(tenant)),
     };

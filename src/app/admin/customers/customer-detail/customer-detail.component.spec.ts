@@ -24,7 +24,7 @@ describe('CustomerDetailComponent', () => {
       getWishlist: vi.fn().mockReturnValue(of({ id: 'w1', customerId: 'c1', items: [] })),
     };
     mockOrders = {
-      getOrders: vi.fn().mockReturnValue(of({ items: [], totalCount: 0, pageNumber: 1, pageSize: 20, totalPages: 0 })),
+      getOrders: vi.fn().mockReturnValue(of({ items: [], totalCount: 0, page: 1, pageSize: 20, totalPages: 0 })),
     };
     mockToast = { success: vi.fn(), error: vi.fn() };
 

@@ -122,7 +122,7 @@ describe('ProductService', () => {
       const mockPagedResult: PagedResult<Product> = {
         items: mockProducts,
         totalCount: 1,
-        pageNumber: 1,
+        page: 1,
         pageSize: 20,
         totalPages: 1,
       };

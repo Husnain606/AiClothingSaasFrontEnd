@@ -42,7 +42,7 @@ describe('DiscountListComponent', () => {
     mockDiscounts = {
       getDiscounts: vi
         .fn()
-        .mockReturnValue(of({ items: [discount, discount2], totalCount: 2, pageNumber: 1, pageSize: 20, totalPages: 1 })),
+        .mockReturnValue(of({ items: [discount, discount2], totalCount: 2, page: 1, pageSize: 20, totalPages: 1 })),
       deactivateDiscount: vi.fn().mockReturnValue(of(true)),
       deleteDiscount: vi.fn().mockReturnValue(of(undefined)),
     };

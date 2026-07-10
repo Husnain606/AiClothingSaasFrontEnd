@@ -25,7 +25,7 @@ describe('CustomerAdminService', () => {
     service.getCustomers(1, 20).subscribe();
     httpMock
       .expectOne((r) => r.url === `${environment.apiBaseUrl}/tenant/customers`)
-      .flush(wrap({ items: [], totalCount: 0, pageNumber: 1, pageSize: 20, totalPages: 0 }));
+      .flush(wrap({ items: [], totalCount: 0, page: 1, pageSize: 20, totalPages: 0 }));
   });
 
   it('gets a paged customer list filtered by search', () => {
@@ -33,7 +33,7 @@ describe('CustomerAdminService', () => {
     const req = httpMock.expectOne(
       (r) => r.url === `${environment.apiBaseUrl}/tenant/customers` && r.params.get('search') === 'a@b.com'
     );
-    req.flush(wrap({ items: [], totalCount: 0, pageNumber: 1, pageSize: 20, totalPages: 0 }));
+    req.flush(wrap({ items: [], totalCount: 0, page: 1, pageSize: 20, totalPages: 0 }));
   });
 
   it('gets a single customer', () => {

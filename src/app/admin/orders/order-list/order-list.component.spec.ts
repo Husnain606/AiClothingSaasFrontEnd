@@ -21,7 +21,7 @@ describe('OrderListComponent', () => {
   beforeEach(async () => {
     TestBed.resetTestingModule();
     mockOrderApi = {
-      getOrders: vi.fn().mockReturnValue(of({ items: orders, totalCount: 1, pageNumber: 1, pageSize: 20, totalPages: 1 })),
+      getOrders: vi.fn().mockReturnValue(of({ items: orders, totalCount: 1, page: 1, pageSize: 20, totalPages: 1 })),
     };
 
     await TestBed.configureTestingModule({

@@ -40,7 +40,7 @@ describe('ReviewQueueComponent', () => {
     mockReviews = {
       getReviews: vi
         .fn()
-        .mockReturnValue(of({ items: [review, review2], totalCount: 2, pageNumber: 1, pageSize: 20, totalPages: 1 })),
+        .mockReturnValue(of({ items: [review, review2], totalCount: 2, page: 1, pageSize: 20, totalPages: 1 })),
       approve: vi.fn().mockReturnValue(of({ ...review, status: 'Approved' })),
       reject: vi.fn().mockReturnValue(of({ ...review, status: 'Rejected' })),
     };

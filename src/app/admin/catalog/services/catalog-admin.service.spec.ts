@@ -89,7 +89,7 @@ describe('CatalogAdminService', () => {
     const req = httpMock.expectOne(
       (r) => r.url === `${environment.apiBaseUrl}/tenant/products` && r.params.get('search') === 'jacket'
     );
-    req.flush(wrap({ items: [], totalCount: 0, pageNumber: 1, pageSize: 20, totalPages: 0 }));
+    req.flush(wrap({ items: [], totalCount: 0, page: 1, pageSize: 20, totalPages: 0 }));
   });
 
   it('creates a product', () => {

@@ -36,7 +36,7 @@ describe('ProductListComponent', () => {
   beforeEach(async () => {
     TestBed.resetTestingModule();
     mockCatalog = {
-      getProducts: vi.fn().mockReturnValue(of({ items: [product, product2], totalCount: 2, pageNumber: 1, pageSize: 20, totalPages: 1 })),
+      getProducts: vi.fn().mockReturnValue(of({ items: [product, product2], totalCount: 2, page: 1, pageSize: 20, totalPages: 1 })),
       publishProduct: vi.fn().mockReturnValue(of({ ...product, status: 'Active' })),
       archiveProduct: vi.fn().mockReturnValue(of({ ...product, status: 'Archived' })),
       deleteProduct: vi.fn().mockReturnValue(of(undefined)),

@@ -26,7 +26,7 @@ describe('DiscountAdminService', () => {
     service.getDiscounts(1, 20).subscribe();
     httpMock
       .expectOne((r) => r.url === `${environment.apiBaseUrl}/tenant/discounts`)
-      .flush(wrap({ items: [], totalCount: 0, pageNumber: 1, pageSize: 20, totalPages: 0 }));
+      .flush(wrap({ items: [], totalCount: 0, page: 1, pageSize: 20, totalPages: 0 }));
   });
 
   it('gets a single discount', () => {

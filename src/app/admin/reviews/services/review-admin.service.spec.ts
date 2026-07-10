@@ -27,14 +27,14 @@ describe('ReviewAdminService', () => {
     const req = httpMock.expectOne(
       (r) => r.url === `${environment.apiBaseUrl}/tenant/reviews` && r.params.get('status') === 'Pending'
     );
-    req.flush(wrap({ items: [], totalCount: 0, pageNumber: 1, pageSize: 20, totalPages: 0 }));
+    req.flush(wrap({ items: [], totalCount: 0, page: 1, pageSize: 20, totalPages: 0 }));
   });
 
   it('gets all reviews when no status is given', () => {
     service.getReviews().subscribe();
     const req = httpMock.expectOne(`${environment.apiBaseUrl}/tenant/reviews`);
     expect(req.request.params.has('status')).toBe(false);
-    req.flush(wrap({ items: [], totalCount: 0, pageNumber: 1, pageSize: 20, totalPages: 0 }));
+    req.flush(wrap({ items: [], totalCount: 0, page: 1, pageSize: 20, totalPages: 0 }));
   });
 
   it('approves a review', () => {

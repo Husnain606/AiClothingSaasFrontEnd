@@ -45,7 +45,7 @@ describe('OrderAdminService', () => {
       (r) => r.url === base && r.params.get('status') === 'pending' && r.params.get('page') === '2'
     );
     expect(req.request.method).toBe('GET');
-    req.flush(wrap({ items: [order], totalCount: 1, pageNumber: 2, pageSize: 10, totalPages: 1 }));
+    req.flush(wrap({ items: [order], totalCount: 1, page: 2, pageSize: 10, totalPages: 1 }));
   });
 
   it('gets a single order by id', () => {

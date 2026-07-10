@@ -12,7 +12,7 @@ describe('PlatformHomeComponent', () => {
   beforeEach(async () => {
     TestBed.resetTestingModule();
     mockPlatform = {
-      getTenants: vi.fn().mockReturnValue(of({ items: [], totalCount: 12, pageNumber: 1, pageSize: 1, totalPages: 12 })),
+      getTenants: vi.fn().mockReturnValue(of({ items: [], totalCount: 12, page: 1, pageSize: 1, totalPages: 12 })),
       getSubscriptions: vi.fn().mockReturnValue(
         of([{ id: 's1', tenantId: 't1', planName: 'Pro', status: 'Active', startDate: '2026-01-01', endDate: '2027-01-01', price: 99 }])
       ),

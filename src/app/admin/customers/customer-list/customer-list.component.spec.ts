@@ -18,7 +18,7 @@ describe('CustomerListComponent', () => {
     mockCustomers = {
       getCustomers: vi
         .fn()
-        .mockReturnValue(of({ items: [customer1, customer2], totalCount: 2, pageNumber: 1, pageSize: 20, totalPages: 1 })),
+        .mockReturnValue(of({ items: [customer1, customer2], totalCount: 2, page: 1, pageSize: 20, totalPages: 1 })),
     };
 
     await TestBed.configureTestingModule({
