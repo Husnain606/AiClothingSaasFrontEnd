@@ -3,6 +3,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ProductDetailComponent } from './product-detail.component';
 import { ProductService } from '../../services/product.service';
 import { CartService } from '../../../cart/services/cart.service';
+import { TryOnService } from '../../services/try-on.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Product, ProductVariant } from '../../models/product.model';
 import { Cart } from '../../../cart/models/cart.model';
@@ -13,6 +14,7 @@ describe('ProductDetailComponent', () => {
   let fixture: ComponentFixture<ProductDetailComponent>;
   let productService: Partial<ProductService>;
   let cartService: Partial<CartService>;
+  let tryOnService: Partial<TryOnService>;
   let router: Partial<Router>;
   let activatedRoute: any;
 
@@ -76,6 +78,7 @@ describe('ProductDetailComponent', () => {
     const cartServiceMock = {
       addItem: vi.fn().mockReturnValue(of(mockCart)),
     } as unknown as Partial<CartService>;
+    tryOnService = { render: vi.fn() };
     const routerMock = {
       navigate: vi.fn(),
     } as unknown as Partial<Router>;
@@ -89,6 +92,7 @@ describe('ProductDetailComponent', () => {
       providers: [
         { provide: ProductService, useValue: productServiceMock },
         { provide: CartService, useValue: cartServiceMock },
+        { provide: TryOnService, useValue: tryOnService },
         { provide: Router, useValue: routerMock },
         { provide: ActivatedRoute, useValue: activatedRoute },
       ],
@@ -98,6 +102,7 @@ describe('ProductDetailComponent', () => {
     component = fixture.componentInstance;
     productService = TestBed.inject(ProductService) as unknown as Partial<ProductService>;
     cartService = TestBed.inject(CartService) as unknown as Partial<CartService>;
+    tryOnService = TestBed.inject(TryOnService) as unknown as Partial<TryOnService>;
     router = TestBed.inject(Router) as unknown as Partial<Router>;
   });
 
@@ -277,5 +282,53 @@ describe('ProductDetailComponent', () => {
 
     expect(nextSpy).toHaveBeenCalled();
     expect(completeSpy).toHaveBeenCalled();
+  });
+
+  describe('Try It On', () => {
+    it('shows an error when submitting without a photo', () => {
+      component.tryOnPhotoFile = null;
+      component.submitTryOn();
+      let error: string | null = null;
+      component.tryOnError$.subscribe((e) => (error = e));
+      expect(error).toBe('Please choose a photo first.');
+    });
+
+    it('renders the result data URI on a successful submit', () => {
+      component.product$.next(mockProduct);
+      component.tryOnPhotoFile = new File(['x'], 'photo.jpg', { type: 'image/jpeg' });
+      (tryOnService.render as any).mockReturnValue(of({ resultImageDataUri: 'data:image/png;base64,abc' }));
+
+      component.submitTryOn();
+
+      let result: string | null = null;
+      component.tryOnResultDataUri$.subscribe((r) => (result = r));
+      expect(result).toBe('data:image/png;base64,abc');
+    });
+
+    it('shows the quota-exceeded message on a 429 error', () => {
+      component.product$.next(mockProduct);
+      component.tryOnPhotoFile = new File(['x'], 'photo.jpg', { type: 'image/jpeg' });
+      (tryOnService.render as any).mockReturnValue(throwError(() => ({ status: 429 })));
+
+      component.submitTryOn();
+
+      let error: string | null = null;
+      component.tryOnError$.subscribe((e) => (error = e));
+      expect(error).toContain("this month's try-on limit");
+    });
+
+    it('resets the photo selection and clears prior state when a new file is chosen', () => {
+      component.tryOnResultDataUri$.next('data:image/png;base64,stale');
+      component.tryOnError$.next('stale error');
+
+      const file = new File(['x'], 'new-photo.jpg', { type: 'image/jpeg' });
+      const event = { target: { files: [file] } } as unknown as Event;
+      component.onTryOnPhotoSelected(event);
+
+      expect(component.tryOnPhotoFile).toBe(file);
+      let result: string | null = null;
+      component.tryOnResultDataUri$.subscribe((r) => (result = r));
+      expect(result).toBeNull();
+    });
   });
 });

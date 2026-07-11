@@ -212,6 +212,36 @@
             </button>
           </div>
 
+          <!-- Try It On (spec: fully stateless — no consent checkbox, no saved-photo affordance) -->
+          <div class="try-on-section mb-4">
+            <label class="form-label">Try It On</label>
+            <input
+              type="file"
+              accept="image/jpeg,image/png"
+              class="form-control mb-2"
+              (change)="onTryOnPhotoSelected($event)"
+            />
+            <button
+              class="btn btn-outline-primary w-100 mb-2"
+              (click)="submitTryOn()"
+              [disabled]="(tryOnLoading$ | async) === true"
+            >
+              <span *ngIf="(tryOnLoading$ | async) === true">Rendering...</span>
+              <span *ngIf="(tryOnLoading$ | async) !== true">
+                <i class="bi bi-magic me-2"></i>Try It On
+              </span>
+            </button>
+            <div *ngIf="tryOnError$ | async as tryOnError" class="alert alert-warning" role="alert">
+              {{ tryOnError }}
+            </div>
+            <img
+              *ngIf="tryOnResultDataUri$ | async as tryOnResultDataUri"
+              [src]="tryOnResultDataUri"
+              alt="Try-on render result"
+              class="img-fluid rounded try-on-result"
+            />
+          </div>
+
           <!-- Product Tags -->
           <div *ngIf="product.tags && product.tags.length > 0" class="tags-section">
             <label class="form-label">Tags</label>

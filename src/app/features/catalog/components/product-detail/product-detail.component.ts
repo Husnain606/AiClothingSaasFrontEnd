@@ -7,6 +7,7 @@ import { takeUntil, switchMap } from 'rxjs/operators';
 import { ProductService } from '../../services/product.service';
 import { Product, ProductVariant } from '../../models/product.model';
 import { CartService } from '../../../cart/services/cart.service';
+import { TryOnService } from '../../services/try-on.service';
 
 @Component({
   selector: 'app-product-detail',
@@ -26,12 +27,19 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
   quantity = new FormControl(1);
   currentImageIndex = 0;
 
+  // Try It On state (spec §8: fully stateless — nothing persisted beyond this instance)
+  tryOnPhotoFile: File | null = null;
+  tryOnResultDataUri$ = new BehaviorSubject<string | null>(null);
+  tryOnLoading$ = new BehaviorSubject<boolean>(false);
+  tryOnError$ = new BehaviorSubject<string | null>(null);
+
   private destroy$ = new Subject<void>();
   private productId: string = '';
 
   constructor(
     private productService: ProductService,
     private cartService: CartService,
+    private tryOnService: TryOnService,
     private route: ActivatedRoute,
     private router: Router
   ) {}
@@ -145,6 +153,55 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
         error: (err) => {
           console.error('Failed to add to cart:', err);
           this.error$.next('Failed to add item to cart. Please try again.');
+        },
+      });
+  }
+
+  /**
+   * Try It On — spec §8 (fully stateless): the uploaded photo and rendered result
+   * exist only in this component's memory for the current view. Nothing is sent
+   * anywhere except the try-on service's single request/response.
+   */
+  onTryOnPhotoSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.tryOnPhotoFile = input.files?.[0] ?? null;
+    this.tryOnError$.next(null);
+    this.tryOnResultDataUri$.next(null);
+  }
+
+  submitTryOn(): void {
+    const product = this.product$.value;
+    const variant = this.selectedVariant$.value;
+
+    if (!this.tryOnPhotoFile) {
+      this.tryOnError$.next('Please choose a photo first.');
+      return;
+    }
+    if (!product?.primaryImageUrl) {
+      this.tryOnError$.next('This product has no image to try on.');
+      return;
+    }
+
+    this.tryOnLoading$.next(true);
+    this.tryOnError$.next(null);
+    this.tryOnResultDataUri$.next(null);
+
+    this.tryOnService
+      .render(this.tryOnPhotoFile, product.primaryImageUrl, this.productId, variant?.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (result) => {
+          this.tryOnLoading$.next(false);
+          this.tryOnResultDataUri$.next(result.resultImageDataUri);
+        },
+        error: (err) => {
+          this.tryOnLoading$.next(false);
+          const status = err?.status;
+          this.tryOnError$.next(
+            status === 429
+              ? "You've reached this month's try-on limit. Upgrade your plan or try again next month."
+              : 'The try-on render failed. Please try again in a moment.'
+          );
         },
       });
   }
