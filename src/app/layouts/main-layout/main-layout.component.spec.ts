@@ -5,6 +5,7 @@ import { of } from 'rxjs';
 import { MainLayoutComponent } from './main-layout.component';
 import { AuthService } from '../../core/services/auth.service';
 import { CartService } from '../../features/cart/services/cart.service';
+import { ChatService } from '../../features/chat/services/chat.service';
 
 describe('MainLayoutComponent', () => {
   let component: MainLayoutComponent;
@@ -21,12 +22,17 @@ describe('MainLayoutComponent', () => {
     const cartServiceMock = {
       cart$: of({ items: [], subtotal: 0, tax: 0, total: 0, itemCount: 0 }),
     };
+    const chatServiceMock = {
+      messages$: of([]),
+      sendMessage: vi.fn(),
+    };
 
     await TestBed.configureTestingModule({
       imports: [MainLayoutComponent, RouterTestingModule],
       providers: [
         { provide: AuthService, useValue: authServiceMock },
         { provide: CartService, useValue: cartServiceMock },
+        { provide: ChatService, useValue: chatServiceMock },
       ],
     }).compileComponents();
 

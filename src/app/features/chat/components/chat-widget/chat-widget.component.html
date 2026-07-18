@@ -1,0 +1,60 @@
+<div class="chat-widget">
+  <div *ngIf="isOpen$ | async" class="card shadow chat-widget__panel">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <span><i class="bi bi-chat-dots me-2"></i>Shopping Assistant</span>
+      <button
+        type="button"
+        class="btn-close"
+        aria-label="Close chat"
+        (click)="toggle()"
+      ></button>
+    </div>
+    <div class="card-body chat-widget__messages">
+      <p *ngIf="(messages$ | async)?.length === 0" class="text-muted small mb-0">
+        Ask me anything about fashion, sizing, or this store's products.
+      </p>
+      <div
+        *ngFor="let message of messages$ | async"
+        class="chat-widget__message"
+        [ngClass]="
+          message.role === 'user' ? 'chat-widget__message--user' : 'chat-widget__message--model'
+        "
+      >
+        {{ message.content }}
+      </div>
+      <div *ngIf="(sending$ | async) === true" class="text-muted small">
+        Assistant is typing...
+      </div>
+      <div *ngIf="error$ | async as error" class="alert alert-warning py-1 px-2 small mb-0" role="alert">
+        {{ error }}
+      </div>
+    </div>
+    <div class="card-footer d-flex gap-2">
+      <input
+        type="text"
+        class="form-control"
+        placeholder="Ask about fashion or sizing..."
+        aria-label="Chat message"
+        [formControl]="draft"
+        (keyup.enter)="send()"
+      />
+      <button
+        type="button"
+        class="btn btn-primary chat-widget__send"
+        (click)="send()"
+        [disabled]="(sending$ | async) === true"
+      >
+        Send
+      </button>
+    </div>
+  </div>
+
+  <button
+    type="button"
+    class="btn btn-primary rounded-circle shadow chat-widget__toggle"
+    aria-label="Toggle shopping assistant"
+    (click)="toggle()"
+  >
+    <i class="bi" [ngClass]="(isOpen$ | async) ? 'bi-x-lg' : 'bi-chat-dots'"></i>
+  </button>
+</div>

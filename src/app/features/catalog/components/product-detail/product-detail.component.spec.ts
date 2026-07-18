@@ -4,6 +4,7 @@ import { ProductDetailComponent } from './product-detail.component';
 import { ProductService } from '../../services/product.service';
 import { CartService } from '../../../cart/services/cart.service';
 import { TryOnService } from '../../services/try-on.service';
+import { MeasurementService } from '../../services/measurement.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Product, ProductVariant } from '../../models/product.model';
 import { Cart } from '../../../cart/models/cart.model';
@@ -15,6 +16,7 @@ describe('ProductDetailComponent', () => {
   let productService: Partial<ProductService>;
   let cartService: Partial<CartService>;
   let tryOnService: Partial<TryOnService>;
+  let measurementService: Partial<MeasurementService>;
   let router: Partial<Router>;
   let activatedRoute: any;
 
@@ -79,6 +81,7 @@ describe('ProductDetailComponent', () => {
       addItem: vi.fn().mockReturnValue(of(mockCart)),
     } as unknown as Partial<CartService>;
     tryOnService = { render: vi.fn() };
+    measurementService = { estimate: vi.fn() };
     const routerMock = {
       navigate: vi.fn(),
     } as unknown as Partial<Router>;
@@ -93,6 +96,7 @@ describe('ProductDetailComponent', () => {
         { provide: ProductService, useValue: productServiceMock },
         { provide: CartService, useValue: cartServiceMock },
         { provide: TryOnService, useValue: tryOnService },
+        { provide: MeasurementService, useValue: measurementService },
         { provide: Router, useValue: routerMock },
         { provide: ActivatedRoute, useValue: activatedRoute },
       ],
@@ -103,6 +107,7 @@ describe('ProductDetailComponent', () => {
     productService = TestBed.inject(ProductService) as unknown as Partial<ProductService>;
     cartService = TestBed.inject(CartService) as unknown as Partial<CartService>;
     tryOnService = TestBed.inject(TryOnService) as unknown as Partial<TryOnService>;
+    measurementService = TestBed.inject(MeasurementService) as unknown as Partial<MeasurementService>;
     router = TestBed.inject(Router) as unknown as Partial<Router>;
   });
 
@@ -329,6 +334,60 @@ describe('ProductDetailComponent', () => {
       let result: string | null = null;
       component.tryOnResultDataUri$.subscribe((r) => (result = r));
       expect(result).toBeNull();
+    });
+  });
+
+  describe('Find My Size', () => {
+    const mockMeasurement = {
+      chestCm: 96,
+      waistCm: 80,
+      hipsCm: 100,
+      shoulderWidthCm: 44,
+      inseamCm: 78,
+      recommendedSize: 'M',
+      confidence: 0.82,
+    };
+
+    it('renders the recommended size highlighted against the unique sizes (DOM)', () => {
+      (productService.getProductById as any) = vi.fn().mockReturnValue(of(mockProduct));
+      (productService.getProductVariants as any) = vi.fn().mockReturnValue(of(mockVariants));
+      fixture.detectChanges(); // runs ngOnInit — loads product + variants (sizes M, L)
+
+      component.measurementResult$.next(mockMeasurement);
+      fixture.detectChanges();
+
+      const badges = Array.from(
+        fixture.nativeElement.querySelectorAll('.measurement-result .size-badge')
+      ) as HTMLElement[];
+      expect(badges.length).toBe(2);
+
+      const highlighted = badges.filter((b) => b.classList.contains('badge-recommended'));
+      expect(highlighted.length).toBe(1);
+      expect(highlighted[0].textContent?.trim()).toBe('M');
+
+      const notHighlighted = badges.filter((b) => !b.classList.contains('badge-recommended'));
+      expect(notHighlighted.length).toBe(1);
+      expect(notHighlighted[0].textContent?.trim()).toBe('L');
+    });
+
+    it('shows the 429-specific error message on a quota-exceeded response', () => {
+      component.measurementPhotoFile = new File(['x'], 'photo.jpg', { type: 'image/jpeg' });
+      (measurementService.estimate as any).mockReturnValue(throwError(() => ({ status: 429 })));
+
+      component.submitMeasurement();
+
+      let error: string | null = null;
+      component.measurementError$.subscribe((e) => (error = e));
+      expect(error).toContain("this month's AI usage limit");
+    });
+
+    it('shows an error when submitting without a photo', () => {
+      component.measurementPhotoFile = null;
+      component.submitMeasurement();
+      let error: string | null = null;
+      component.measurementError$.subscribe((e) => (error = e));
+      expect(error).toBe('Please choose a photo first.');
+      expect(measurementService.estimate).not.toHaveBeenCalled();
     });
   });
 });

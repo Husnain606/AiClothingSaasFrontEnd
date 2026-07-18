@@ -242,6 +242,77 @@
             />
           </div>
 
+          <!-- Find My Size (spec: fully stateless — mirrors Try It On, nothing persisted) -->
+          <div class="find-my-size-section mb-4">
+            <label class="form-label">Find My Size</label>
+            <input
+              type="file"
+              accept="image/jpeg,image/png"
+              class="form-control mb-2"
+              (change)="onMeasurementPhotoSelected($event)"
+            />
+            <input
+              type="number"
+              class="form-control mb-2"
+              placeholder="Your height in cm (optional)"
+              aria-label="Height in centimeters (optional)"
+              [formControl]="measurementHeightCm"
+              min="50"
+              max="250"
+            />
+            <button
+              class="btn btn-outline-primary w-100 mb-2"
+              (click)="submitMeasurement()"
+              [disabled]="(measurementLoading$ | async) === true"
+            >
+              <span *ngIf="(measurementLoading$ | async) === true">Estimating...</span>
+              <span *ngIf="(measurementLoading$ | async) !== true">
+                <i class="bi bi-rulers me-2"></i>Find My Size
+              </span>
+            </button>
+            <div
+              *ngIf="measurementError$ | async as measurementError"
+              class="alert alert-warning"
+              role="alert"
+            >
+              {{ measurementError }}
+            </div>
+            <div
+              *ngIf="measurementResult$ | async as measurement"
+              class="alert alert-light measurement-result"
+            >
+              <h6 class="mb-2">Your estimated measurements</h6>
+              <ul class="list-unstyled small mb-2">
+                <li>Chest: {{ measurement.chestCm }} cm</li>
+                <li>Waist: {{ measurement.waistCm }} cm</li>
+                <li>Hips: {{ measurement.hipsCm }} cm</li>
+                <li>Shoulder width: {{ measurement.shoulderWidthCm }} cm</li>
+                <li>Inseam: {{ measurement.inseamCm }} cm</li>
+              </ul>
+              <div class="mb-1">
+                <span class="me-2">Recommended size:</span>
+                <ng-container *ngIf="getUniqueSizes().length > 0; else plainRecommendedSize">
+                  <span
+                    *ngFor="let size of getUniqueSizes()"
+                    class="badge me-1 size-badge"
+                    [class.bg-primary]="isRecommendedSize(size)"
+                    [class.badge-recommended]="isRecommendedSize(size)"
+                    [class.bg-light]="!isRecommendedSize(size)"
+                    [class.text-dark]="!isRecommendedSize(size)"
+                  >
+                    {{ size }}
+                  </span>
+                </ng-container>
+                <ng-template #plainRecommendedSize>
+                  <span class="badge bg-primary size-badge badge-recommended">
+                    {{ measurement.recommendedSize }}
+                  </span>
+                </ng-template>
+              </div>
+              <small class="text-muted">Confidence: {{ measurement.confidence | percent }}</small>
+            </div>
+          </div>
+
           <!-- Product Tags -->
           <div *ngIf="product.tags && product.tags.length > 0" class="tags-section">
             <label class="form-label">Tags</label>

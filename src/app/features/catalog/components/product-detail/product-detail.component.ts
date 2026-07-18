@@ -8,6 +8,9 @@ import { ProductService } from '../../services/product.service';
 import { Product, ProductVariant } from '../../models/product.model';
 import { CartService } from '../../../cart/services/cart.service';
 import { TryOnService } from '../../services/try-on.service';
+import { MeasurementService } from '../../services/measurement.service';
+import { MeasurementResult } from '../../models/measurement.model';
+import { ChatContextService } from '../../../chat/services/chat-context.service';
 
 @Component({
   selector: 'app-product-detail',
@@ -33,6 +36,13 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
   tryOnLoading$ = new BehaviorSubject<boolean>(false);
   tryOnError$ = new BehaviorSubject<string | null>(null);
 
+  // Find My Size state (design spec §12 — mirrors Try It On's stateless pattern)
+  measurementPhotoFile: File | null = null;
+  measurementHeightCm = new FormControl<number | null>(null);
+  measurementResult$ = new BehaviorSubject<MeasurementResult | null>(null);
+  measurementLoading$ = new BehaviorSubject<boolean>(false);
+  measurementError$ = new BehaviorSubject<string | null>(null);
+
   private destroy$ = new Subject<void>();
   private productId: string = '';
 
@@ -40,6 +50,8 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
     private productService: ProductService,
     private cartService: CartService,
     private tryOnService: TryOnService,
+    private measurementService: MeasurementService,
+    private chatContextService: ChatContextService,
     private route: ActivatedRoute,
     private router: Router
   ) {}
@@ -70,6 +82,7 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.chatContextService.clearContext();
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -87,6 +100,7 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
           if (variants.length > 0) {
             this.selectedVariant$.next(variants[0]);
           }
+          this.publishChatContext();
         },
         error: (err) => {
           console.error('Failed to load variants:', err);
@@ -204,6 +218,67 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
           );
         },
       });
+  }
+
+  /**
+   * Find My Size — same stateless rule as Try It On: the uploaded photo exists only in
+   * this component's memory; only the single /api/measure request/response leaves it.
+   */
+  onMeasurementPhotoSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.measurementPhotoFile = input.files?.[0] ?? null;
+    this.measurementError$.next(null);
+    this.measurementResult$.next(null);
+  }
+
+  submitMeasurement(): void {
+    if (!this.measurementPhotoFile) {
+      this.measurementError$.next('Please choose a photo first.');
+      return;
+    }
+
+    this.measurementLoading$.next(true);
+    this.measurementError$.next(null);
+    this.measurementResult$.next(null);
+
+    this.measurementService
+      .estimate(this.measurementPhotoFile, this.measurementHeightCm.value ?? undefined)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (result) => {
+          this.measurementLoading$.next(false);
+          this.measurementResult$.next(result);
+        },
+        error: (err) => {
+          this.measurementLoading$.next(false);
+          const status = err?.status;
+          this.measurementError$.next(
+            status === 429
+              ? "You've reached this month's AI usage limit. Upgrade your plan or try again next month."
+              : 'The measurement estimate failed. Please try again in a moment.'
+          );
+        },
+      });
+  }
+
+  isRecommendedSize(size: string): boolean {
+    return this.measurementResult$.value?.recommendedSize?.toUpperCase() === size.toUpperCase();
+  }
+
+  /**
+   * Publish the loaded product (name/description/sizes) as the chat widget's product
+   * context (Phase 6 §F5 — shared ChatContextService; cleared again in ngOnDestroy).
+   */
+  private publishChatContext(): void {
+    const product = this.product$.value;
+    if (!product) {
+      return;
+    }
+    this.chatContextService.setContext({
+      name: product.name,
+      description: product.description,
+      sizes: this.getUniqueSizes(),
+    });
   }
 
   /**
