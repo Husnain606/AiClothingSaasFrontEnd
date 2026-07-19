@@ -47,11 +47,17 @@ export class ChatWidgetComponent {
       error: (err) => {
         this.sending$.next(false);
         const status = err?.status;
-        this.error$.next(
-          status === 429
-            ? "You've reached this month's AI usage limit. Upgrade your plan or try again next month."
-            : 'The assistant is unavailable right now. Please try again in a moment.'
-        );
+        let message: string;
+        if (status === 429) {
+          message =
+            "You've reached this month's AI usage limit. Upgrade your plan or try again next month.";
+        } else if (status === 400) {
+          message =
+            err?.error?.message || "That message couldn't be sent — try shortening it.";
+        } else {
+          message = 'The assistant is unavailable right now. Please try again in a moment.';
+        }
+        this.error$.next(message);
       },
     });
   }

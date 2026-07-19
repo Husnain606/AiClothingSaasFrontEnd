@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { BehaviorSubject, of, Subject } from 'rxjs';
+import { BehaviorSubject, of, Subject, throwError } from 'rxjs';
 import { ChatWidgetComponent } from './chat-widget.component';
 import { ChatService } from '../../services/chat.service';
 import { ChatMessage, ChatResult } from '../../models/chat.model';
@@ -66,6 +66,23 @@ describe('ChatWidgetComponent', () => {
     pending.complete();
     fixture.detectChanges();
     expect(sendButton.disabled).toBe(false);
+  });
+
+  it('shows a validation message on 400', () => {
+    chatService.sendMessage.mockReturnValue(
+      throwError(() => ({ status: 400, error: { message: 'Message is too long.' } }))
+    );
+
+    component.toggle();
+    fixture.detectChanges();
+
+    component.draft.setValue('a very long message');
+    component.send();
+    fixture.detectChanges();
+
+    let error: string | null = null;
+    component.error$.subscribe((e) => (error = e));
+    expect(error).toBe('Message is too long.');
   });
 
   it("displays the assistant's reply once the mocked service response resolves", () => {

@@ -88,6 +88,32 @@ describe('ChatService', () => {
     expect(messages[messages.length - 1]).toEqual({ role: 'model', content: 'reply 10' });
   });
 
+  it('caps history by total characters before sending', () => {
+    // First exchange: a 6000-char user message plus a short reply.
+    const bigOld = 'a'.repeat(6000);
+    service.sendMessage(bigOld).subscribe();
+    httpMock.expectOne(`${environment.tryOnApiBaseUrl}/chat`).flush({
+      isSuccess: true,
+      statusCode: 200,
+      message: 'Success',
+      data: { reply: 'ok' },
+      errors: null,
+    });
+
+    // Second send pushes the total past 8000 chars — the oldest message must be trimmed,
+    // and the just-typed newest message must survive.
+    const bigNew = 'b'.repeat(5000);
+    service.sendMessage(bigNew).subscribe();
+
+    const req = httpMock.expectOne(`${environment.tryOnApiBaseUrl}/chat`);
+    const sent = req.request.body.messages as ChatMessage[];
+    const totalChars = sent.reduce((sum, m) => sum + m.content.length, 0);
+    expect(totalChars).toBeLessThanOrEqual(8000);
+    expect(sent.some((m) => m.content === bigOld)).toBe(false);
+    expect(sent[sent.length - 1]).toEqual({ role: 'user', content: bigNew });
+    req.flush({ isSuccess: true, statusCode: 200, message: 'Success', data: { reply: 'ok' }, errors: null });
+  });
+
   it('throws when the response envelope has no data', () => {
     const error = vi.fn();
 

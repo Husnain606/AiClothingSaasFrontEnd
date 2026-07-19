@@ -389,5 +389,19 @@ describe('ProductDetailComponent', () => {
       expect(error).toBe('Please choose a photo first.');
       expect(measurementService.estimate).not.toHaveBeenCalled();
     });
+
+    it('rejects an oversized measurement photo before upload', () => {
+      const file = new File(['x'], 'huge.jpg', { type: 'image/jpeg' });
+      Object.defineProperty(file, 'size', { value: 10 * 1024 * 1024 + 1 });
+      const event = { target: { files: [file] } } as unknown as Event;
+
+      component.onMeasurementPhotoSelected(event);
+
+      expect(component.measurementPhotoFile).toBeNull();
+      let error: string | null = null;
+      component.measurementError$.subscribe((e) => (error = e));
+      expect(error).toContain('10 MB');
+      expect(measurementService.estimate).not.toHaveBeenCalled();
+    });
   });
 });

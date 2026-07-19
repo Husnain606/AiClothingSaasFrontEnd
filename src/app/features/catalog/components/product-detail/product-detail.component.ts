@@ -12,6 +12,9 @@ import { MeasurementService } from '../../services/measurement.service';
 import { MeasurementResult } from '../../models/measurement.model';
 import { ChatContextService } from '../../../chat/services/chat-context.service';
 
+// Matches the backend measurement validator's photo cap (MeasurementRequestFormValidator).
+const MAX_MEASUREMENT_PHOTO_BYTES = 10 * 1024 * 1024;
+
 @Component({
   selector: 'app-product-detail',
   standalone: true,
@@ -226,9 +229,15 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
    */
   onMeasurementPhotoSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
-    this.measurementPhotoFile = input.files?.[0] ?? null;
-    this.measurementError$.next(null);
+    const file = input.files?.[0] ?? null;
     this.measurementResult$.next(null);
+    if (file && file.size > MAX_MEASUREMENT_PHOTO_BYTES) {
+      this.measurementPhotoFile = null;
+      this.measurementError$.next('Photo must be 10 MB or smaller. Please choose a smaller image.');
+      return;
+    }
+    this.measurementPhotoFile = file;
+    this.measurementError$.next(null);
   }
 
   submitMeasurement(): void {

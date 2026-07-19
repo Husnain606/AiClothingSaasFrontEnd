@@ -6,6 +6,19 @@ import { environment } from '../../../../environments/environment';
 import { ChatApiResponse, ChatMessage, ChatProductContext, ChatResult } from '../models/chat.model';
 
 const MAX_MESSAGES = 20;
+// Matches the backend's ChatHistoryMaxTotalChars cap — trim oldest messages so the
+// total content length stays within it (the newest message is never trimmed away).
+const MAX_TOTAL_CHARS = 8000;
+
+function capHistory(messages: ChatMessage[]): ChatMessage[] {
+  let capped = messages.slice(-MAX_MESSAGES);
+  let totalChars = capped.reduce((sum, m) => sum + m.content.length, 0);
+  while (capped.length > 1 && totalChars > MAX_TOTAL_CHARS) {
+    totalChars -= capped[0].content.length;
+    capped = capped.slice(1);
+  }
+  return capped;
+}
 
 @Injectable({ providedIn: 'root' })
 export class ChatService {
@@ -16,7 +29,7 @@ export class ChatService {
 
   sendMessage(content: string, productContext?: ChatProductContext): Observable<ChatResult> {
     const userMessage: ChatMessage = { role: 'user', content };
-    const history = [...this.messagesSubject.value, userMessage].slice(-MAX_MESSAGES);
+    const history = capHistory([...this.messagesSubject.value, userMessage]);
     this.messagesSubject.next(history);
 
     return this.http
@@ -32,10 +45,10 @@ export class ChatService {
           return response.data;
         }),
         tap((result) => {
-          const withReply = [
+          const withReply = capHistory([
             ...this.messagesSubject.value,
             { role: 'model', content: result.reply } as ChatMessage,
-          ].slice(-MAX_MESSAGES);
+          ]);
           this.messagesSubject.next(withReply);
         })
       );
