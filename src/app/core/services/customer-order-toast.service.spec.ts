@@ -61,7 +61,7 @@ describe('CustomerOrderToastService', () => {
     expect(mockToast.info).not.toHaveBeenCalled();
   });
 
-  it('dedupes the same notification id pushed twice (tenant + user group double-push)', () => {
+  it('dedupes the same notification id if redelivered (defensive, e.g. reconnect)', () => {
     service.start();
 
     received.next(orderStatusChanged);

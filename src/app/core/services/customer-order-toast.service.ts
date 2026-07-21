@@ -38,10 +38,12 @@ export class CustomerOrderToastService {
         return;
       }
 
-      // OrderStatusChangedNotificationHandler pushes the same notification to both the
-      // tenant:{tenantId} group (staff) and the user:{customerId} group (this customer) — a
-      // customer connection is a member of both, so it can receive the identical
-      // notification id twice. Dedupe so the customer sees exactly one toast per event.
+      // A Customer-role connection is intentionally NOT a member of the tenant:{tenantId}
+      // group (that group is staff-only; see NotificationsHub.OnConnectedAsync) and
+      // OrderStatusChangedNotificationHandler pushes the customer's copy only to their own
+      // user:{userId} group, so a single event should arrive exactly once. The dedupe stays
+      // as a defensive safety net against SignalR redelivery on reconnect, not because of any
+      // intentional double-membership.
       if (this.shownNotificationIds.has(notification.id)) {
         return;
       }
