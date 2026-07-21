@@ -18,6 +18,9 @@ describe('MainLayoutComponent', () => {
       logout: vi.fn(),
       isAuthenticated: vi.fn().mockReturnValue(of(false)),
       getCurrentUser: vi.fn().mockReturnValue(of(null)),
+      // CustomerOrderToastService.start() (wired into ngOnInit) checks this before
+      // connecting to the notifications hub — unauthenticated in this spec, so it no-ops.
+      getToken: vi.fn().mockReturnValue(null),
     };
     const cartServiceMock = {
       cart$: of({ items: [], subtotal: 0, tax: 0, total: 0, itemCount: 0 }),
@@ -43,6 +46,11 @@ describe('MainLayoutComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('should render the toast container', () => {
+    const el = fixture.nativeElement.querySelector('app-toast-container');
+    expect(el).toBeTruthy();
   });
 
   it('should render the header', () => {

@@ -36,9 +36,12 @@
       <a routerLink="/products" class="btn btn-sm btn-outline-secondary">
         <i class="bi bi-arrow-left"></i> Back to store
       </a>
-      <button type="button" class="btn btn-sm btn-outline-danger" (click)="onLogout()" aria-label="Log out">
-        <i class="bi bi-box-arrow-right"></i> Logout
-      </button>
+      <div class="d-flex align-items-center gap-2">
+        <app-notification-bell></app-notification-bell>
+        <button type="button" class="btn btn-sm btn-outline-danger" (click)="onLogout()" aria-label="Log out">
+          <i class="bi bi-box-arrow-right"></i> Logout
+        </button>
+      </div>
     </header>
     <main class="admin-main p-3">
       <router-outlet></router-outlet>

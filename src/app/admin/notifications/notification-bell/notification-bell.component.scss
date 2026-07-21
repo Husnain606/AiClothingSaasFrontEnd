@@ -1,0 +1,64 @@
+.notification-bell {
+  position: relative;
+  display: inline-block;
+}
+
+.notification-bell__badge {
+  position: absolute;
+  top: -0.25rem;
+  right: -0.25rem;
+  font-size: 0.65rem;
+  padding: 0.25em 0.45em;
+}
+
+.notification-bell__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1040;
+}
+
+.notification-bell__dropdown {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  margin-top: 0.5rem;
+  width: 320px;
+  max-height: 400px;
+  overflow-y: auto;
+  background: var(--bs-body-bg, #fff);
+  border: 1px solid var(--bs-border-color, #dee2e6);
+  border-radius: 0.5rem;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  z-index: 1050;
+}
+
+.notification-bell__header {
+  font-weight: 600;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--bs-border-color, #dee2e6);
+}
+
+.notification-bell__empty {
+  padding: 1rem;
+  color: var(--bs-secondary-color, #6c757d);
+  font-size: 0.9rem;
+}
+
+.notification-bell__list {
+  margin: 0;
+}
+
+.notification-bell__item {
+  padding: 0.6rem 1rem;
+  border-bottom: 1px solid var(--bs-border-color, #f1f1f1);
+}
+
+.notification-bell__title {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.notification-bell__message {
+  font-size: 0.85rem;
+  color: var(--bs-secondary-color, #6c757d);
+}

@@ -4,11 +4,12 @@ import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { AdminMenuItem, TENANT_MENU, PLATFORM_MENU, visibleMenuItems } from './menu-config';
 import { ToastContainerComponent } from '../shared/components/toast-container/toast-container.component';
+import { NotificationBellComponent } from '../notifications/notification-bell/notification-bell.component';
 
 @Component({
   selector: 'app-admin-layout',
   standalone: true,
-  imports: [CommonModule, RouterModule, ToastContainerComponent],
+  imports: [CommonModule, RouterModule, ToastContainerComponent, NotificationBellComponent],
   templateUrl: './admin-layout.component.html',
   styleUrls: ['./admin-layout.component.scss'],
 })
