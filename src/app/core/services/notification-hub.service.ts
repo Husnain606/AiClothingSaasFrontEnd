@@ -23,7 +23,13 @@ export class NotificationHubService {
   /** Emits every `ReceiveNotification` push from the hub while connected. */
   readonly notificationReceived$: Observable<NotificationDto> = this.received.asObservable();
 
-  constructor(private authService: AuthService) {}
+  constructor(private authService: AuthService) {
+    // Tear the connection down on logout — this is an SPA with no full page reload, so without
+    // this the socket would stay open under the previous user's JWT and server-derived
+    // `tenant:{id}`/`user:{id}` groups, and `connect()`'s idempotency guard would then no-op for
+    // a different user who logs in afterward on the same tab.
+    this.authService.loggedOut$.subscribe(() => this.disconnect());
+  }
 
   /**
    * Connects (idempotent — a no-op if already connecting/connected). Group membership

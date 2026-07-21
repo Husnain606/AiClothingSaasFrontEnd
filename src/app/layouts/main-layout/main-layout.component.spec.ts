@@ -21,6 +21,9 @@ describe('MainLayoutComponent', () => {
       // CustomerOrderToastService.start() (wired into ngOnInit) checks this before
       // connecting to the notifications hub — unauthenticated in this spec, so it no-ops.
       getToken: vi.fn().mockReturnValue(null),
+      // NotificationHubService (created via CustomerOrderToastService's real DI chain)
+      // subscribes to this in its constructor to disconnect on logout.
+      loggedOut$: of(undefined),
     };
     const cartServiceMock = {
       cart$: of({ items: [], subtotal: 0, tax: 0, total: 0, itemCount: 0 }),

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, Subject } from 'rxjs';
 import { map, tap, catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { ApiService } from './api.service';
@@ -19,6 +19,15 @@ import {
 export class AuthService {
   private currentUser$ = new BehaviorSubject<CurrentUser | null>(null);
   private isAuthenticated$ = new BehaviorSubject<boolean>(false);
+  private readonly loggedOut = new Subject<void>();
+
+  /**
+   * Emits whenever `logout()` runs. `NotificationHubService` subscribes to this to disconnect
+   * its SignalR connection — this is a one-way dependency (AuthService knows nothing about the
+   * hub) to avoid a circular dependency, since the hub's `accessTokenFactory` already calls back
+   * into `AuthService.getToken()`.
+   */
+  readonly loggedOut$: Observable<void> = this.loggedOut.asObservable();
 
   constructor(private apiService: ApiService) {
     this.initializeAuth();
@@ -77,6 +86,10 @@ export class AuthService {
     this.clearToken();
     this.isAuthenticated$.next(false);
     this.currentUser$.next(null);
+    // Since this is an SPA with no full page reload on logout, anything holding a live
+    // connection under the previous user's session (e.g. the SignalR notification hub) must
+    // be told to tear down explicitly — see `loggedOut$` above.
+    this.loggedOut.next();
   }
 
   getToken(): string | null {

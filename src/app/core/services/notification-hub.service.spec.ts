@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { TestBed } from '@angular/core/testing';
+import { Subject } from 'rxjs';
 import { NotificationHubService } from './notification-hub.service';
 import { AuthService } from './auth.service';
 
@@ -48,12 +49,14 @@ vi.mock('@microsoft/signalr', () => ({
 describe('NotificationHubService', () => {
   let service: NotificationHubService;
   let mockAuth: Partial<AuthService>;
+  let loggedOut: Subject<void>;
 
   beforeEach(() => {
     TestBed.resetTestingModule();
     vi.clearAllMocks();
     mockConnection.state = 'Disconnected';
-    mockAuth = { getToken: vi.fn().mockReturnValue('jwt-token') };
+    loggedOut = new Subject<void>();
+    mockAuth = { getToken: vi.fn().mockReturnValue('jwt-token'), loggedOut$: loggedOut.asObservable() };
     TestBed.configureTestingModule({
       providers: [{ provide: AuthService, useValue: mockAuth }],
     });
@@ -73,7 +76,13 @@ describe('NotificationHubService', () => {
     expect(mockConnection.start).toHaveBeenCalledTimes(1);
   });
 
-  it('reconnects and re-subscribes ReceiveNotification handler', () => {
+  it('registers the ReceiveNotification handler once and forwards payloads', () => {
+    // Note: this does not simulate an actual reconnect (no `onreconnected` trigger on the
+    // mock connection) — it only proves the handler is registered once per connect() call
+    // and correctly forwards payloads. Survival of the handler across a real automatic
+    // reconnect is guaranteed by @microsoft/signalr's documented behavior (handlers bound
+    // via `.on()` are kept on the HubConnection instance itself, not reset on reconnect),
+    // not by this test.
     service.connect();
 
     expect(mockConnection.on).toHaveBeenCalledWith('ReceiveNotification', expect.any(Function));
@@ -87,5 +96,14 @@ describe('NotificationHubService', () => {
     service.notificationReceived$.subscribe((n) => received.push(n));
     handler({ id: '1' });
     expect(received).toEqual([{ id: '1' }]);
+  });
+
+  it('disconnects when AuthService emits loggedOut$ (SPA logout with no page reload)', () => {
+    service.connect();
+    expect(service).toBeTruthy();
+
+    loggedOut.next();
+
+    expect(mockConnection.stop).toHaveBeenCalledTimes(1);
   });
 });

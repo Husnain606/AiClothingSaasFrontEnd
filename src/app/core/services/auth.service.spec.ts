@@ -118,4 +118,15 @@ describe('AuthService — role parsing and redirect', () => {
     });
     expect(service.getToken()).toBe(response.accessToken);
   });
+
+  it('logout emits loggedOut$ and clears the token (NotificationHubService disconnects via this event)', () => {
+    service.setToken(makeToken(['Customer']));
+    const loggedOutEvents: void[] = [];
+    service.loggedOut$.subscribe((event) => loggedOutEvents.push(event));
+
+    service.logout();
+
+    expect(loggedOutEvents.length).toBe(1);
+    expect(service.getToken()).toBeNull();
+  });
 });
