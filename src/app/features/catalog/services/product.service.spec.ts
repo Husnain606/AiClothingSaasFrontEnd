@@ -5,6 +5,7 @@ import { ProductService } from './product.service';
 import { ApiService } from '../../../core/services/api.service';
 import { Product, Category, ProductVariant, ProductFilter } from '../models/product.model';
 import { ApiResponse, PagedResult } from '../../../core/models/api-response.model';
+import { environment } from '@env/environment';
 import { of } from 'rxjs';
 
 describe('ProductService', () => {
@@ -91,18 +92,28 @@ describe('ProductService', () => {
     expect(service).toBeTruthy();
   });
 
-  describe('getCategories', () => {
-    it('should fetch categories and cache them', async () => {
-      (apiService.get as any) = vi.fn().mockReturnValue(of(asApiResponse(mockCategories)));
+  // getCategories/getProducts/getProductById hit the new public slug-based routes
+  // (api/{slug}/categories, api/{slug}/products, api/{slug}/products/{id}) directly via
+  // HttpClient rather than ApiService, so these specs assert against HttpTestingController
+  // instead of the ApiService mock.
+  const publicCatalogBaseUrl = `${environment.apiBaseUrl}/${environment.tenantSlug}`;
 
-      const result = await service.getCategories().toPromise();
-      expect(result).toEqual(mockCategories);
+  describe('getCategories', () => {
+    it('should fetch categories from the public slug-based route and cache them', async () => {
+      const resultPromise = service.getCategories().toPromise();
+
+      const req = httpMock.expectOne(`${publicCatalogBaseUrl}/categories`);
+      expect(req.request.method).toBe('GET');
+      req.flush(asApiResponse(mockCategories));
+
+      expect(await resultPromise).toEqual(mockCategories);
     });
 
-    it('should return cached categories on subsequent calls', async () => {
-      (apiService.get as any) = vi.fn().mockReturnValue(of(asApiResponse(mockCategories)));
+    it('should return cached categories on subsequent calls without a second request', async () => {
+      const result1Promise = service.getCategories().toPromise();
+      httpMock.expectOne(`${publicCatalogBaseUrl}/categories`).flush(asApiResponse(mockCategories));
+      const result1 = await result1Promise;
 
-      const result1 = await service.getCategories().toPromise();
       const result2 = await service.getCategories().toPromise();
 
       expect(result1).toEqual(mockCategories);
@@ -111,7 +122,7 @@ describe('ProductService', () => {
   });
 
   describe('getProducts', () => {
-    it('should fetch products with filters', async () => {
+    it('should fetch products from the public slug-based route with filters', async () => {
       const filter: ProductFilter = {
         page: 1,
         pageSize: 20,
@@ -127,21 +138,29 @@ describe('ProductService', () => {
         totalPages: 1,
       };
 
-      (apiService.get as any) = vi.fn().mockReturnValue(of(asApiResponse(mockPagedResult)));
+      const resultPromise = service.getProducts(filter).toPromise();
 
-      const result = await service.getProducts(filter).toPromise();
-      expect(result).toEqual(mockPagedResult);
+      const req = httpMock.expectOne(
+        (r) => r.url === `${publicCatalogBaseUrl}/products` && r.params.get('search') === 'test'
+      );
+      expect(req.request.method).toBe('GET');
+      req.flush(asApiResponse(mockPagedResult));
+
+      expect(await resultPromise).toEqual(mockPagedResult);
     });
   });
 
   describe('getProductById', () => {
-    it('should fetch a single product', async () => {
+    it('should fetch a single product from the public slug-based route', async () => {
       const productId = 'prod1';
 
-      (apiService.get as any) = vi.fn().mockReturnValue(of(asApiResponse(mockProducts[0])));
+      const resultPromise = service.getProductById(productId).toPromise();
 
-      const result = await service.getProductById(productId).toPromise();
-      expect(result).toEqual(mockProducts[0]);
+      const req = httpMock.expectOne(`${publicCatalogBaseUrl}/products/${productId}`);
+      expect(req.request.method).toBe('GET');
+      req.flush(asApiResponse(mockProducts[0]));
+
+      expect(await resultPromise).toEqual(mockProducts[0]);
     });
   });
 

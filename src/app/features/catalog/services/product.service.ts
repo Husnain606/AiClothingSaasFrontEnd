@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
-import { HttpParams } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { shareReplay, tap, map } from 'rxjs/operators';
+import { environment } from '@env/environment';
 import { ApiService } from '../../../core/services/api.service';
 import { ApiResponse, PagedResult } from '../../../core/models/api-response.model';
 import { Product, ProductVariant, Category, ProductFilter } from '../models/product.model';
@@ -11,17 +12,33 @@ export class ProductService {
   private categoriesCache$: Observable<Category[]> | null = null;
   private productCache: Map<string, Observable<Product>> = new Map();
 
-  constructor(private apiService: ApiService) {}
+  // Public, unauthenticated catalog-browsing calls (categories/products/product-by-id)
+  // hit the new slug-based public routes (api/{slug}/categories, api/{slug}/products,
+  // api/{slug}/products/{id}) directly via HttpClient rather than through ApiService,
+  // because ApiService's bare `{apiBaseUrl}/{endpoint}` shape is for authenticated
+  // admin/customer calls whose tenant comes from the JWT claim and must NOT be
+  // slug-prefixed. The slug itself is read from environment.tenantSlug, which is
+  // hardcoded per-environment for local dev/testing only — resolving the real tenant
+  // slug from the production subdomain is a separate, out-of-scope piece of work (see
+  // environment.prod.ts).
+  private readonly publicCatalogBaseUrl = `${environment.apiBaseUrl}/${environment.tenantSlug}`;
+
+  constructor(
+    private apiService: ApiService,
+    private http: HttpClient
+  ) {}
 
   /**
    * Get all categories (cached with shareReplay)
    */
   getCategories(): Observable<Category[]> {
     if (!this.categoriesCache$) {
-      this.categoriesCache$ = this.apiService.get<Category[]>('categories').pipe(
-        map((response: ApiResponse<Category[]>) => response.data),
-        shareReplay(1)
-      );
+      this.categoriesCache$ = this.http
+        .get<ApiResponse<Category[]>>(`${this.publicCatalogBaseUrl}/categories`)
+        .pipe(
+          map((response: ApiResponse<Category[]>) => response.data),
+          shareReplay(1)
+        );
     }
     return this.categoriesCache$;
   }
@@ -40,13 +57,10 @@ export class ProductService {
     if (filter.categoryId) {
       params = params.set('categoryId', filter.categoryId);
     }
-    if (filter.status) {
-      params = params.set('status', filter.status);
-    }
 
-    return this.apiService.get<PagedResult<Product>>('products', params).pipe(
-      map((response: ApiResponse<PagedResult<Product>>) => response.data)
-    );
+    return this.http
+      .get<ApiResponse<PagedResult<Product>>>(`${this.publicCatalogBaseUrl}/products`, { params })
+      .pipe(map((response: ApiResponse<PagedResult<Product>>) => response.data));
   }
 
   /**
@@ -58,7 +72,7 @@ export class ProductService {
       return this.productCache.get(id)!;
     }
 
-    const product$ = this.apiService.get<Product>(`products/${id}`).pipe(
+    const product$ = this.http.get<ApiResponse<Product>>(`${this.publicCatalogBaseUrl}/products/${id}`).pipe(
       map((response: ApiResponse<Product>) => response.data),
       shareReplay(1),
       tap(() => {
