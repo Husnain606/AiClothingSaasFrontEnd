@@ -320,6 +320,19 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Tags come from the API as a single comma-separated string (ProductResponse.Tags),
+   * not an array — split for display here rather than changing the wire contract.
+   */
+  getTagList(tags: string | null | undefined): string[] {
+    return tags
+      ? tags
+          .split(',')
+          .map((t) => t.trim())
+          .filter((t) => t.length > 0)
+      : [];
+  }
+
+  /**
    * Get unique values from variants (for filters)
    */
   getUniqueSizes(): string[] {

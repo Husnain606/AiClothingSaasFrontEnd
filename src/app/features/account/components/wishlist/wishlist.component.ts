@@ -76,7 +76,7 @@ export class WishlistComponent implements OnInit, OnDestroy {
       categoryName: '',
       basePrice: item.price,
       status: 'active',
-      tags: [],
+      tags: '',
       variantCount: 0,
       primaryImageUrl: item.imageUrl,
       approvedReviewCount: 0,

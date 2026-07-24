@@ -7,7 +7,7 @@ export interface Product {
   categoryName: string;
   basePrice: number;
   status: string;
-  tags: string[];
+  tags: string; // comma-separated, as sent by ProductResponse.Tags — split for display
   variantCount: number;
   primaryImageUrl: string;
   approvedReviewCount: number;

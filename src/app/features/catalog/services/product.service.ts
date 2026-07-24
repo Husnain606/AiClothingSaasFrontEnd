@@ -106,12 +106,14 @@ export class ProductService {
   }
 
   /**
-   * Get product variants by product ID
+   * Get product variants by product ID. Same public, unauthenticated slug-based route
+   * as getProductById/getProducts above — a customer browsing the storefront has no
+   * JWT, so this cannot go through ApiService's authenticated-call base URL.
    */
   getProductVariants(productId: string): Observable<ProductVariant[]> {
-    return this.apiService.get<ProductVariant[]>(`products/${productId}/variants`).pipe(
-      map((response: ApiResponse<ProductVariant[]>) => response.data)
-    );
+    return this.http
+      .get<ApiResponse<ProductVariant[]>>(`${this.publicCatalogBaseUrl}/products/${productId}/variants`)
+      .pipe(map((response: ApiResponse<ProductVariant[]>) => response.data));
   }
 
   /**

@@ -81,7 +81,7 @@ export class OrderHistoryComponent implements OnInit, OnDestroy {
         categoryName: '',
         basePrice: item.price,
         status: 'active',
-        tags: [],
+        tags: '',
         variantCount: 0,
         primaryImageUrl: '',
         approvedReviewCount: 0,
