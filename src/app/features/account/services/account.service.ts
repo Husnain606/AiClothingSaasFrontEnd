@@ -88,11 +88,13 @@ export class AccountService {
   }
 
   /**
-   * Change password
+   * Change password. Note: the real route is PUT api/auth/change-password
+   * (AuthController), not account/change-password - there's no tenant-scoped
+   * "account" password endpoint, password changes go through the shared auth API.
    */
   changePassword(request: ChangePasswordRequest): Observable<void> {
     return this.apiService
-      .post<void>('account/change-password', request)
+      .put<void>('auth/change-password', request)
       .pipe(map(() => undefined));
   }
 }

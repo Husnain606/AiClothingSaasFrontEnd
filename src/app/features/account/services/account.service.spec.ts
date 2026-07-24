@@ -491,9 +491,8 @@ describe('AccountService', () => {
     it('should change password successfully', () => {
       return new Promise<void>((resolve) => {
         const passwordRequest: ChangePasswordRequest = {
-          oldPassword: 'oldPass123',
+          currentPassword: 'oldPass123',
           newPassword: 'newPass456',
-          confirmPassword: 'newPass456',
         };
 
         service.changePassword(passwordRequest).subscribe(() => {
@@ -502,9 +501,9 @@ describe('AccountService', () => {
         });
 
         const req = httpMock.expectOne((request) =>
-          request.url.includes('account/change-password')
+          request.url.includes('auth/change-password')
         );
-        expect(req.request.method).toBe('POST');
+        expect(req.request.method).toBe('PUT');
         expect(req.request.body).toEqual(passwordRequest);
         req.flush(null);
       });
@@ -513,9 +512,8 @@ describe('AccountService', () => {
     it('should send correct password data', () => {
       return new Promise<void>((resolve) => {
         const passwordRequest: ChangePasswordRequest = {
-          oldPassword: 'current123',
+          currentPassword: 'current123',
           newPassword: 'future456',
-          confirmPassword: 'future456',
         };
 
         service.changePassword(passwordRequest).subscribe(() => {
@@ -523,9 +521,9 @@ describe('AccountService', () => {
         });
 
         const req = httpMock.expectOne((request) =>
-          request.url.includes('account/change-password')
+          request.url.includes('auth/change-password')
         );
-        expect(req.request.body.oldPassword).toBe('current123');
+        expect(req.request.body.currentPassword).toBe('current123');
         expect(req.request.body.newPassword).toBe('future456');
         req.flush(null);
       });
@@ -534,9 +532,8 @@ describe('AccountService', () => {
     it('should handle password change error - incorrect old password', () => {
       return new Promise<void>((resolve) => {
         const passwordRequest: ChangePasswordRequest = {
-          oldPassword: 'wrongPass',
+          currentPassword: 'wrongPass',
           newPassword: 'newPass456',
-          confirmPassword: 'newPass456',
         };
 
         service.changePassword(passwordRequest).subscribe(
@@ -548,35 +545,9 @@ describe('AccountService', () => {
         );
 
         const req = httpMock.expectOne((request) =>
-          request.url.includes('account/change-password')
+          request.url.includes('auth/change-password')
         );
         req.flush({ message: 'Incorrect old password' }, { status: 400, statusText: 'Bad Request' });
-      });
-    });
-
-    it('should handle password change error - passwords do not match', () => {
-      return new Promise<void>((resolve) => {
-        const passwordRequest: ChangePasswordRequest = {
-          oldPassword: 'oldPass123',
-          newPassword: 'newPass456',
-          confirmPassword: 'differentPass',
-        };
-
-        service.changePassword(passwordRequest).subscribe(
-          () => {},
-          (error) => {
-            expect(error.status).toBe(400);
-            resolve();
-          }
-        );
-
-        const req = httpMock.expectOne((request) =>
-          request.url.includes('account/change-password')
-        );
-        req.flush(
-          { message: 'Passwords do not match' },
-          { status: 400, statusText: 'Bad Request' }
-        );
       });
     });
   });

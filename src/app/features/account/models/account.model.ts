@@ -59,8 +59,9 @@ export interface WishlistResponse {
   items: WishlistItem[];
 }
 
+// Matches FashionSaaS.Application.Auth.DTOs.ChangePasswordRequest exactly - the
+// backend has no confirmPassword field; confirm-matches-new is a client-side-only check.
 export interface ChangePasswordRequest {
-  oldPassword: string;
+  currentPassword: string;
   newPassword: string;
-  confirmPassword: string;
 }
