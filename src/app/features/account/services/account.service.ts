@@ -8,6 +8,7 @@ import {
   CustomerProfile,
   Order,
   WishlistItem,
+  WishlistResponse,
   ChangePasswordRequest,
 } from '../models/account.model';
 
@@ -58,14 +59,14 @@ export class AccountService {
   }
 
   /**
-   * Get customer's wishlist items
+   * Get customer's wishlist items. Backend returns a WishlistResponse wrapper
+   * ({id, customerId, items}), not a bare array - unwrap .items here so callers
+   * keep working with a flat WishlistItem[].
    */
   getWishlist(): Observable<WishlistItem[]> {
     return this.apiService
-      .get<WishlistItem[]>('account/wishlist')
-      .pipe(
-        map((response: ApiResponse<WishlistItem[]>) => response.data || [])
-      );
+      .get<WishlistResponse>('account/wishlist')
+      .pipe(map((response: ApiResponse<WishlistResponse>) => response.data?.items || []));
   }
 
   /**

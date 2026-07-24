@@ -67,18 +67,19 @@ export class WishlistComponent implements OnInit, OnDestroy {
   onAddToCart(item: WishlistItem): void {
     this.addingToCart[item.id] = true;
 
+    const name = item.productName ?? 'Unknown product';
     const product: Product = {
       id: item.productId,
-      name: item.productName,
-      slug: item.productName.toLowerCase().replace(/\s+/g, '-'),
+      name,
+      slug: item.productSlug ?? name.toLowerCase().replace(/\s+/g, '-'),
       description: '',
       categoryId: '',
       categoryName: '',
-      basePrice: item.price,
+      basePrice: item.productBasePrice ?? 0,
       status: 'active',
       tags: '',
       variantCount: 0,
-      primaryImageUrl: item.imageUrl,
+      primaryImageUrl: item.primaryImageUrl ?? '',
       approvedReviewCount: 0,
       averageRating: 0,
       createdAt: new Date().toISOString(),
@@ -115,6 +116,15 @@ export class WishlistComponent implements OnInit, OnDestroy {
           this.removing[item.id] = false;
         },
       });
+  }
+
+  /**
+   * The backend doesn't compute a live stock flag for wishlist items - a null
+   * productBasePrice/productName means the underlying product was deleted, so use
+   * that as the "still available" proxy rather than a real (and here, absent) stock check.
+   */
+  isAvailable(item: WishlistItem): boolean {
+    return item.productBasePrice != null;
   }
 
   ngOnDestroy(): void {

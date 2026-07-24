@@ -23,7 +23,7 @@
           <!-- Product Image -->
           <div class="wishlist-image-wrapper">
             <img
-              [src]="item.imageUrl"
+              [src]="item.primaryImageUrl"
               class="card-img-top"
               [alt]="item.productName"
               onerror="this.src='https://via.placeholder.com/300x300?text=No+Image'"
@@ -45,13 +45,13 @@
           <div class="card-body d-flex flex-column">
             <h6 class="card-title">{{ item.productName }}</h6>
             <p class="card-text text-muted flex-grow-1">
-              <span class="price">${{ item.price | number: '1.2-2' }}</span>
+              <span class="price">${{ item.productBasePrice | number: '1.2-2' }}</span>
             </p>
 
-            <!-- Stock Status -->
+            <!-- Availability -->
             <div class="mb-3">
-              <span *ngIf="item.inStock" class="badge bg-success">In Stock</span>
-              <span *ngIf="!item.inStock" class="badge bg-danger">Out of Stock</span>
+              <span *ngIf="isAvailable(item)" class="badge bg-success">Available</span>
+              <span *ngIf="!isAvailable(item)" class="badge bg-danger">No Longer Available</span>
             </div>
 
             <!-- Action Buttons -->
@@ -59,7 +59,7 @@
               <button
                 class="btn btn-primary btn-sm"
                 (click)="onAddToCart(item)"
-                [disabled]="!item.inStock || addingToCart[item.id]"
+                [disabled]="!isAvailable(item) || addingToCart[item.id]"
                 type="button"
               >
                 <span *ngIf="!addingToCart[item.id]">
@@ -89,7 +89,7 @@
 
             <!-- Added Date -->
             <small class="text-muted d-block mt-3">
-              <i class="bi bi-calendar"></i> Added {{ item.addedDate | date: 'short' }}
+              <i class="bi bi-calendar"></i> Added {{ item.createdAt | date: 'short' }}
             </small>
           </div>
         </div>

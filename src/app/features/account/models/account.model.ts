@@ -39,14 +39,24 @@ export interface OrderItem {
   };
 }
 
+// Matches FashionSaaS.Application.Wishlists.DTOs.WishlistItemResponse exactly -
+// productVariantId/productSlug are nullable since a deleted product leaves the
+// wishlist item's summary fields null (ProductService null-coalesces on removal).
 export interface WishlistItem {
   id: string;
   productId: string;
-  productName: string;
-  price: number;
-  imageUrl: string;
-  addedDate: Date;
-  inStock: boolean;
+  productVariantId: string | null;
+  productName: string | null;
+  productSlug: string | null;
+  productBasePrice: number | null;
+  primaryImageUrl: string | null;
+  createdAt: string;
+}
+
+export interface WishlistResponse {
+  id: string;
+  customerId: string;
+  items: WishlistItem[];
 }
 
 export interface ChangePasswordRequest {
