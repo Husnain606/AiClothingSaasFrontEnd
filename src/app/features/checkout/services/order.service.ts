@@ -16,20 +16,35 @@ export class OrderService {
   constructor(private apiService: ApiService) {}
 
   createOrder(checkout: CheckoutForm, cartItems: CartItem[]): Observable<Order> {
-    const payload = {
-      shippingAddress: checkout.shippingAddress,
-      paymentInfo: {
-        cardholderName: checkout.paymentInfo.cardholderName,
-        cardNumber: checkout.paymentInfo.cardNumber, // Already masked
-        // CVV, expiryMonth, expiryYear are never sent — backend CreateOrderRequest does not accept them
-      },
-      items: cartItems.map(item => ({
-        productId: item.productId,
-        quantity: item.quantity,
-        variant: item.selectedVariant
-      }))
-    };
-    return this.apiService.post<Order>(this.apiUrl, payload)
+    const formData = new FormData();
+
+    const address = checkout.shippingAddress;
+    formData.append('ShippingAddress.FirstName', address.firstName);
+    formData.append('ShippingAddress.LastName', address.lastName);
+    formData.append('ShippingAddress.Email', address.email);
+    formData.append('ShippingAddress.Phone', address.phone);
+    formData.append('ShippingAddress.Street', address.street);
+    formData.append('ShippingAddress.City', address.city);
+    formData.append('ShippingAddress.State', address.state);
+    formData.append('ShippingAddress.ZipCode', address.zipCode);
+    formData.append('ShippingAddress.Country', address.country);
+
+    cartItems.forEach((item, index) => {
+      formData.append(`Items[${index}].ProductId`, item.productId);
+      formData.append(`Items[${index}].Quantity`, item.quantity.toString());
+      if (item.selectedVariant?.size) {
+        formData.append(`Items[${index}].Variant.Size`, item.selectedVariant.size);
+      }
+      if (item.selectedVariant?.color) {
+        formData.append(`Items[${index}].Variant.Color`, item.selectedVariant.color);
+      }
+    });
+
+    if (checkout.paymentProof.file) {
+      formData.append('paymentProof', checkout.paymentProof.file);
+    }
+
+    return this.apiService.post<Order>(this.apiUrl, formData)
       .pipe(
         map((response: ApiResponse<Order>) => response.data)
       );

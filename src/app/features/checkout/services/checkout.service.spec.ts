@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { CheckoutService } from './checkout.service';
-import { CheckoutForm, ShippingAddress, PaymentInfo } from '../models/checkout.model';
+import { CheckoutForm, ShippingAddress, PaymentProof } from '../models/checkout.model';
 
 describe('CheckoutService', () => {
   let service: CheckoutService;
@@ -19,7 +19,8 @@ describe('CheckoutService', () => {
   it('should initialize with empty form', () => {
     const form = service.getCheckoutForm();
     expect(form.shippingAddress.firstName).toBe('');
-    expect(form.paymentInfo.cardNumber).toBe('');
+    expect(form.paymentProof.fileName).toBe('');
+    expect(form.paymentProof.file).toBeNull();
   });
 
   it('should set and get checkout form', () => {
@@ -37,12 +38,9 @@ describe('CheckoutService', () => {
 
     const checkoutForm: CheckoutForm = {
       shippingAddress,
-      paymentInfo: {
-        cardholderName: 'John Doe',
-        cardNumber: '****1111',
-        expiryMonth: '12',
-        expiryYear: '2025',
-        cvv: ''
+      paymentProof: {
+        file: null,
+        fileName: 'receipt.pdf'
       },
       termsAccepted: true
     };
@@ -51,7 +49,7 @@ describe('CheckoutService', () => {
     const retrievedForm = service.getCheckoutForm();
 
     expect(retrievedForm.shippingAddress.firstName).toBe('John');
-    expect(retrievedForm.paymentInfo.cardNumber).toBe('****1111');
+    expect(retrievedForm.paymentProof.fileName).toBe('receipt.pdf');
   });
 
   it('should emit form changes via observable', () => {
@@ -69,12 +67,9 @@ describe('CheckoutService', () => {
 
     const checkoutForm: CheckoutForm = {
       shippingAddress,
-      paymentInfo: {
-        cardholderName: 'Jane Smith',
-        cardNumber: '****2222',
-        expiryMonth: '06',
-        expiryYear: '2026',
-        cvv: ''
+      paymentProof: {
+        file: null,
+        fileName: 'proof.png'
       }
     };
 
@@ -104,34 +99,28 @@ describe('CheckoutService', () => {
 
     const form1: CheckoutForm = {
       shippingAddress,
-      paymentInfo: {
-        cardholderName: '',
-        cardNumber: '',
-        expiryMonth: '',
-        expiryYear: '',
-        cvv: ''
+      paymentProof: {
+        file: null,
+        fileName: ''
       }
     };
 
     service.setCheckoutForm(form1);
 
-    const paymentInfo: PaymentInfo = {
-      cardholderName: 'John Doe',
-      cardNumber: '****1111',
-      expiryMonth: '12',
-      expiryYear: '2025',
-      cvv: ''
+    const paymentProof: PaymentProof = {
+      file: null,
+      fileName: 'receipt.pdf'
     };
 
     const form2: CheckoutForm = {
       shippingAddress,
-      paymentInfo
+      paymentProof
     };
 
     service.setCheckoutForm(form2);
 
     const finalForm = service.getCheckoutForm();
     expect(finalForm.shippingAddress.firstName).toBe('John');
-    expect(finalForm.paymentInfo.cardNumber).toBe('****1111');
+    expect(finalForm.paymentProof.fileName).toBe('receipt.pdf');
   });
 });

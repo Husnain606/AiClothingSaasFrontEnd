@@ -1,96 +1,35 @@
-<div class="card">
-  <div class="card-body">
-    <h5 class="card-title mb-4">Payment Information</h5>
+<div class="payment-form">
+  <h3>Payment</h3>
 
-    <div class="alert alert-info mb-4">
-      <strong>Demo Mode:</strong> Use card number <code>4111111111111111</code> for testing
-    </div>
-
-    <form [formGroup]="form" (ngSubmit)="onSubmit()">
-      <div class="mb-3">
-        <label for="cardholderName" class="form-label">Cardholder Name <span class="text-danger">*</span></label>
-        <input
-          type="text"
-          id="cardholderName"
-          class="form-control"
-          formControlName="cardholderName"
-          [class.is-invalid]="form.get('cardholderName')?.invalid && form.get('cardholderName')?.touched"
-          placeholder="John Doe">
-        <div class="invalid-feedback d-block" *ngIf="form.get('cardholderName')?.invalid && form.get('cardholderName')?.touched">
-          {{ getErrorMessage('cardholderName') }}
-        </div>
-      </div>
-
-      <div class="mb-3">
-        <label for="cardNumber" class="form-label">Card Number <span class="text-danger">*</span></label>
-        <input
-          type="text"
-          id="cardNumber"
-          class="form-control"
-          formControlName="cardNumber"
-          [class.is-invalid]="form.get('cardNumber')?.invalid && form.get('cardNumber')?.touched"
-          placeholder="4111111111111111"
-          maxlength="16">
-        <div class="invalid-feedback d-block" *ngIf="form.get('cardNumber')?.invalid && form.get('cardNumber')?.touched">
-          {{ getErrorMessage('cardNumber') }}
-        </div>
-      </div>
-
-      <div class="row">
-        <div class="col-md-6 mb-3">
-          <label for="expiryMonth" class="form-label">Expiry Month <span class="text-danger">*</span></label>
-          <select
-            id="expiryMonth"
-            class="form-select"
-            formControlName="expiryMonth"
-            [class.is-invalid]="form.get('expiryMonth')?.invalid && form.get('expiryMonth')?.touched">
-            <option value="">Select month</option>
-            <option *ngFor="let month of months" [value]="month">
-              {{ month }}
-            </option>
-          </select>
-          <div class="invalid-feedback d-block" *ngIf="form.get('expiryMonth')?.invalid && form.get('expiryMonth')?.touched">
-            {{ getErrorMessage('expiryMonth') }}
-          </div>
-        </div>
-
-        <div class="col-md-6 mb-3">
-          <label for="expiryYear" class="form-label">Expiry Year <span class="text-danger">*</span></label>
-          <select
-            id="expiryYear"
-            class="form-select"
-            formControlName="expiryYear"
-            [class.is-invalid]="form.get('expiryYear')?.invalid && form.get('expiryYear')?.touched">
-            <option value="">Select year</option>
-            <option *ngFor="let year of years" [value]="year">
-              {{ year }}
-            </option>
-          </select>
-          <div class="invalid-feedback d-block" *ngIf="form.get('expiryYear')?.invalid && form.get('expiryYear')?.touched">
-            {{ getErrorMessage('expiryYear') }}
-          </div>
-        </div>
-      </div>
-
-      <div class="mb-4">
-        <label for="cvv" class="form-label">CVV <span class="text-danger">*</span></label>
-        <input
-          type="text"
-          id="cvv"
-          class="form-control"
-          formControlName="cvv"
-          [class.is-invalid]="form.get('cvv')?.invalid && form.get('cvv')?.touched"
-          placeholder="123"
-          maxlength="4">
-        <small class="text-muted">3-4 digits on back of card</small>
-        <div class="invalid-feedback d-block" *ngIf="form.get('cvv')?.invalid && form.get('cvv')?.touched">
-          {{ getErrorMessage('cvv') }}
-        </div>
-      </div>
-
-      <button type="submit" class="btn btn-primary btn-lg w-100" [disabled]="form.invalid || isProcessing">
-        {{ isProcessing ? 'Processing...' : 'Review Order' }}
-      </button>
-    </form>
+  <div class="alert alert-info" *ngIf="paymentInstructions()">
+    <strong>How to pay</strong>
+    <p class="mb-0" style="white-space: pre-line">{{ paymentInstructions() }}</p>
   </div>
+  <div class="alert alert-secondary" *ngIf="!paymentInstructions()">
+    Please contact the store for payment details.
+  </div>
+
+  <p>
+    Pay using the details above, then upload a screenshot or PDF receipt as proof.
+    Your order is placed on hold until the store verifies your payment.
+  </p>
+
+  <label for="payment-proof" class="form-label">Payment proof</label>
+  <input
+    id="payment-proof"
+    type="file"
+    class="form-control"
+    accept="image/jpeg,image/png,image/webp,application/pdf"
+    (change)="onFileSelected($event)" />
+
+  <div class="text-danger mt-2" *ngIf="errorMessage">{{ errorMessage }}</div>
+  <div class="text-success mt-2" *ngIf="selectedFile">Attached: {{ selectedFile.name }}</div>
+
+  <button
+    type="button"
+    class="btn btn-primary mt-3"
+    [disabled]="!selectedFile"
+    (click)="onSubmit()">
+    Review Order
+  </button>
 </div>

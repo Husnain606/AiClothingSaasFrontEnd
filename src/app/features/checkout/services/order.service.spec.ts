@@ -4,7 +4,7 @@ import { environment } from '@env/environment';
 import { ApiService } from '../../../core/services/api.service';
 import { OrderService } from './order.service';
 import { Order } from '../models/order.model';
-import { CheckoutForm, ShippingAddress, PaymentInfo } from '../models/checkout.model';
+import { CheckoutForm, ShippingAddress } from '../models/checkout.model';
 import { CartItem } from '../../cart/models/cart.model';
 
 describe('OrderService', () => {
@@ -39,9 +39,9 @@ describe('OrderService', () => {
     expect(service).toBeTruthy();
   });
 
-  it('should create an order with only backend-accepted fields', () => {
+  it('should create an order as multipart/form-data with indexed field names', () => {
     const shippingAddress: ShippingAddress = {
-      firstName: 'John',
+      firstName: 'Test',
       lastName: 'Doe',
       email: 'john@example.com',
       phone: '+1-555-0123',
@@ -52,14 +52,13 @@ describe('OrderService', () => {
       country: 'US'
     };
 
+    const proofFile = new File(['%PDF-1.7'], 'receipt.pdf', { type: 'application/pdf' });
+
     const checkoutForm: CheckoutForm = {
       shippingAddress,
-      paymentInfo: {
-        cardholderName: 'John Doe',
-        cardNumber: '****1111',
-        expiryMonth: '12',
-        expiryYear: '2025',
-        cvv: ''
+      paymentProof: {
+        file: proofFile,
+        fileName: 'receipt.pdf'
       }
     };
 
@@ -78,11 +77,14 @@ describe('OrderService', () => {
 
     const req = httpMock.expectOne(ordersUrl);
     expect(req.request.method).toBe('POST');
-    expect(req.request.body).toEqual({
-      shippingAddress,
-      paymentInfo: { cardholderName: 'John Doe', cardNumber: '****1111' },
-      items: [{ productId: '1', quantity: 2, variant: { size: 'M', color: 'Red' } }],
-    });
+    expect(req.request.body instanceof FormData).toBe(true);
+    const body = req.request.body as FormData;
+    expect(body.get('ShippingAddress.FirstName')).toBe('Test');
+    expect(body.get('Items[0].ProductId')).toBe('1');
+    expect(body.get('Items[0].Quantity')).toBe('2');
+    expect(body.get('Items[0].Variant.Size')).toBe('M');
+    expect(body.get('Items[0].Variant.Color')).toBe('Red');
+    expect(body.has('paymentProof')).toBe(true);
     req.flush(emptyApiResponse);
   });
 

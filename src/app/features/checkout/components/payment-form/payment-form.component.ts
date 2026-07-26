@@ -1,109 +1,74 @@
-import { Component, OnInit, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, Output, EventEmitter, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { PaymentInfo } from '../../models/checkout.model';
+import { PaymentProof } from '../../models/checkout.model';
+import { ApiService } from '../../../../core/services/api.service';
+import { ApiResponse } from '../../../../core/models/api-response.model';
+import { environment } from '@env/environment';
+
+const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
+const MAX_BYTES = 10485760;
 
 @Component({
   selector: 'app-payment-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule],
   templateUrl: './payment-form.component.html',
   styleUrls: ['./payment-form.component.scss']
 })
 export class PaymentFormComponent implements OnInit {
-  @Output() submitted = new EventEmitter<PaymentInfo>();
+  @Output() submitted = new EventEmitter<PaymentProof>();
 
-  form!: FormGroup;
-  isProcessing = false;
-  months: string[] = [];
-  years: string[] = [];
+  private readonly api = inject(ApiService);
 
-  constructor(private fb: FormBuilder) {}
+  selectedFile: File | null = null;
+  errorMessage = '';
+
+  // A signal, not a plain field: this app runs zoneless change detection
+  // (provideZonelessChangeDetection in app.config.ts), so a plain field mutated
+  // inside an RxJS subscribe callback would never trigger a re-render — only
+  // signal writes (or an async-piped Observable) do. Confirmed via live
+  // verification: a plain field left the view stuck on the fallback message
+  // even though the HTTP response carried real instructions text.
+  paymentInstructions = signal('');
 
   ngOnInit() {
-    this.initForm();
-    this.populateExpiryOptions();
+    this.api
+      .get<string>(`${environment.tenantSlug}/payment-instructions`)
+      .subscribe({
+        next: (response: ApiResponse<string>) => this.paymentInstructions.set(response.data ?? ''),
+        // Instructions are informational; a failure must not block the upload.
+        error: () => this.paymentInstructions.set('')
+      });
   }
 
-  private initForm() {
-    this.form = this.fb.group({
-      cardholderName: ['', [Validators.required]],
-      cardNumber: ['', [Validators.required, Validators.minLength(16), Validators.maxLength(16), Validators.pattern(/^\d+$/)]],
-      expiryMonth: ['', [Validators.required]],
-      expiryYear: ['', [Validators.required]],
-      cvv: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(4), Validators.pattern(/^\d+$/)]]
-    });
-  }
+  onFileSelected(event: Event): void {
+    this.errorMessage = '';
+    this.selectedFile = null;
 
-  private populateExpiryOptions() {
-    // Months
-    for (let i = 1; i <= 12; i++) {
-      this.months.push(i.toString().padStart(2, '0'));
+    const files = (event.target as HTMLInputElement).files;
+    if (!files || files.length === 0) return;
+
+    const file = files[0];
+
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      this.errorMessage = 'Please upload a JPEG, PNG, WebP or PDF file.';
+      return;
     }
 
-    // Years (current + 10 years)
-    const currentYear = new Date().getFullYear();
-    for (let i = 0; i <= 10; i++) {
-      this.years.push((currentYear + i).toString());
+    if (file.size > MAX_BYTES) {
+      this.errorMessage = 'File must be 10 MB or smaller.';
+      return;
     }
+
+    this.selectedFile = file;
   }
 
-  onSubmit() {
-    if (this.form.valid) {
-      this.isProcessing = true;
-      const maskedCard = this.maskCardNumber(this.form.value.cardNumber);
-      const paymentInfo: PaymentInfo = {
-        cardholderName: this.form.value.cardholderName,
-        cardNumber: maskedCard,
-        expiryMonth: this.form.value.expiryMonth,
-        expiryYear: this.form.value.expiryYear,
-        cvv: '' // Never store/send CVV
-      };
-      this.submitted.emit(paymentInfo);
-      this.isProcessing = false;
-    } else {
-      this.markFormGroupTouched(this.form);
+  onSubmit(): void {
+    if (!this.selectedFile) {
+      this.errorMessage = 'Payment proof is required.';
+      return;
     }
-  }
 
-  private maskCardNumber(cardNumber: string): string {
-    // Return last 4 digits: "****1111"
-    return '*'.repeat(Math.max(0, cardNumber.length - 4)) + cardNumber.slice(-4);
-  }
-
-  private markFormGroupTouched(formGroup: FormGroup) {
-    Object.keys(formGroup.controls).forEach(key => {
-      formGroup.get(key)?.markAsTouched();
-    });
-  }
-
-  getErrorMessage(fieldName: string): string {
-    const field = this.form.get(fieldName);
-    if (!field || !field.errors || !field.touched) return '';
-
-    if (field.errors['required']) {
-      return `${this.capitalize(fieldName)} is required`;
-    }
-    if (fieldName === 'cardNumber') {
-      if (field.errors['minlength'] || field.errors['maxlength']) {
-        return 'Card number must be 16 digits';
-      }
-      if (field.errors['pattern']) {
-        return 'Card number must contain only digits';
-      }
-    }
-    if (fieldName === 'cvv') {
-      if (field.errors['minlength'] || field.errors['maxlength']) {
-        return 'CVV must be 3-4 digits';
-      }
-      if (field.errors['pattern']) {
-        return 'CVV must contain only digits';
-      }
-    }
-    return 'Invalid input';
-  }
-
-  private capitalize(str: string): string {
-    return str.charAt(0).toUpperCase() + str.slice(1).replace(/([A-Z])/g, ' $1');
+    this.submitted.emit({ file: this.selectedFile, fileName: this.selectedFile.name });
   }
 }

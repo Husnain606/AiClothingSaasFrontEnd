@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { CheckoutReviewComponent } from './checkout-review.component';
-import { CheckoutForm, ShippingAddress, PaymentInfo } from '../../models/checkout.model';
+import { CheckoutForm, ShippingAddress } from '../../models/checkout.model';
 
 describe('CheckoutReviewComponent', () => {
   let component: CheckoutReviewComponent;
@@ -35,12 +35,9 @@ describe('CheckoutReviewComponent', () => {
       zipCode: '10001',
       country: 'US'
     },
-    paymentInfo: {
-      cardholderName: 'John Doe',
-      cardNumber: '****1111',
-      expiryMonth: '12',
-      expiryYear: '2025',
-      cvv: ''
+    paymentProof: {
+      file: null,
+      fileName: 'receipt.pdf'
     },
     termsAccepted: true
   };
@@ -71,9 +68,8 @@ describe('CheckoutReviewComponent', () => {
     expect(component.checkoutForm.shippingAddress.city).toBe('New York');
   });
 
-  it('should display payment info', () => {
-    expect(component.checkoutForm.paymentInfo.cardholderName).toBe('John Doe');
-    expect(component.checkoutForm.paymentInfo.cardNumber).toBe('****1111');
+  it('should display payment proof filename', () => {
+    expect(component.checkoutForm.paymentProof.fileName).toBe('receipt.pdf');
   });
 
   it('should display cart totals', () => {

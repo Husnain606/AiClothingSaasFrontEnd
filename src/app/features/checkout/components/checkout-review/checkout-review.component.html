@@ -50,12 +50,12 @@
       </div>
     </div>
 
-    <!-- Payment Info -->
+    <!-- Payment Proof -->
     <div class="mb-4">
-      <h6 class="mb-3">Payment Method</h6>
+      <h4 class="mb-3">Payment Proof</h4>
       <div class="payment-box">
-        <p class="mb-1"><strong>{{ checkoutForm.paymentInfo.cardholderName }}</strong></p>
-        <p class="mb-0">Card ending in <code>{{ checkoutForm.paymentInfo.cardNumber.slice(-4) }}</code></p>
+        <div>{{ (checkoutForm.paymentProof.fileName) || 'No file attached' }}</div>
+        <div class="text-muted small">Your order will be on hold until the store verifies this payment.</div>
       </div>
     </div>
 

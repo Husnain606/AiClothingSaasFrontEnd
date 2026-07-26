@@ -9,7 +9,7 @@ import { CartItem } from '../../../cart/models/cart.model';
 import { CheckoutService } from '../../services/checkout.service';
 import { OrderService } from '../../services/order.service';
 import { AuthService } from '../../../../core/services/auth.service';
-import { CheckoutForm, ShippingAddress, PaymentInfo } from '../../models/checkout.model';
+import { CheckoutForm, ShippingAddress, PaymentProof } from '../../models/checkout.model';
 import { Order } from '../../models/order.model';
 import { ShippingFormComponent } from '../shipping-form/shipping-form.component';
 import { PaymentFormComponent } from '../payment-form/payment-form.component';
@@ -62,11 +62,11 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     this.currentStep = 'payment';
   }
 
-  onPaymentSubmit(paymentInfo: PaymentInfo) {
+  onPaymentSubmit(paymentProof: PaymentProof) {
     const currentForm = this.checkoutService.getCheckoutForm();
     this.checkoutService.setCheckoutForm({
       ...currentForm,
-      paymentInfo
+      paymentProof
     });
     this.currentStep = 'review';
   }

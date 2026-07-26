@@ -10,16 +10,14 @@ export interface ShippingAddress {
   country: string;
 }
 
-export interface PaymentInfo {
-  cardholderName: string;
-  cardNumber: string;      // Stored masked: "****1111"
-  expiryMonth: string;      // "01" to "12"
-  expiryYear: string;       // "2025" etc
-  cvv: string;              // Never stored, only validated
+export interface PaymentProof {
+  /** The uploaded proof-of-payment file (image or PDF). Not persisted between sessions. */
+  file: File | null;
+  fileName: string;
 }
 
 export interface CheckoutForm {
   shippingAddress: ShippingAddress;
-  paymentInfo: PaymentInfo;
+  paymentProof: PaymentProof;
   termsAccepted?: boolean;
 }

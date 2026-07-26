@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { shareReplay } from 'rxjs/operators';
-import { CheckoutForm, ShippingAddress, PaymentInfo } from '../models/checkout.model';
+import { CheckoutForm } from '../models/checkout.model';
 
 @Injectable({
   providedIn: 'root'
@@ -31,12 +31,9 @@ export class CheckoutService {
         zipCode: '',
         country: 'US'
       },
-      paymentInfo: {
-        cardholderName: '',
-        cardNumber: '',
-        expiryMonth: '',
-        expiryYear: '',
-        cvv: ''
+      paymentProof: {
+        file: null,
+        fileName: ''
       },
       termsAccepted: false
     };

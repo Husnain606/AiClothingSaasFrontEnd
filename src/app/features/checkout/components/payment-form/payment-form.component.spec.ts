@@ -1,148 +1,91 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ReactiveFormsModule } from '@angular/forms';
+import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
+import { environment } from '@env/environment';
 import { PaymentFormComponent } from './payment-form.component';
-import { PaymentInfo } from '../../models/checkout.model';
 
 describe('PaymentFormComponent', () => {
   let component: PaymentFormComponent;
   let fixture: ComponentFixture<PaymentFormComponent>;
+  let httpMock: HttpTestingController;
+
+  const instructionsUrl = `${environment.apiBaseUrl}/${environment.tenantSlug}/payment-instructions`;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [PaymentFormComponent, ReactiveFormsModule]
+      imports: [PaymentFormComponent, HttpClientTestingModule]
     }).compileComponents();
 
     fixture = TestBed.createComponent(PaymentFormComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
+
+    httpMock = TestBed.inject(HttpTestingController);
+    const req = httpMock.expectOne(instructionsUrl);
+    req.flush({
+      statusCode: 200,
+      message: 'OK',
+      data: 'Pay via bank transfer to Acme Bank, Account 12345.',
+      errors: null,
+      timestamp: '2026-01-01T00:00:00Z'
+    });
+  });
+
+  afterEach(() => {
+    httpMock.verify();
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should initialize form with empty values', () => {
-    expect(component.form.get('cardholderName')?.value).toBe('');
-    expect(component.form.get('cardNumber')?.value).toBe('');
+  it('should fetch and expose payment instructions on init', () => {
+    expect(component.paymentInstructions()).toBe('Pay via bank transfer to Acme Bank, Account 12345.');
   });
 
-  it('should populate expiry months and years', () => {
-    expect(component.months.length).toBe(12);
-    expect(component.years.length).toBe(11);
+  it('rejects a disallowed content type', () => {
+    const file = new File(['x'], 'evil.exe', { type: 'application/x-msdownload' });
+    component.onFileSelected({ target: { files: [file] } } as unknown as Event);
+    expect(component.selectedFile).toBeNull();
+    expect(component.errorMessage).toContain('JPEG');
   });
 
-  it('should validate card number format', () => {
-    const cardControl = component.form.get('cardNumber');
-
-    cardControl?.setValue('123');
-    expect(cardControl?.hasError('minlength')).toBe(true);
-
-    cardControl?.setValue('4111111111111111');
-    expect(cardControl?.valid).toBe(true);
-
-    cardControl?.setValue('41111111111111ab');
-    expect(cardControl?.hasError('pattern')).toBe(true);
+  it('rejects a file over 10 MB', () => {
+    const big = new File([new ArrayBuffer(10485761)], 'big.pdf', { type: 'application/pdf' });
+    component.onFileSelected({ target: { files: [big] } } as unknown as Event);
+    expect(component.selectedFile).toBeNull();
+    expect(component.errorMessage).toContain('10 MB');
   });
 
-  it('should validate CVV format', () => {
-    const cvvControl = component.form.get('cvv');
-
-    cvvControl?.setValue('12');
-    expect(cvvControl?.hasError('minlength')).toBe(true);
-
-    cvvControl?.setValue('123');
-    expect(cvvControl?.valid).toBe(true);
-
-    cvvControl?.setValue('1234');
-    expect(cvvControl?.valid).toBe(true);
-
-    cvvControl?.setValue('12345');
-    expect(cvvControl?.hasError('maxlength')).toBe(true);
+  it('accepts a valid PDF', () => {
+    const file = new File(['%PDF-1.7'], 'receipt.pdf', { type: 'application/pdf' });
+    component.onFileSelected({ target: { files: [file] } } as unknown as Event);
+    expect(component.selectedFile).toBe(file);
+    expect(component.errorMessage).toBe('');
   });
 
-  it('should validate all required fields', () => {
-    expect(component.form.invalid).toBe(true);
-
-    component.form.patchValue({
-      cardholderName: 'John Doe',
-      cardNumber: '4111111111111111',
-      expiryMonth: '12',
-      expiryYear: '2025',
-      cvv: '123'
-    });
-
-    expect(component.form.valid).toBe(true);
-  });
-
-  it('should mask card number on submit', () => {
-    component.form.patchValue({
-      cardholderName: 'John Doe',
-      cardNumber: '4111111111111111',
-      expiryMonth: '12',
-      expiryYear: '2025',
-      cvv: '123'
-    });
-
+  it('does not emit when no file is attached', () => {
     let emitted = false;
-    component.submitted.subscribe((paymentInfo) => {
-      expect(paymentInfo.cardNumber).toBe('************1111');
-      expect(paymentInfo.cvv).toBe('');
-      emitted = true;
-    });
-
-    component.onSubmit();
-    expect(emitted || component.form.valid).toBeTruthy();
-  });
-
-  it('should not emit on invalid form submit', () => {
-    let emitted = false;
-
     component.submitted.subscribe(() => {
       emitted = true;
     });
 
     component.onSubmit();
     expect(emitted).toBe(false);
+    expect(component.errorMessage).toBe('Payment proof is required.');
   });
 
-  it('should generate card number error messages', () => {
-    const field = component.form.get('cardNumber');
-    field?.markAsTouched();
-    field?.setErrors({ minlength: { requiredLength: 16 } });
-
-    const message = component.getErrorMessage('cardNumber');
-    expect(message).toContain('16 digits');
-  });
-
-  it('should generate CVV error messages', () => {
-    const field = component.form.get('cvv');
-    field?.markAsTouched();
-    field?.setErrors({ minlength: { requiredLength: 3 } });
-
-    const message = component.getErrorMessage('cvv');
-    expect(message).toContain('3-4 digits');
-  });
-
-  it('should emit PaymentInfo with masked card', () => {
-    component.form.patchValue({
-      cardholderName: 'Jane Smith',
-      cardNumber: '5555555555554444',
-      expiryMonth: '06',
-      expiryYear: '2026',
-      cvv: '456'
-    });
+  it('emits the PaymentProof on submit once a file is attached', () => {
+    const file = new File(['%PDF-1.7'], 'receipt.pdf', { type: 'application/pdf' });
+    component.onFileSelected({ target: { files: [file] } } as unknown as Event);
 
     let emitted = false;
-    component.submitted.subscribe((paymentInfo: PaymentInfo) => {
-      expect(paymentInfo.cardholderName).toBe('Jane Smith');
-      expect(paymentInfo.cardNumber).toBe('************4444');
-      expect(paymentInfo.expiryMonth).toBe('06');
-      expect(paymentInfo.expiryYear).toBe('2026');
-      expect(paymentInfo.cvv).toBe('');
+    component.submitted.subscribe((paymentProof) => {
+      expect(paymentProof.file).toBe(file);
+      expect(paymentProof.fileName).toBe('receipt.pdf');
       emitted = true;
     });
 
     component.onSubmit();
-    expect(emitted || component.form.valid).toBeTruthy();
+    expect(emitted).toBe(true);
   });
 });

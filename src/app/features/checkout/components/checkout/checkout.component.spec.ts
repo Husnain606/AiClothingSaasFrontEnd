@@ -5,7 +5,7 @@ import { CartService } from '../../../cart/services/cart.service';
 import { CheckoutService } from '../../services/checkout.service';
 import { OrderService } from '../../services/order.service';
 import { AuthService } from '../../../../core/services/auth.service';
-import { ShippingAddress, PaymentInfo } from '../../models/checkout.model';
+import { ShippingAddress, PaymentProof } from '../../models/checkout.model';
 
 describe('CheckoutComponent', () => {
   let component: CheckoutComponent;
@@ -50,15 +50,12 @@ describe('CheckoutComponent', () => {
   it('should move to review step on payment submit', () => {
     component.currentStep = 'payment';
 
-    const paymentInfo: PaymentInfo = {
-      cardholderName: 'John Doe',
-      cardNumber: '****1111',
-      expiryMonth: '12',
-      expiryYear: '2025',
-      cvv: ''
+    const paymentProof: PaymentProof = {
+      file: new File(['%PDF-1.7'], 'receipt.pdf', { type: 'application/pdf' }),
+      fileName: 'receipt.pdf'
     };
 
-    component.onPaymentSubmit(paymentInfo);
+    component.onPaymentSubmit(paymentProof);
     expect(component.currentStep).toBe('review');
   });
 
