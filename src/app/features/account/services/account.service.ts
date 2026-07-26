@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { HttpParams } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { ApiService } from '../../../core/services/api.service';
 import { ApiResponse, PagedResult } from '../../../core/models/api-response.model';
 import {
@@ -11,10 +11,11 @@ import {
   WishlistResponse,
   ChangePasswordRequest,
 } from '../models/account.model';
+import { environment } from '@env/environment';
 
 @Injectable({ providedIn: 'root' })
 export class AccountService {
-  constructor(private apiService: ApiService) {}
+  constructor(private apiService: ApiService, private http: HttpClient) {}
 
   /**
    * Get customer profile
@@ -96,5 +97,12 @@ export class AccountService {
     return this.apiService
       .put<void>('auth/change-password', request)
       .pipe(map(() => undefined));
+  }
+
+  /** Fetches the customer's own payment proof as a Blob (the backend streams the file). */
+  getOrderPaymentProof(orderId: string): Observable<Blob> {
+    return this.http.get(`${environment.apiBaseUrl}/store/orders/${orderId}/payment-proof`, {
+      responseType: 'blob'
+    });
   }
 }

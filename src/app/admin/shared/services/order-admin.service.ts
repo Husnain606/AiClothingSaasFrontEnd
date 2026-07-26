@@ -1,16 +1,17 @@
 import { Injectable } from '@angular/core';
-import { HttpParams } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { ApiService } from '../../../core/services/api.service';
 import { ApiResponse, PagedResult } from '../../../core/models/api-response.model';
 import { OrderDto, OrderFilter } from '../models/order-admin.model';
+import { environment } from '@env/environment';
 
 @Injectable({ providedIn: 'root' })
 export class OrderAdminService {
   private readonly base = 'tenant/orders';
 
-  constructor(private apiService: ApiService) {}
+  constructor(private apiService: ApiService, private http: HttpClient) {}
 
   getOrders(filter: OrderFilter): Observable<PagedResult<OrderDto>> {
     let params = new HttpParams();
@@ -56,5 +57,15 @@ export class OrderAdminService {
     return this.apiService
       .put<OrderDto>(`${this.base}/${id}/cancel`, { reason })
       .pipe(map((response: ApiResponse<OrderDto>) => response.data));
+  }
+
+  /**
+   * Fetches the payment proof as a Blob. The backend streams the file, so this bypasses
+   * ApiService's JSON envelope and calls HttpClient directly with responseType: 'blob'.
+   */
+  getPaymentProof(orderId: string): Observable<Blob> {
+    return this.http.get(`${environment.apiBaseUrl}/${this.base}/${orderId}/payment-proof`, {
+      responseType: 'blob'
+    });
   }
 }

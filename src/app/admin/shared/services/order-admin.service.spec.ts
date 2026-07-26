@@ -91,4 +91,12 @@ describe('OrderAdminService', () => {
     expect(req.request.body).toEqual({ reason: 'Customer request' });
     req.flush(wrap(order));
   });
+
+  it('requests the payment proof as a blob', () => {
+    service.getPaymentProof('order-1').subscribe();
+    const req = httpMock.expectOne(`${base}/order-1/payment-proof`);
+    expect(req.request.method).toBe('GET');
+    expect(req.request.responseType).toBe('blob');
+    req.flush(new Blob(['pdf-bytes'], { type: 'application/pdf' }));
+  });
 });

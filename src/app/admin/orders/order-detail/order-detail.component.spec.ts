@@ -25,6 +25,7 @@ describe('OrderDetailComponent', () => {
       ship: vi.fn().mockReturnValue(of({ ...order, status: 'shipped', trackingNumber: 'T1' })),
       deliver: vi.fn().mockReturnValue(of({ ...order, status: 'delivered' })),
       cancel: vi.fn().mockReturnValue(of({ ...order, status: 'cancelled' })),
+      getPaymentProof: vi.fn().mockReturnValue(of(new Blob(['img-bytes'], { type: 'image/png' }))),
     };
     mockToast = { success: vi.fn(), error: vi.fn() };
 
@@ -43,7 +44,11 @@ describe('OrderDetailComponent', () => {
     fixture.detectChanges();
   }
 
-  beforeEach(() => setup(baseOrder));
+  beforeEach(() => {
+    vi.spyOn(window.URL, 'createObjectURL').mockReturnValue('blob:mock');
+    vi.spyOn(window.URL, 'revokeObjectURL').mockImplementation(() => {});
+    setup(baseOrder);
+  });
 
   it('loads the order on init', () => {
     expect(mockOrderApi.getOrder).toHaveBeenCalledWith('g1');
@@ -52,6 +57,28 @@ describe('OrderDetailComponent', () => {
 
   it('exposes confirm and cancel as available actions for a pending order', () => {
     expect(component.actions).toEqual(['confirm', 'cancel']);
+  });
+
+  it('loads the payment proof and detects a non-PDF blob', () => {
+    expect(mockOrderApi.getPaymentProof).toHaveBeenCalledWith('g1');
+    expect(component.proofIsPdf()).toBe(false);
+    expect(component.proofUrl()).toBeTruthy();
+    expect(component.proofError()).toBe('');
+  });
+
+  it('detects a PDF payment proof', () => {
+    mockOrderApi.getPaymentProof = vi
+      .fn()
+      .mockReturnValue(of(new Blob(['pdf-bytes'], { type: 'application/pdf' })));
+    component.loadPaymentProof('g1');
+    expect(component.proofIsPdf()).toBe(true);
+    expect(component.proofUrl()).toBeTruthy();
+  });
+
+  it('sets proofError when the payment proof request fails', () => {
+    mockOrderApi.getPaymentProof = vi.fn().mockReturnValue(throwError(() => new Error('404')));
+    component.loadPaymentProof('g1');
+    expect(component.proofError()).toBe('No payment proof available for this order.');
   });
 
   it('confirms the order and shows a success toast', () => {
@@ -127,6 +154,7 @@ describe('OrderDetailComponent', () => {
     mockOrderApi = {
       getOrder: vi.fn().mockReturnValue(of(baseOrder)),
       confirm: vi.fn().mockReturnValue(throwError(() => new Error('fail'))),
+      getPaymentProof: vi.fn().mockReturnValue(of(new Blob(['img-bytes'], { type: 'image/png' }))),
     };
     mockToast = { success: vi.fn(), error: vi.fn() };
     TestBed.configureTestingModule({

@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Observable, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -23,6 +23,14 @@ export class OrderHistoryComponent implements OnInit, OnDestroy {
   hasError = false;
   errorMessage = '';
   isReordering = false;
+
+  // Not a plain field: this app runs zoneless change detection (provideZonelessChangeDetection
+  // in app.config.ts). viewProof() sets this from inside an RxJS subscribe error callback that
+  // resolves after the initial render, so a plain field would never trigger a re-render here -
+  // only a signal write (or an async-piped Observable) does. Same lesson Task 7 documented for
+  // payment-form.component.ts.
+  proofError = signal('');
+  private readonly proofUrls = new Map<string, string>();
 
   private destroy$ = new Subject<void>();
 
@@ -62,6 +70,18 @@ export class OrderHistoryComponent implements OnInit, OnDestroy {
 
   onSelectOrder(order: Order): void {
     this.selectedOrder = order;
+  }
+
+  viewProof(orderId: string): void {
+    this.proofError.set('');
+    this.accountService.getOrderPaymentProof(orderId).subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        this.proofUrls.set(orderId, url);
+        window.open(url, '_blank');
+      },
+      error: () => this.proofError.set('Payment proof is unavailable.')
+    });
   }
 
   onReorder(order: Order): void {
@@ -128,5 +148,6 @@ export class OrderHistoryComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+    this.proofUrls.forEach((url) => URL.revokeObjectURL(url));
   }
 }

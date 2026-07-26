@@ -47,6 +47,7 @@ describe('AccountStateService', () => {
   const mockOrders: Order[] = [
     {
       orderId: 'ORD-001',
+      id: 'guid-001',
       orderDate: new Date(),
       items: [],
       subtotal: 59.98,

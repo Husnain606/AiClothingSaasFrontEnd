@@ -30,6 +30,7 @@ describe('AccountService', () => {
   const mockOrders: Order[] = [
     {
       orderId: 'ORD-001',
+      id: 'guid-001',
       orderDate: new Date(),
       items: [
         {
@@ -549,6 +550,19 @@ describe('AccountService', () => {
         );
         req.flush({ message: 'Incorrect old password' }, { status: 400, statusText: 'Bad Request' });
       });
+    });
+  });
+
+  describe('getOrderPaymentProof', () => {
+    it('requests the payment proof as a blob', () => {
+      service.getOrderPaymentProof('ORD-001').subscribe();
+
+      const req = httpMock.expectOne((request) =>
+        request.url.includes('store/orders/ORD-001/payment-proof')
+      );
+      expect(req.request.method).toBe('GET');
+      expect(req.request.responseType).toBe('blob');
+      req.flush(new Blob(['pdf-bytes'], { type: 'application/pdf' }));
     });
   });
 });

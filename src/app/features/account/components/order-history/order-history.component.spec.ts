@@ -19,6 +19,7 @@ describe('OrderHistoryComponent', () => {
   const mockOrders: Order[] = [
     {
       orderId: 'ORD-001',
+      id: 'guid-001',
       orderDate: new Date('2024-01-15'),
       items: [
         {
@@ -43,6 +44,7 @@ describe('OrderHistoryComponent', () => {
     },
     {
       orderId: 'ORD-002',
+      id: 'guid-002',
       orderDate: new Date('2024-01-10'),
       items: [
         {
@@ -67,8 +69,13 @@ describe('OrderHistoryComponent', () => {
   ];
 
   beforeEach(async () => {
+    vi.spyOn(window.URL, 'createObjectURL').mockReturnValue('blob:mock');
+    vi.spyOn(window.URL, 'revokeObjectURL').mockImplementation(() => {});
+    vi.spyOn(window, 'open').mockImplementation(() => null);
+
     mockAccountService = {
       getOrders: vi.fn().mockReturnValue(of(mockOrders)),
+      getOrderPaymentProof: vi.fn().mockReturnValue(of(new Blob(['pdf-bytes'], { type: 'application/pdf' }))),
     };
 
     mockStateService = {
@@ -226,6 +233,34 @@ describe('OrderHistoryComponent', () => {
 
       expect(component.selectedOrder?.total).toBe(64.77);
       expect(component.selectedOrder?.status).toBe('delivered');
+    });
+  });
+
+  describe('Payment Proof', () => {
+    it('opens the proof blob in a new tab', () => {
+      component.viewProof('ORD-001');
+
+      expect(mockAccountService.getOrderPaymentProof).toHaveBeenCalledWith('ORD-001');
+      expect(window.URL.createObjectURL).toHaveBeenCalled();
+      expect(window.open).toHaveBeenCalledWith('blob:mock', '_blank');
+      expect(component.proofError()).toBe('');
+    });
+
+    it('sets proofError when the proof request fails', () => {
+      mockAccountService.getOrderPaymentProof = vi
+        .fn()
+        .mockReturnValue(throwError(() => new Error('404')));
+
+      component.viewProof('ORD-001');
+
+      expect(component.proofError()).toBe('Payment proof is unavailable.');
+    });
+
+    it('revokes any created proof object URLs on destroy', () => {
+      component.viewProof('ORD-001');
+      component.ngOnDestroy();
+
+      expect(window.URL.revokeObjectURL).toHaveBeenCalledWith('blob:mock');
     });
   });
 

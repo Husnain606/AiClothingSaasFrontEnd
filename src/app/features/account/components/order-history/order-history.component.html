@@ -5,6 +5,11 @@
     <button type="button" class="btn-close" (click)="hasError = false"></button>
   </div>
 
+  <div *ngIf="proofError()" class="alert alert-danger alert-dismissible fade show" role="alert">
+    {{ proofError() }}
+    <button type="button" class="btn-close" (click)="proofError.set('')"></button>
+  </div>
+
   <!-- Loading State -->
   <div *ngIf="isLoading" class="text-center py-5">
     <div class="spinner-border text-primary" role="status">
@@ -123,7 +128,7 @@
           </div>
 
           <!-- Reorder Button -->
-          <div class="d-grid">
+          <div class="d-grid gap-2">
             <button
               class="btn btn-primary btn-sm"
               (click)="onReorder(selectedOrder)"
@@ -137,6 +142,9 @@
                 <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
                 Adding to Cart...
               </span>
+            </button>
+            <button type="button" class="btn btn-link btn-sm" (click)="viewProof(selectedOrder.id)">
+              View payment proof
             </button>
           </div>
         </div>

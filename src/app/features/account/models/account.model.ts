@@ -18,7 +18,8 @@ export interface CustomerProfile {
 }
 
 export interface Order {
-  orderId: string;
+  orderId: string; // order-number, e.g. "ORD-2026-000001" - used for display
+  id: string; // internal guid - the backend's payment-proof route binds Guid id, not the order number
   orderDate: Date;
   items: OrderItem[];
   subtotal: number;

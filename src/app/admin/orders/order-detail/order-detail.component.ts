@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
@@ -15,11 +15,20 @@ import { ToastService } from '../../shared/services/toast.service';
   imports: [CommonModule, FormsModule, StatusBadgeComponent, ConfirmModalComponent],
   templateUrl: './order-detail.component.html',
 })
-export class OrderDetailComponent implements OnInit {
+export class OrderDetailComponent implements OnInit, OnDestroy {
   order: OrderDto | null = null;
   actions: ReturnType<typeof availableActions> = [];
   shipModalOpen = false;
   cancelModalOpen = false;
+
+  // Signals, not plain fields: this app runs zoneless change detection
+  // (provideZonelessChangeDetection in app.config.ts). A plain field mutated inside
+  // an RxJS subscribe callback that resolves after the initial render (as this proof
+  // fetch does) would never trigger a re-render — only signal writes (or an
+  // async-piped Observable) do. Same lesson Task 7 documented for payment-form.component.ts.
+  proofUrl = signal<string | null>(null);
+  proofIsPdf = signal(false);
+  proofError = signal('');
 
   constructor(
     private route: ActivatedRoute,
@@ -29,7 +38,31 @@ export class OrderDetailComponent implements OnInit {
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id')!;
-    this.orderApi.getOrder(id).subscribe((order) => this.applyOrder(order));
+    this.orderApi.getOrder(id).subscribe((order) => {
+      this.applyOrder(order);
+      // Only fetch the proof once, on initial load - not on every subsequent
+      // confirm/ship/deliver/cancel transition, which also route through applyOrder.
+      this.loadPaymentProof(order.id);
+    });
+  }
+
+  loadPaymentProof(orderId: string): void {
+    this.proofError.set('');
+    this.orderApi.getPaymentProof(orderId).subscribe({
+      next: (blob) => {
+        this.proofIsPdf.set(blob.type === 'application/pdf');
+        // Object URL is revoked in ngOnDestroy to avoid leaking the blob.
+        this.proofUrl.set(URL.createObjectURL(blob));
+      },
+      error: () => this.proofError.set('No payment proof available for this order.')
+    });
+  }
+
+  ngOnDestroy(): void {
+    const url = this.proofUrl();
+    if (url) {
+      URL.revokeObjectURL(url);
+    }
   }
 
   private applyOrder(order: OrderDto): void {
