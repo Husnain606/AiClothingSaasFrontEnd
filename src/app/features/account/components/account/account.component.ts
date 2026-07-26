@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Observable, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -19,9 +19,16 @@ import { WishlistComponent } from '../wishlist/wishlist.component';
 export class AccountComponent implements OnInit, OnDestroy {
   profile$!: Observable<CustomerProfile | null>;
   currentTab: 'profile' | 'orders' | 'wishlist' = 'profile';
-  isLoading = true;
-  hasError = false;
-  errorMessage = '';
+
+  // Signals, not plain fields: this app runs zoneless change detection
+  // (provideZonelessChangeDetection in app.config.ts), so a plain field mutated inside
+  // loadProfile()'s RxJS subscribe callback would never trigger a re-render - only signal
+  // writes (or an async-piped Observable) do. Same lesson Task 7 documented for
+  // payment-form.component.ts; confirmed live-reproduced here (view stuck on the loading
+  // spinner despite isLoading having flipped to false).
+  isLoading = signal(true);
+  hasError = signal(false);
+  errorMessage = signal('');
 
   private destroy$ = new Subject<void>();
 
@@ -36,8 +43,8 @@ export class AccountComponent implements OnInit, OnDestroy {
   }
 
   private loadProfile(): void {
-    this.isLoading = true;
-    this.hasError = false;
+    this.isLoading.set(true);
+    this.hasError.set(false);
 
     this.accountService
       .getProfile()
@@ -45,13 +52,13 @@ export class AccountComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (profile) => {
           this.accountState.setProfile(profile);
-          this.isLoading = false;
+          this.isLoading.set(false);
         },
         error: (err) => {
           console.error('Failed to load profile:', err);
-          this.hasError = true;
-          this.errorMessage = 'Failed to load profile. Please try again later.';
-          this.isLoading = false;
+          this.hasError.set(true);
+          this.errorMessage.set('Failed to load profile. Please try again later.');
+          this.isLoading.set(false);
         },
       });
   }

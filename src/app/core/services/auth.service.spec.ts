@@ -6,12 +6,14 @@ import { AuthService } from './auth.service';
 import { ApiService } from './api.service';
 import { LoginResponse } from '../../features/auth/models/auth.model';
 
+const ROLE_CLAIM_TYPE = 'http://schemas.microsoft.com/ws/2008/06/identity/claims/role';
+
 function makeToken(roles: string[], overrides: Record<string, unknown> = {}): string {
   const header = { alg: 'HS256', typ: 'JWT' };
   const payload = {
     sub: 'user-1',
     email: 'admin@example.com',
-    role: roles.length === 1 ? roles[0] : roles,
+    [ROLE_CLAIM_TYPE]: roles.length === 1 ? roles[0] : roles,
     tenant_id: 'tenant-1',
     mfa_verified: 'false',
     ...overrides,

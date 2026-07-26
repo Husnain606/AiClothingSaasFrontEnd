@@ -115,12 +115,12 @@ describe('OrderHistoryComponent', () => {
     });
 
     it('should initialize with loading state', () => {
-      expect(component.isLoading).toBe(true);
+      expect(component.isLoading()).toBe(true);
     });
 
     it('should initialize with no error', () => {
-      expect(component.hasError).toBe(false);
-      expect(component.errorMessage).toBe('');
+      expect(component.hasError()).toBe(false);
+      expect(component.errorMessage()).toBe('');
     });
 
     it('should initialize reordering flag as false', () => {
@@ -147,7 +147,7 @@ describe('OrderHistoryComponent', () => {
     it('should set loading to false after loading orders', () => {
       component.ngOnInit();
 
-      expect(component.isLoading).toBe(false);
+      expect(component.isLoading()).toBe(false);
     });
   });
 
@@ -158,18 +158,18 @@ describe('OrderHistoryComponent', () => {
       mockAccountService.getOrders = vi.fn().mockReturnValue(pending.asObservable());
 
       component['loadOrders']();
-      expect(component.isLoading).toBe(true);
+      expect(component.isLoading()).toBe(true);
 
       pending.next(mockOrders);
       pending.complete();
     });
 
     it('should clear error state when loading', () => {
-      component.hasError = true;
-      component.errorMessage = 'Previous error';
+      component.hasError.set(true);
+      component.errorMessage.set('Previous error');
 
       component['loadOrders']();
-      expect(component.hasError).toBe(false);
+      expect(component.hasError()).toBe(false);
     });
 
     it('should set orders in state service', () => { return new Promise<void>((resolve) => {
@@ -187,7 +187,7 @@ describe('OrderHistoryComponent', () => {
       fixture.detectChanges();
 
       setTimeout(() => {
-        expect(component.isLoading).toBe(false);
+        expect(component.isLoading()).toBe(false);
         resolve();
       }, 100);
     }); });
@@ -199,9 +199,9 @@ describe('OrderHistoryComponent', () => {
 
       component['loadOrders']();
 
-      expect(component.hasError).toBe(true);
-      expect(component.errorMessage).toContain('Failed to load orders');
-      expect(component.isLoading).toBe(false);
+      expect(component.hasError()).toBe(true);
+      expect(component.errorMessage()).toContain('Failed to load orders');
+      expect(component.isLoading()).toBe(false);
     });
 
     it('should set orders$ observable from state service', () => {
@@ -415,7 +415,7 @@ describe('OrderHistoryComponent', () => {
       fixture.detectChanges();
 
       setTimeout(() => {
-        expect(component.errorMessage).toContain('Failed to load orders');
+        expect(component.errorMessage()).toContain('Failed to load orders');
         resolve();
       }, 100);
     }); });

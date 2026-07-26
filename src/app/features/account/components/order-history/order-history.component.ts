@@ -19,16 +19,16 @@ import { Product } from '../../../catalog/models/product.model';
 export class OrderHistoryComponent implements OnInit, OnDestroy {
   orders$!: Observable<Order[]>;
   selectedOrder?: Order;
-  isLoading = true;
-  hasError = false;
-  errorMessage = '';
   isReordering = false;
 
-  // Not a plain field: this app runs zoneless change detection (provideZonelessChangeDetection
-  // in app.config.ts). viewProof() sets this from inside an RxJS subscribe error callback that
-  // resolves after the initial render, so a plain field would never trigger a re-render here -
-  // only a signal write (or an async-piped Observable) does. Same lesson Task 7 documented for
-  // payment-form.component.ts.
+  // Signals, not plain fields: this app runs zoneless change detection
+  // (provideZonelessChangeDetection in app.config.ts). loadOrders()/viewProof() set these from
+  // inside RxJS subscribe callbacks that resolve after the initial render, so a plain field
+  // would never trigger a re-render here - only a signal write (or an async-piped Observable)
+  // does. Same lesson Task 7 documented for payment-form.component.ts.
+  isLoading = signal(true);
+  hasError = signal(false);
+  errorMessage = signal('');
   proofError = signal('');
   private readonly proofUrls = new Map<string, string>();
 
@@ -46,8 +46,8 @@ export class OrderHistoryComponent implements OnInit, OnDestroy {
   }
 
   private loadOrders(): void {
-    this.isLoading = true;
-    this.hasError = false;
+    this.isLoading.set(true);
+    this.hasError.set(false);
 
     this.accountService
       .getOrders()
@@ -55,13 +55,13 @@ export class OrderHistoryComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (orders) => {
           this.accountState.setOrders(orders);
-          this.isLoading = false;
+          this.isLoading.set(false);
         },
         error: (err) => {
           console.error('Failed to load orders:', err);
-          this.hasError = true;
-          this.errorMessage = 'Failed to load orders. Please try again later.';
-          this.isLoading = false;
+          this.hasError.set(true);
+          this.errorMessage.set('Failed to load orders. Please try again later.');
+          this.isLoading.set(false);
         },
       });
 

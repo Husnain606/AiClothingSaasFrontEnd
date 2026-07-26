@@ -112,12 +112,15 @@ export class AuthService {
     return this.currentUser$.asObservable();
   }
 
+  private static readonly ROLE_CLAIM_TYPE =
+    'http://schemas.microsoft.com/ws/2008/06/identity/claims/role';
+
   getRoles(): AppRole[] {
     const token = this.getToken();
     if (!token) return [];
     try {
       const payload = this.decodeToken(token);
-      const raw = payload.role;
+      const raw = payload[AuthService.ROLE_CLAIM_TYPE];
       if (!raw) return [];
       return (Array.isArray(raw) ? raw : [raw]) as AppRole[];
     } catch {

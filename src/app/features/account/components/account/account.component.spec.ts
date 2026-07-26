@@ -65,12 +65,12 @@ describe('AccountComponent', () => {
     });
 
     it('should initialize with loading state', () => {
-      expect(component.isLoading).toBe(true);
+      expect(component.isLoading()).toBe(true);
     });
 
     it('should initialize with no error', () => {
-      expect(component.hasError).toBe(false);
-      expect(component.errorMessage).toBe('');
+      expect(component.hasError()).toBe(false);
+      expect(component.errorMessage()).toBe('');
     });
   });
 
@@ -102,7 +102,7 @@ describe('AccountComponent', () => {
     it('should set loading to false on successful profile load', () => {
       component.ngOnInit();
 
-      expect(component.isLoading).toBe(false);
+      expect(component.isLoading()).toBe(false);
     });
   });
 
@@ -113,18 +113,18 @@ describe('AccountComponent', () => {
       mockAccountService.getProfile = vi.fn().mockReturnValue(pending.asObservable());
 
       component['loadProfile']();
-      expect(component.isLoading).toBe(true);
+      expect(component.isLoading()).toBe(true);
 
       pending.next(mockProfile);
       pending.complete();
     });
 
     it('should clear error state when loading profile', () => {
-      component.hasError = true;
-      component.errorMessage = 'Previous error';
+      component.hasError.set(true);
+      component.errorMessage.set('Previous error');
 
       component['loadProfile']();
-      expect(component.hasError).toBe(false);
+      expect(component.hasError()).toBe(false);
     });
 
     it('should handle profile load error', () => {
@@ -134,9 +134,9 @@ describe('AccountComponent', () => {
 
       component['loadProfile']();
 
-      expect(component.hasError).toBe(true);
-      expect(component.errorMessage).toBe('Failed to load profile. Please try again later.');
-      expect(component.isLoading).toBe(false);
+      expect(component.hasError()).toBe(true);
+      expect(component.errorMessage()).toBe('Failed to load profile. Please try again later.');
+      expect(component.isLoading()).toBe(false);
     });
 
     it('should set error message on 401 unauthorized error', () => {
@@ -149,7 +149,7 @@ describe('AccountComponent', () => {
 
       component['loadProfile']();
 
-      expect(component.hasError).toBe(true);
+      expect(component.hasError()).toBe(true);
     });
 
     it('should set loading to false on error', () => {
@@ -159,7 +159,7 @@ describe('AccountComponent', () => {
 
       component['loadProfile']();
 
-      expect(component.isLoading).toBe(false);
+      expect(component.isLoading()).toBe(false);
     });
   });
 
@@ -260,7 +260,7 @@ describe('AccountComponent', () => {
 
       component['loadProfile']();
 
-      expect(component.errorMessage).toContain('Failed to load profile');
+      expect(component.errorMessage()).toContain('Failed to load profile');
     });
   });
 
@@ -280,11 +280,11 @@ describe('AccountComponent', () => {
       mockAccountService.getProfile = vi.fn().mockReturnValue(pending.asObservable());
 
       component['loadProfile']();
-      expect(component.isLoading).toBe(true);
+      expect(component.isLoading()).toBe(true);
 
       pending.next(mockProfile);
       pending.complete();
-      expect(component.isLoading).toBe(false);
+      expect(component.isLoading()).toBe(false);
     });
   });
 });

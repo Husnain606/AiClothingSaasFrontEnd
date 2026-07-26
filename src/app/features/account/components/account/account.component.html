@@ -2,13 +2,13 @@
   <h1 class="mb-4">My Account</h1>
 
   <!-- Error Alert -->
-  <div *ngIf="hasError" class="alert alert-danger alert-dismissible fade show" role="alert">
-    {{ errorMessage }}
-    <button type="button" class="btn-close" (click)="hasError = false"></button>
+  <div *ngIf="hasError()" class="alert alert-danger alert-dismissible fade show" role="alert">
+    {{ errorMessage() }}
+    <button type="button" class="btn-close" (click)="hasError.set(false)"></button>
   </div>
 
   <!-- Loading State -->
-  <div *ngIf="isLoading" class="text-center py-5">
+  <div *ngIf="isLoading()" class="text-center py-5">
     <div class="spinner-border text-primary" role="status">
       <span class="visually-hidden">Loading...</span>
     </div>
@@ -16,7 +16,7 @@
   </div>
 
   <!-- Tabs Navigation -->
-  <ul class="nav nav-tabs mb-4" role="tablist" *ngIf="!isLoading">
+  <ul class="nav nav-tabs mb-4" role="tablist" *ngIf="!isLoading()">
     <li class="nav-item" role="presentation">
       <button
         class="nav-link"
@@ -56,7 +56,7 @@
   </ul>
 
   <!-- Tab Content -->
-  <div class="tab-content" *ngIf="!isLoading">
+  <div class="tab-content" *ngIf="!isLoading()">
     <!-- Profile Tab -->
     <div *ngIf="currentTab === 'profile'" class="tab-pane active" role="tabpanel">
       <app-profile [profile]="profile$ | async"></app-profile>
