@@ -15,5 +15,22 @@
     <label for="logoUrl" class="form-label">Logo URL</label>
     <input id="logoUrl" class="form-control" formControlName="logoUrl" />
   </div>
+  <div class="mb-3">
+    <label for="paymentInstructions" class="form-label">Payment instructions</label>
+    <textarea
+      id="paymentInstructions"
+      class="form-control"
+      rows="4"
+      maxlength="2000"
+      formControlName="paymentInstructions"
+    ></textarea>
+    <div class="form-text">Shown to customers at checkout so they know where to send payment.</div>
+    <div
+      class="text-danger small"
+      *ngIf="form.controls.paymentInstructions.invalid && form.controls.paymentInstructions.touched"
+    >
+      Payment instructions must be 2000 characters or fewer.
+    </div>
+  </div>
   <button type="submit" class="btn btn-primary">Save</button>
 </form>

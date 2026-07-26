@@ -19,6 +19,7 @@ export class TenantProfileComponent implements OnInit {
     name: this.fb.nonNullable.control('', Validators.required),
     phone: this.fb.nonNullable.control(''),
     logoUrl: this.fb.nonNullable.control(''),
+    paymentInstructions: this.fb.nonNullable.control('', Validators.maxLength(2000)),
   });
 
   ngOnInit(): void {
@@ -27,6 +28,7 @@ export class TenantProfileComponent implements OnInit {
         name: profile.name,
         phone: profile.phone ?? '',
         logoUrl: profile.logoUrl ?? '',
+        paymentInstructions: profile.paymentInstructions ?? '',
       });
     });
   }
@@ -38,7 +40,12 @@ export class TenantProfileComponent implements OnInit {
     }
     const raw = this.form.getRawValue();
     this.settings
-      .updateProfile({ name: raw.name, phone: raw.phone || null, logoUrl: raw.logoUrl || null })
+      .updateProfile({
+        name: raw.name,
+        phone: raw.phone || null,
+        logoUrl: raw.logoUrl || null,
+        paymentInstructions: raw.paymentInstructions || null,
+      })
       .subscribe({
         next: () => this.toast.success('Profile updated.'),
         error: () => this.toast.error('Failed to update profile.'),

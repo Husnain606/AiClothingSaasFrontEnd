@@ -35,6 +35,13 @@ describe('SettingsAdminService', () => {
     req.flush(wrap({}));
   });
 
+  it('includes paymentInstructions in the update request body', () => {
+    service.updateProfile({ name: 'New Name', paymentInstructions: 'Pay via bank transfer.' }).subscribe();
+    const req = httpMock.expectOne(`${environment.apiBaseUrl}/tenant/profile`);
+    expect(req.request.body).toEqual({ name: 'New Name', paymentInstructions: 'Pay via bank transfer.' });
+    req.flush(wrap({}));
+  });
+
   it('gets tenant users', () => {
     service.getUsers().subscribe();
     httpMock.expectOne(`${environment.apiBaseUrl}/tenant/users`).flush(wrap([]));

@@ -19,6 +19,7 @@ describe('TenantProfileComponent', () => {
     email: 'a@b.com',
     phone: '555',
     logoUrl: null,
+    paymentInstructions: 'Pay via bank transfer.',
     isActive: true,
     createdAt: '2026-01-01',
   };
@@ -46,6 +47,7 @@ describe('TenantProfileComponent', () => {
   it('loads and patches the profile form', () => {
     expect(component.form.value.name).toBe('Acme');
     expect(component.form.value.phone).toBe('555');
+    expect(component.form.value.paymentInstructions).toBe('Pay via bank transfer.');
   });
 
   it('saves the updated profile', () => {
@@ -53,6 +55,14 @@ describe('TenantProfileComponent', () => {
     component.onSubmit();
     expect(mockSettings.updateProfile).toHaveBeenCalledWith(expect.objectContaining({ name: 'Acme Updated' }));
     expect(mockToast.success).toHaveBeenCalled();
+  });
+
+  it('saves updated payment instructions', () => {
+    component.form.patchValue({ paymentInstructions: 'Send to IBAN 123.' });
+    component.onSubmit();
+    expect(mockSettings.updateProfile).toHaveBeenCalledWith(
+      expect.objectContaining({ paymentInstructions: 'Send to IBAN 123.' }),
+    );
   });
 
   it('surfaces a save failure via a toast', () => {

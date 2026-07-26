@@ -20,6 +20,7 @@ describe('TenantDetailComponent', () => {
     email: 'owner@acme.com',
     phone: null,
     logoUrl: null,
+    paymentInstructions: null,
     isActive: true,
     createdAt: '2026-01-01',
   };

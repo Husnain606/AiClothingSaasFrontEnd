@@ -5,6 +5,7 @@ export interface TenantProfileDto {
   email: string;
   phone: string | null;
   logoUrl: string | null;
+  paymentInstructions: string | null;
   isActive: boolean;
   createdAt: string;
 }
@@ -14,6 +15,7 @@ export interface UpdateTenantProfileRequest {
   phone?: string | null;
   logoUrl?: string | null;
   coverImageUrl?: string | null;
+  paymentInstructions?: string | null;
 }
 
 export interface TenantUserDto {
