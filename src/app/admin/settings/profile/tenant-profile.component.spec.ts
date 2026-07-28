@@ -65,6 +65,17 @@ describe('TenantProfileComponent', () => {
     );
   });
 
+  it('sends an empty string, not null, when payment instructions are cleared', () => {
+    // The backend only skips assignment when this field is null (so an omitted field never
+    // wipes an existing value) - so clearing the textarea must send '', not null, or the
+    // admin could never actually remove previously-set instructions.
+    component.form.patchValue({ paymentInstructions: '' });
+    component.onSubmit();
+    expect(mockSettings.updateProfile).toHaveBeenCalledWith(
+      expect.objectContaining({ paymentInstructions: '' }),
+    );
+  });
+
   it('surfaces a save failure via a toast', () => {
     (mockSettings.updateProfile as ReturnType<typeof vi.fn>).mockReturnValue(throwError(() => new Error('fail')));
     component.onSubmit();

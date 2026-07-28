@@ -44,7 +44,11 @@ export class TenantProfileComponent implements OnInit {
         name: raw.name,
         phone: raw.phone || null,
         logoUrl: raw.logoUrl || null,
-        paymentInstructions: raw.paymentInstructions || null,
+        // Not `|| null`: the backend only skips assignment when this is null (so an
+        // omitted field never wipes a previously-set value) - sending '' here is how
+        // the admin actually clears it, and the public read side already treats an
+        // empty string as "no instructions set".
+        paymentInstructions: raw.paymentInstructions,
       })
       .subscribe({
         next: () => this.toast.success('Profile updated.'),
