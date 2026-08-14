@@ -9,8 +9,9 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Product, ProductVariant } from '../../models/product.model';
 import { Cart } from '../../../cart/models/cart.model';
 import { NotificationHubService } from '../../../../core/services/notification-hub.service';
+import { AuthService } from '../../../../core/services/auth.service';
 import { NotificationDto } from '../../../../admin/notifications/models/notification.model';
-import { of, throwError, Subject } from 'rxjs';
+import { of, throwError, Subject, BehaviorSubject } from 'rxjs';
 
 describe('ProductDetailComponent', () => {
   let component: ProductDetailComponent;
@@ -93,12 +94,19 @@ describe('ProductDetailComponent', () => {
       connect: vi.fn(),
       notificationReceived$: notificationPushes.asObservable(),
     } as unknown as Partial<NotificationHubService>;
+    // Signed in by default: the hub connection is gated on a token, and the try-on tests below
+    // exercise the push path, which only a signed-in customer can reach.
+    const authServiceMock = {
+      getToken: vi.fn().mockReturnValue('test-jwt'),
+    } as unknown as Partial<AuthService>;
     const routerMock = {
       navigate: vi.fn(),
     } as unknown as Partial<Router>;
 
+    // BehaviorSubject rather than of(): emits { id: '1' } immediately like before, but also lets a
+    // test push a later param change to exercise component reuse across /product/:id.
     activatedRoute = {
-      params: of({ id: '1' }),
+      params: new BehaviorSubject<{ id: string }>({ id: '1' }),
     };
 
     await TestBed.configureTestingModule({
@@ -109,6 +117,7 @@ describe('ProductDetailComponent', () => {
         { provide: TryOnService, useValue: tryOnService },
         { provide: MeasurementService, useValue: measurementService },
         { provide: NotificationHubService, useValue: notificationHubMock },
+        { provide: AuthService, useValue: authServiceMock },
         { provide: Router, useValue: routerMock },
         { provide: ActivatedRoute, useValue: activatedRoute },
       ],
@@ -388,6 +397,20 @@ describe('ProductDetailComponent', () => {
 
       expect(tryOnService.getStatus).not.toHaveBeenCalled();
       expect(component.tryOnProcessing$.value).toBe(true);
+    });
+
+    it('clears in-flight try-on state when the route switches to another product', () => {
+      // Angular reuses this component across /product/:id, so ngOnInit does not re-run; without an
+      // explicit reset the previous product's spinner and requestId carry over.
+      component.tryOnRequestId = 'req-1';
+      component.tryOnProcessing$.next(true);
+      component.tryOnResultImageUrl$.next('https://space.hf.space/file=old.png');
+
+      activatedRoute.params.next({ id: '2' });
+
+      expect(component.tryOnRequestId).toBeNull();
+      expect(component.tryOnProcessing$.value).toBe(false);
+      expect(component.tryOnResultImageUrl$.value).toBeNull();
     });
 
     it('resets the photo selection and clears prior state when a new file is chosen', () => {

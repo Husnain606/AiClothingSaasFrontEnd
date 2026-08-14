@@ -12,6 +12,7 @@ import { MeasurementService } from '../../services/measurement.service';
 import { MeasurementResult } from '../../models/measurement.model';
 import { ChatContextService } from '../../../chat/services/chat-context.service';
 import { NotificationHubService } from '../../../../core/services/notification-hub.service';
+import { AuthService } from '../../../../core/services/auth.service';
 import { NotificationDto } from '../../../../admin/notifications/models/notification.model';
 
 // Matches the backend measurement validator's photo cap (MeasurementRequestFormValidator).
@@ -61,14 +62,20 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
     private measurementService: MeasurementService,
     private chatContextService: ChatContextService,
     private notificationHub: NotificationHubService,
+    private authService: AuthService,
     private route: ActivatedRoute,
     private router: Router
   ) {}
 
   ngOnInit(): void {
-    // The try-on result arrives as a notification push, not as the submit response. connect()
-    // is idempotent, so calling it here is safe even if another part of the app already did.
-    this.notificationHub.connect();
+    // The try-on result arrives as a notification push, not as the submit response. connect() is
+    // idempotent, so calling it here is safe even if another part of the app already did - but it
+    // is gated on being signed in: this is a PUBLIC product page, and the hub requires a JWT, so an
+    // anonymous visitor would otherwise open a socket that can only fail and log noise. Try It On
+    // itself requires auth, so an anonymous visitor has nothing to receive.
+    if (this.authService.getToken()) {
+      this.notificationHub.connect();
+    }
     this.notificationHub.notificationReceived$
       .pipe(takeUntil(this.destroy$))
       .subscribe((notification) => this.onTryOnNotification(notification));
@@ -77,6 +84,11 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
       .pipe(
         switchMap((params) => {
           this.productId = params['id'];
+          // Angular reuses this component across /product/:id changes, so ngOnInit does NOT run
+          // again. Without this reset, navigating to another product carries the previous
+          // product's try-on state over - including a spinner for a render that no longer
+          // describes what is on screen.
+          this.resetTryOnState();
           this.loading$.next(true);
           this.error$.next(null);
           return this.productService.getProductById(this.productId);
@@ -192,6 +204,15 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
    * exist only in this component's memory for the current view. Nothing is sent
    * anywhere except the try-on service's single request/response.
    */
+  /** Drops any in-flight or finished render, so a late push can't resurrect a result. */
+  private resetTryOnState(): void {
+    this.tryOnPhotoFile = null;
+    this.tryOnRequestId = null;
+    this.tryOnProcessing$.next(false);
+    this.tryOnError$.next(null);
+    this.tryOnResultImageUrl$.next(null);
+  }
+
   onTryOnPhotoSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     this.tryOnPhotoFile = input.files?.[0] ?? null;
