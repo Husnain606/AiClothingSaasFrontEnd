@@ -5,7 +5,9 @@ export type NotificationTypeName =
   | 'OrderStatusChanged'
   | 'PaymentConfirmed'
   | 'LowStock'
-  | 'ReviewSubmitted';
+  | 'ReviewSubmitted'
+  | 'TryOnCompleted'
+  | 'TryOnFailed';
 
 export interface NotificationDto {
   id: string;

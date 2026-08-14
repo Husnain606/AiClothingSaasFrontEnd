@@ -224,19 +224,26 @@
             <button
               class="btn btn-outline-primary w-100 mb-2"
               (click)="submitTryOn()"
-              [disabled]="(tryOnLoading$ | async) === true"
+              [disabled]="(tryOnProcessing$ | async) === true"
             >
-              <span *ngIf="(tryOnLoading$ | async) === true">Rendering...</span>
-              <span *ngIf="(tryOnLoading$ | async) !== true">
+              <span *ngIf="(tryOnProcessing$ | async) === true">
+                <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+                Generating your try-on...
+              </span>
+              <span *ngIf="(tryOnProcessing$ | async) !== true">
                 <i class="bi bi-magic me-2"></i>Try It On
               </span>
             </button>
+            <p *ngIf="(tryOnProcessing$ | async) === true" class="text-muted small mb-2">
+              This can take a few minutes. You can keep browsing this page &mdash; the result
+              appears here as soon as it's ready.
+            </p>
             <div *ngIf="tryOnError$ | async as tryOnError" class="alert alert-warning" role="alert">
               {{ tryOnError }}
             </div>
             <img
-              *ngIf="tryOnResultDataUri$ | async as tryOnResultDataUri"
-              [src]="tryOnResultDataUri"
+              *ngIf="tryOnResultImageUrl$ | async as tryOnResultImageUrl"
+              [src]="tryOnResultImageUrl"
               alt="Try-on render result"
               class="img-fluid rounded try-on-result"
             />

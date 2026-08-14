@@ -11,6 +11,8 @@ import { TryOnService } from '../../services/try-on.service';
 import { MeasurementService } from '../../services/measurement.service';
 import { MeasurementResult } from '../../models/measurement.model';
 import { ChatContextService } from '../../../chat/services/chat-context.service';
+import { NotificationHubService } from '../../../../core/services/notification-hub.service';
+import { NotificationDto } from '../../../../admin/notifications/models/notification.model';
 
 // Matches the backend measurement validator's photo cap (MeasurementRequestFormValidator).
 const MAX_MEASUREMENT_PHOTO_BYTES = 10 * 1024 * 1024;
@@ -33,10 +35,13 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
   quantity = new FormControl(1);
   currentImageIndex = 0;
 
-  // Try It On state (spec §8: fully stateless — nothing persisted beyond this instance)
+  // Try It On state (still stateless — nothing persisted beyond this instance). The render is
+  // now asynchronous: submit returns immediately and `tryOnProcessing$` stays true until the
+  // SignalR push for `tryOnRequestId` arrives (see onTryOnNotification).
   tryOnPhotoFile: File | null = null;
-  tryOnResultDataUri$ = new BehaviorSubject<string | null>(null);
-  tryOnLoading$ = new BehaviorSubject<boolean>(false);
+  tryOnRequestId: string | null = null;
+  tryOnResultImageUrl$ = new BehaviorSubject<string | null>(null);
+  tryOnProcessing$ = new BehaviorSubject<boolean>(false);
   tryOnError$ = new BehaviorSubject<string | null>(null);
 
   // Find My Size state (design spec §12 — mirrors Try It On's stateless pattern)
@@ -55,11 +60,19 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
     private tryOnService: TryOnService,
     private measurementService: MeasurementService,
     private chatContextService: ChatContextService,
+    private notificationHub: NotificationHubService,
     private route: ActivatedRoute,
     private router: Router
   ) {}
 
   ngOnInit(): void {
+    // The try-on result arrives as a notification push, not as the submit response. connect()
+    // is idempotent, so calling it here is safe even if another part of the app already did.
+    this.notificationHub.connect();
+    this.notificationHub.notificationReceived$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((notification) => this.onTryOnNotification(notification));
+
     this.route.params
       .pipe(
         switchMap((params) => {
@@ -183,7 +196,7 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
     const input = event.target as HTMLInputElement;
     this.tryOnPhotoFile = input.files?.[0] ?? null;
     this.tryOnError$.next(null);
-    this.tryOnResultDataUri$.next(null);
+    this.tryOnResultImageUrl$.next(null);
   }
 
   submitTryOn(): void {
@@ -199,26 +212,62 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.tryOnLoading$.next(true);
+    this.tryOnProcessing$.next(true);
     this.tryOnError$.next(null);
-    this.tryOnResultDataUri$.next(null);
+    this.tryOnResultImageUrl$.next(null);
 
     this.tryOnService
-      .render(this.tryOnPhotoFile, product.primaryImageUrl, this.productId, variant?.id)
+      .submit(this.tryOnPhotoFile, product.primaryImageUrl, this.productId, variant?.id)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (result) => {
-          this.tryOnLoading$.next(false);
-          this.tryOnResultDataUri$.next(result.resultImageDataUri);
+        next: (submitted) => {
+          // Deliberately does NOT clear tryOnProcessing$ — the render has only been queued.
+          // onTryOnNotification resolves it when the result push arrives.
+          this.tryOnRequestId = submitted.requestId;
         },
         error: (err) => {
-          this.tryOnLoading$.next(false);
+          this.tryOnProcessing$.next(false);
           const status = err?.status;
           this.tryOnError$.next(
             status === 429
               ? "You've reached this month's try-on limit. Upgrade your plan or try again next month."
               : 'The try-on render failed. Please try again in a moment.'
           );
+        },
+      });
+  }
+
+  /**
+   * Resolves the processing state when this component's own try-on finishes. The push carries
+   * only "something happened" — the actual result URL / failure reason comes from a follow-up
+   * GET, so the shared NotificationDto shape doesn't need a try-on-specific payload field.
+   */
+  private onTryOnNotification(notification: NotificationDto): void {
+    const requestId = this.tryOnRequestId;
+    if (!requestId || notification.entityId !== requestId) {
+      return;
+    }
+    if (notification.type !== 'TryOnCompleted' && notification.type !== 'TryOnFailed') {
+      return;
+    }
+
+    this.tryOnService
+      .getStatus(requestId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (status) => {
+          this.tryOnProcessing$.next(false);
+          if (status.status === 'Completed' && status.resultImageUrl) {
+            this.tryOnResultImageUrl$.next(status.resultImageUrl);
+          } else {
+            this.tryOnError$.next(
+              status.failureReason ?? 'The try-on render failed. Please try again in a moment.'
+            );
+          }
+        },
+        error: () => {
+          this.tryOnProcessing$.next(false);
+          this.tryOnError$.next('The try-on render failed. Please try again in a moment.');
         },
       });
   }

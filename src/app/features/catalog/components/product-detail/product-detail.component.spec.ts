@@ -8,7 +8,9 @@ import { MeasurementService } from '../../services/measurement.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Product, ProductVariant } from '../../models/product.model';
 import { Cart } from '../../../cart/models/cart.model';
-import { of, throwError } from 'rxjs';
+import { NotificationHubService } from '../../../../core/services/notification-hub.service';
+import { NotificationDto } from '../../../../admin/notifications/models/notification.model';
+import { of, throwError, Subject } from 'rxjs';
 
 describe('ProductDetailComponent', () => {
   let component: ProductDetailComponent;
@@ -19,6 +21,8 @@ describe('ProductDetailComponent', () => {
   let measurementService: Partial<MeasurementService>;
   let router: Partial<Router>;
   let activatedRoute: any;
+  // Drives the try-on completion push; the real hub is a WebSocket we never open in a unit test.
+  let notificationPushes: Subject<NotificationDto>;
 
   const mockProduct: Product = {
     id: '1',
@@ -29,7 +33,9 @@ describe('ProductDetailComponent', () => {
     categoryName: 'Electronics',
     basePrice: 99.99,
     status: 'active',
-    tags: ['tag1'],
+    // Product.tags is a comma-separated string (matching ProductResponse.Tags), not an array —
+    // this fixture predates that model change and blocked this spec file from compiling at all.
+    tags: 'tag1',
     variantCount: 2,
     primaryImageUrl: 'image.jpg',
     approvedReviewCount: 5,
@@ -80,8 +86,13 @@ describe('ProductDetailComponent', () => {
     const cartServiceMock = {
       addItem: vi.fn().mockReturnValue(of(mockCart)),
     } as unknown as Partial<CartService>;
-    tryOnService = { render: vi.fn() };
+    tryOnService = { submit: vi.fn(), getStatus: vi.fn() };
     measurementService = { estimate: vi.fn() };
+    notificationPushes = new Subject<NotificationDto>();
+    const notificationHubMock = {
+      connect: vi.fn(),
+      notificationReceived$: notificationPushes.asObservable(),
+    } as unknown as Partial<NotificationHubService>;
     const routerMock = {
       navigate: vi.fn(),
     } as unknown as Partial<Router>;
@@ -97,6 +108,7 @@ describe('ProductDetailComponent', () => {
         { provide: CartService, useValue: cartServiceMock },
         { provide: TryOnService, useValue: tryOnService },
         { provide: MeasurementService, useValue: measurementService },
+        { provide: NotificationHubService, useValue: notificationHubMock },
         { provide: Router, useValue: routerMock },
         { provide: ActivatedRoute, useValue: activatedRoute },
       ],
@@ -290,6 +302,14 @@ describe('ProductDetailComponent', () => {
   });
 
   describe('Try It On', () => {
+    // ngOnInit is what subscribes to the notification hub, so the push-driven tests below
+    // need it to have run; the product/variant mocks just let it complete without erroring.
+    beforeEach(() => {
+      (productService.getProductById as any) = vi.fn().mockReturnValue(of(mockProduct));
+      (productService.getProductVariants as any) = vi.fn().mockReturnValue(of(mockVariants));
+      component.ngOnInit();
+    });
+
     it('shows an error when submitting without a photo', () => {
       component.tryOnPhotoFile = null;
       component.submitTryOn();
@@ -298,32 +318,80 @@ describe('ProductDetailComponent', () => {
       expect(error).toBe('Please choose a photo first.');
     });
 
-    it('renders the result data URI on a successful submit', () => {
+    it('stays in the processing state after a successful submit', () => {
       component.product$.next(mockProduct);
       component.tryOnPhotoFile = new File(['x'], 'photo.jpg', { type: 'image/jpeg' });
-      (tryOnService.render as any).mockReturnValue(of({ resultImageDataUri: 'data:image/png;base64,abc' }));
+      (tryOnService.submit as any).mockReturnValue(of({ requestId: 'req-1' }));
 
       component.submitTryOn();
 
-      let result: string | null = null;
-      component.tryOnResultDataUri$.subscribe((r) => (result = r));
-      expect(result).toBe('data:image/png;base64,abc');
+      // The render has only been queued — processing must not clear until the push arrives.
+      expect(component.tryOnRequestId).toBe('req-1');
+      expect(component.tryOnProcessing$.value).toBe(true);
+      expect(component.tryOnResultImageUrl$.value).toBeNull();
     });
 
     it('shows the quota-exceeded message on a 429 error', () => {
       component.product$.next(mockProduct);
       component.tryOnPhotoFile = new File(['x'], 'photo.jpg', { type: 'image/jpeg' });
-      (tryOnService.render as any).mockReturnValue(throwError(() => ({ status: 429 })));
+      (tryOnService.submit as any).mockReturnValue(throwError(() => ({ status: 429 })));
 
       component.submitTryOn();
 
       let error: string | null = null;
       component.tryOnError$.subscribe((e) => (error = e));
       expect(error).toContain("this month's try-on limit");
+      expect(component.tryOnProcessing$.value).toBe(false);
+    });
+
+    it('renders the result image when a matching TryOnCompleted push arrives', () => {
+      component.tryOnRequestId = 'req-1';
+      component.tryOnProcessing$.next(true);
+      (tryOnService.getStatus as any).mockReturnValue(
+        of({ status: 'Completed', resultImageUrl: 'https://space.hf.space/file=r.png', failureReason: null })
+      );
+
+      notificationPushes.next({ type: 'TryOnCompleted', entityId: 'req-1' } as NotificationDto);
+
+      expect(component.tryOnProcessing$.value).toBe(false);
+      expect(component.tryOnResultImageUrl$.value).toBe('https://space.hf.space/file=r.png');
+    });
+
+    it('shows the failure reason when a TryOnFailed push arrives', () => {
+      component.tryOnRequestId = 'req-1';
+      component.tryOnProcessing$.next(true);
+      (tryOnService.getStatus as any).mockReturnValue(
+        of({ status: 'Failed', resultImageUrl: null, failureReason: 'Try-on render timed out.' })
+      );
+
+      notificationPushes.next({ type: 'TryOnFailed', entityId: 'req-1' } as NotificationDto);
+
+      expect(component.tryOnProcessing$.value).toBe(false);
+      expect(component.tryOnError$.value).toBe('Try-on render timed out.');
+    });
+
+    it('ignores a push for a different request id', () => {
+      component.tryOnRequestId = 'req-1';
+      component.tryOnProcessing$.next(true);
+
+      notificationPushes.next({ type: 'TryOnCompleted', entityId: 'someone-elses-id' } as NotificationDto);
+
+      expect(tryOnService.getStatus).not.toHaveBeenCalled();
+      expect(component.tryOnProcessing$.value).toBe(true);
+    });
+
+    it('ignores an unrelated notification type for its own request id', () => {
+      component.tryOnRequestId = 'req-1';
+      component.tryOnProcessing$.next(true);
+
+      notificationPushes.next({ type: 'OrderPlaced', entityId: 'req-1' } as NotificationDto);
+
+      expect(tryOnService.getStatus).not.toHaveBeenCalled();
+      expect(component.tryOnProcessing$.value).toBe(true);
     });
 
     it('resets the photo selection and clears prior state when a new file is chosen', () => {
-      component.tryOnResultDataUri$.next('data:image/png;base64,stale');
+      component.tryOnResultImageUrl$.next('https://space.hf.space/file=stale.png');
       component.tryOnError$.next('stale error');
 
       const file = new File(['x'], 'new-photo.jpg', { type: 'image/jpeg' });
@@ -332,7 +400,7 @@ describe('ProductDetailComponent', () => {
 
       expect(component.tryOnPhotoFile).toBe(file);
       let result: string | null = null;
-      component.tryOnResultDataUri$.subscribe((r) => (result = r));
+      component.tryOnResultImageUrl$.subscribe((r) => (result = r));
       expect(result).toBeNull();
     });
   });

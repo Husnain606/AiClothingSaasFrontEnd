@@ -6,6 +6,14 @@ export interface TryOnApiResponse<T> {
   errors: string[] | null;
 }
 
-export interface TryOnResult {
-  resultImageDataUri: string;
+/** 202 response from POST /tryon — the render runs in the background from here. */
+export interface TryOnSubmitted {
+  requestId: string;
+}
+
+/** GET /tryon/{id} — what the render eventually resolved to. */
+export interface TryOnStatus {
+  status: 'Processing' | 'Completed' | 'Failed';
+  resultImageUrl: string | null;
+  failureReason: string | null;
 }
