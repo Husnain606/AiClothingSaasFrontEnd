@@ -195,6 +195,7 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
   onTryOnPhotoSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     this.tryOnPhotoFile = input.files?.[0] ?? null;
+    this.tryOnRequestId = null; // drop any earlier render, so a late push can't resurrect its result
     this.tryOnError$.next(null);
     this.tryOnResultImageUrl$.next(null);
   }
@@ -256,6 +257,10 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (status) => {
+          // Consume the id: Service Bus is at-least-once and the consumer has no idempotency
+          // guard, so the same push can arrive twice. Without this, a redelivery would re-fetch
+          // and re-render this result over whatever the user has since moved on to.
+          this.tryOnRequestId = null;
           this.tryOnProcessing$.next(false);
           if (status.status === 'Completed' && status.resultImageUrl) {
             this.tryOnResultImageUrl$.next(status.resultImageUrl);
