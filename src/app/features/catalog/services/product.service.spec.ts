@@ -45,7 +45,7 @@ describe('ProductService', () => {
       categoryName: 'Electronics',
       basePrice: 99.99,
       status: 'active',
-      tags: ['tag1'],
+      tags: 'tag1',
       variantCount: 2,
       primaryImageUrl: 'https://example.com/image.jpg',
       approvedReviewCount: 5,

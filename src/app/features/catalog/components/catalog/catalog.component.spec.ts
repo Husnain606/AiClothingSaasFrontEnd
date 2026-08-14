@@ -37,7 +37,7 @@ describe('CatalogComponent', () => {
       categoryName: 'Electronics',
       basePrice: 99.99,
       status: 'active',
-      tags: [],
+      tags: '',
       variantCount: 1,
       primaryImageUrl: 'image.jpg',
       approvedReviewCount: 0,

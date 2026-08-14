@@ -59,20 +59,22 @@ describe('AccountService', () => {
     {
       id: 'WISH-001',
       productId: 'PROD-001',
+      productVariantId: null,
       productName: 'Jeans',
-      price: 79.99,
-      imageUrl: 'https://example.com/jeans.jpg',
-      addedDate: new Date(),
-      inStock: true,
+      productSlug: 'jeans',
+      productBasePrice: 79.99,
+      primaryImageUrl: 'https://example.com/jeans.jpg',
+      createdAt: '2026-01-01T00:00:00Z',
     },
     {
       id: 'WISH-002',
       productId: 'PROD-002',
+      productVariantId: null,
       productName: 'Jacket',
-      price: 99.99,
-      imageUrl: 'https://example.com/jacket.jpg',
-      addedDate: new Date(),
-      inStock: false,
+      productSlug: 'jacket',
+      productBasePrice: 99.99,
+      primaryImageUrl: 'https://example.com/jacket.jpg',
+      createdAt: '2026-01-02T00:00:00Z',
     },
   ];
 
@@ -342,8 +344,7 @@ describe('AccountService', () => {
         service.getWishlist().subscribe((items) => {
           expect(items[0].id).toBe('WISH-001');
           expect(items[0].productId).toBe('PROD-001');
-          expect(items[0].price).toBe(79.99);
-          expect(items[0].inStock).toBe(true);
+          expect(items[0].productBasePrice).toBe(79.99);
           resolve();
         });
 
@@ -426,8 +427,8 @@ describe('AccountService', () => {
       return new Promise<void>((resolve) => {
         service.addToWishlist('PROD-002').subscribe((item) => {
           expect(item.productName).toBe('Jeans');
-          expect(item.price).toBe(79.99);
-          expect(item.imageUrl).toBeDefined();
+          expect(item.productBasePrice).toBe(79.99);
+          expect(item.primaryImageUrl).toBeDefined();
           resolve();
         });
 

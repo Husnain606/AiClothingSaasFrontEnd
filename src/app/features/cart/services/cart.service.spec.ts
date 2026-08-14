@@ -15,7 +15,7 @@ describe('CartService', () => {
     categoryName: 'Clothing',
     basePrice: 79.99,
     status: 'active',
-    tags: ['jacket', 'leather'],
+    tags: 'jacket,leather',
     variantCount: 2,
     primaryImageUrl: 'https://example.com/jacket.jpg',
     approvedReviewCount: 10,
