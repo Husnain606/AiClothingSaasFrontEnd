@@ -3,7 +3,13 @@ import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { AccountService } from './account.service';
 import { ApiService } from '../../../core/services/api.service';
-import { CustomerProfile, Order, WishlistItem, ChangePasswordRequest } from '../models/account.model';
+import {
+  CustomerProfile,
+  Order,
+  WishlistItem,
+  WishlistResponse,
+  ChangePasswordRequest,
+} from '../models/account.model';
 
 describe('AccountService', () => {
   let service: AccountService;
@@ -77,6 +83,14 @@ describe('AccountService', () => {
       createdAt: '2026-01-02T00:00:00Z',
     },
   ];
+
+  // GET account/wishlist returns the WishlistResponse wrapper ({id, customerId, items}),
+  // not a bare array - the service unwraps .items, so the flushed envelope must match.
+  const mockWishlistResponse: WishlistResponse = {
+    id: 'WL-001',
+    customerId: 'CUST-001',
+    items: mockWishlist,
+  };
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -323,7 +337,7 @@ describe('AccountService', () => {
 
         const req = httpMock.expectOne((request) => request.url.includes('account/wishlist'));
         expect(req.request.method).toBe('GET');
-        req.flush({ data: mockWishlist });
+        req.flush({ data: mockWishlistResponse });
       });
     });
 
@@ -349,7 +363,7 @@ describe('AccountService', () => {
         });
 
         const req = httpMock.expectOne((request) => request.url.includes('account/wishlist'));
-        req.flush({ data: mockWishlist });
+        req.flush({ data: mockWishlistResponse });
       });
     });
 

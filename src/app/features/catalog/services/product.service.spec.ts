@@ -85,7 +85,14 @@ describe('ProductService', () => {
   });
 
   afterEach(() => {
-    httpMock.verify();
+    // Reset the TestBed even when verify() throws, otherwise one test's unflushed
+    // request leaves an already-instantiated TestBed behind and every following
+    // configureTestingModule() fails with "test module has already been instantiated".
+    try {
+      httpMock.verify();
+    } finally {
+      TestBed.resetTestingModule();
+    }
   });
 
   it('should be created', () => {
@@ -175,27 +182,58 @@ describe('ProductService', () => {
     });
   });
 
+  // getProductVariants also goes straight through HttpClient on the public slug-based
+  // route (api/{slug}/products/{id}/variants), not through ApiService — a storefront
+  // customer has no JWT — so it is asserted via HttpTestingController too.
   describe('getProductVariants', () => {
     it('should fetch product variants', async () => {
       const productId = 'prod1';
 
-      (apiService.get as any) = vi.fn().mockReturnValue(of(asApiResponse(mockVariants)));
+      const resultPromise = service.getProductVariants(productId).toPromise();
 
-      const result = await service.getProductVariants(productId).toPromise();
-      expect(result).toEqual(mockVariants);
+      const req = httpMock.expectOne(`${publicCatalogBaseUrl}/products/${productId}/variants`);
+      expect(req.request.method).toBe('GET');
+      req.flush(asApiResponse(mockVariants));
+
+      expect(await resultPromise).toEqual(mockVariants);
     });
   });
 
   describe('clearProductCache', () => {
-    it('should clear product cache', () => {
+    it('should clear product cache', async () => {
+      const productId = 'prod1';
+
+      // Populate the cache first — getProductById only caches once the response emits.
+      const resultPromise = service.getProductById(productId).toPromise();
+      httpMock
+        .expectOne(`${publicCatalogBaseUrl}/products/${productId}`)
+        .flush(asApiResponse(mockProducts[0]));
+      await resultPromise;
+      expect(service['productCache'].size).toBe(1);
+
       service.clearProductCache();
+
       expect(service['productCache'].size).toBe(0);
     });
   });
 
   describe('clearAllCaches', () => {
-    it('should clear all caches', () => {
+    it('should clear all caches', async () => {
+      const productId = 'prod1';
+
+      // getCategories() populates categoriesCache$ eagerly; the inner observable stays
+      // cold until subscribed, so this seeds the cache without issuing a request.
+      service.getCategories();
+      const resultPromise = service.getProductById(productId).toPromise();
+      httpMock
+        .expectOne(`${publicCatalogBaseUrl}/products/${productId}`)
+        .flush(asApiResponse(mockProducts[0]));
+      await resultPromise;
+      expect(service['categoriesCache$']).not.toBeNull();
+      expect(service['productCache'].size).toBe(1);
+
       service.clearAllCaches();
+
       expect(service['categoriesCache$']).toBeNull();
       expect(service['productCache'].size).toBe(0);
     });
